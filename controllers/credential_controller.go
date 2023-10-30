@@ -94,3 +94,47 @@ func AddSecret(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Secret successfully saved!"})
 }
+
+func GetSecretsForUser(ctx *gin.Context) {
+	// Parse user_id from header
+	userIDHeader := ctx.GetHeader("user_id")
+	userID, err := uuid.Parse(userIDHeader)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id in header."})
+		return
+	}
+
+	// Get folder_id from query params
+	folderIDStr := ctx.DefaultQuery("folder_id", "")
+	folderID, err := uuid.Parse(folderIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder_id query parameter."})
+		return
+	}
+
+	// Fetch secrets
+	secrets, err := repository.GetSecretsByFolderAndUser(folderID, userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve secrets."})
+		return
+	}
+
+	var response []map[string]interface{}
+
+	for _, secret := range secrets {
+		data := make([]map[string]string, 0)
+		for _, field := range secret.Fields {
+			data = append(data, map[string]string{
+				"FieldName":  field.FieldName,
+				"FieldValue": field.FieldValue,
+			})
+		}
+
+		response = append(response, map[string]interface{}{
+			"ID":     secret.ID,
+			"Fields": data,
+		})
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
