@@ -23,12 +23,12 @@ func CreateFolder(ctx *gin.Context) {
 	}
 
 	// Retrieve user_id from header
-	userId := ctx.GetHeader("user_id")
-	if userId == "" {
+	user_id := ctx.GetHeader("user_id")
+	if user_id == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
 		return
 	}
-	folder.CreatedBy, _ = uuid.Parse(userId)
+	folder.CreatedBy, _ = uuid.Parse(user_id)
 	if err := repository.SaveFolder(&folder); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create folder."})
 		return
