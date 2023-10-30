@@ -15,7 +15,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 
 	route.POST("/v1/user/", controllers.CreateUser)
-
+	route.POST("/v1/folder/", controllers.CreateFolder)
 	//Add All route
 	//TestRoutes(route)
 }

@@ -6,10 +6,11 @@ import (
 
 type Folder struct {
 	BaseModel
-	Name      string   `gorm:"size:255;column:name"`
-	Tags      []string `gorm:"type:varchar(255)[];column:tags"`
-	CreatedBy uuid.UUID
-	Creator   User `gorm:"foreignKey:CreatedBy"`
+	Name        string      `gorm:"size:255;column:name"`
+	Tags        StringArray `gorm:"type:varchar(255)[];column:tags"`
+	CreatedBy   uuid.UUID
+	Creator     User   `gorm:"foreignKey:CreatedBy"`
+	description string `gorm:"size:255;column:name"`
 }
 
 func (u *Folder) TableName() string {
