@@ -23,6 +23,20 @@ type FieldRequest struct {
 	FieldValue string `json:"field_value"`
 }
 
+type ShareSecretPayload struct {
+	CredentialList []struct {
+		CredentialID string `json:"credential_id"`
+		Users        []struct {
+			UserID string `json:"user_id"`
+			Fields []struct {
+				FieldName  string `json:"field_name"`
+				FieldValue string `json:"field_value"`
+			} `json:"fields"`
+			AccessType string `json:"access_type"`
+		} `json:"users"`
+	} `json:"credential_list"`
+}
+
 func AddSecret(ctx *gin.Context) {
 	var req SecretRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -137,4 +151,52 @@ func GetSecretsForUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
+
+func ShareSecret(ctx *gin.Context) {
+	var payload ShareSecretPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Iterate over each credential in the payload
+	for _, credential := range payload.CredentialList {
+		credential_id, _ := uuid.Parse(credential.CredentialID)
+
+		// Iterate over users for this credential
+		for _, user := range credential.Users {
+			user_id, _ := uuid.Parse(user.UserID)
+
+			// Insert into AccessList
+			access_list := models.AccessList{
+				CredentialID: credential_id,
+				UserID:       user_id,
+				AccessType:   user.AccessType,
+			}
+			err := repository.AddAccessList(&access_list)
+			if err != nil {
+				logger.Errorf(err.Error())
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save credential."})
+				return
+			}
+
+			// Insert fields into EncryptedData table
+			for _, field := range user.Fields {
+				encryptedData := models.EncryptedData{
+					FieldName:    field.FieldName,
+					CredentialID: credential_id,
+					FieldValue:   field.FieldValue,
+					UserID:       user_id,
+				}
+				err := repository.SaveEncryptedData(&encryptedData)
+				if err != nil {
+					ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save encrypted data."})
+					return
+				}
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
