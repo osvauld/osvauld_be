@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"gin-boilerplate/infra/database"
-	"gin-boilerplate/infra/logger"
+	"osvauld/infra/database"
+	"osvauld/infra/logger"
 )
 
 func Save(model interface{}) interface{} {

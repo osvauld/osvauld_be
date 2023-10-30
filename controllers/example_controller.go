@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"gin-boilerplate/models"
-	"gin-boilerplate/repository"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"osvauld/models"
+	"osvauld/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetData(ctx *gin.Context) {

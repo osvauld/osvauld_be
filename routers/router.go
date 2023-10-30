@@ -1,7 +1,8 @@
 package routers
 
 import (
-	"gin-boilerplate/routers/middleware"
+	"osvauld/routers/middleware"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
