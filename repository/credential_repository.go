@@ -5,6 +5,7 @@ import (
 	"osvauld/models"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type SecretOutput struct {
@@ -63,4 +64,51 @@ func GetFolderIDsByCredentialIDs(credentialIDs []uuid.UUID) ([]uuid.UUID, error)
 		Pluck("DISTINCT(folder_id)", &folderIDs).
 		Error
 	return folderIDs, err
+}
+
+func FetchSecretByID(credentialID string) (CustomOutput, error) {
+	db := database.DB
+	var credential models.Credential
+
+	err := db.
+		Select("ID, Name, Description"). // Explicitly selecting fields at the root
+		Preload("EncryptedDatas", func(db *gorm.DB) *gorm.DB {
+			return db.Omit("Credential", "Folder")
+		}).
+		Preload("UnencryptedDatas", func(db *gorm.DB) *gorm.DB {
+			return db.Omit("Credential", "Folder")
+		}).
+		Where("id = ?", credentialID).First(&credential).Error
+	returnValue := ConvertToCustomOutput(credential)
+	return returnValue, err
+}
+
+type CustomOutput struct {
+	Name              string
+	Description       string
+	ID                uuid.UUID
+	EncryptedFields   map[string]string
+	UnencryptedFields map[string]string
+}
+
+func ConvertToCustomOutput(cred models.Credential) CustomOutput {
+	output := CustomOutput{
+		Name:        cred.Name,
+		Description: cred.Description,
+		ID:          cred.ID,
+	}
+
+	// Assign encrypted fields
+	output.EncryptedFields = make(map[string]string)
+	for _, data := range cred.EncryptedDatas {
+		output.EncryptedFields[data.FieldName] = data.FieldValue
+	}
+
+	// Assign unencrypted fields
+	output.UnencryptedFields = make(map[string]string)
+	for _, data := range cred.UnencryptedDatas {
+		output.UnencryptedFields[data.FieldName] = data.FieldValue
+	}
+
+	return output
 }

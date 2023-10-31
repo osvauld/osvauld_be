@@ -200,3 +200,13 @@ func ShareSecret(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
+
+func GetCredentialByID(ctx *gin.Context) {
+	credentialID := ctx.Param("id")
+	secret, err := repository.FetchSecretByID(credentialID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, secret)
+}

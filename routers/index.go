@@ -20,6 +20,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/secrets/", controllers.GetSecretsForUser)
 	route.PUT("/secrets/", controllers.ShareSecret)
 	route.GET("/folders/", controllers.GetAccessibleFolders)
+	route.GET("/credential/:id", controllers.GetCredentialByID)
 	//Add All route
 	//TestRoutes(route)
 }
