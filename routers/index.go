@@ -21,6 +21,8 @@ func RegisterRoutes(route *gin.Engine) {
 	route.PUT("/secrets/", controllers.ShareSecret)
 	route.GET("/folders/", controllers.GetAccessibleFolders)
 	route.GET("/credential/:id", controllers.GetCredentialByID)
+	route.POST("/group", controllers.AddGroup)
+	route.POST("/group/members", controllers.AppendMembersToGroup)
 	//Add All route
 	//TestRoutes(route)
 }

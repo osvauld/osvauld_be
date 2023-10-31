@@ -9,7 +9,7 @@ import (
 // Migrate Add list of model add for migrations
 // TODO later separate migration each models
 func Migrate() {
-	var migrationModels = []interface{}{&models.UnencryptedData{}, &models.AccessList{}, &models.Credential{}, &models.EncryptedData{}, &models.Folder{}, &models.User{}}
+	var migrationModels = []interface{}{&models.UnencryptedData{}, &models.AccessList{}, &models.Credential{}, &models.EncryptedData{}, &models.Folder{}, &models.User{}, &models.Group{}}
 	database.DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {
