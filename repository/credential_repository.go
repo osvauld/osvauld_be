@@ -54,3 +54,13 @@ func GetSecretsByFolderAndUser(folderID, userID uuid.UUID) ([]SecretOutput, erro
 
 	return results, nil
 }
+
+func GetFolderIDsByCredentialIDs(credentialIDs []uuid.UUID) ([]uuid.UUID, error) {
+	var folderIDs []uuid.UUID
+	db := database.DB
+	err := db.Table("credentials").
+		Where("id IN (?)", credentialIDs).
+		Pluck("DISTINCT(folder_id)", &folderIDs).
+		Error
+	return folderIDs, err
+}

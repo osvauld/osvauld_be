@@ -35,3 +35,35 @@ func CreateFolder(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, folder)
 }
+
+func GetAccessibleFolders(ctx *gin.Context) {
+	// 1. Fetch User ID from Header
+	userID := ctx.GetHeader("user_id")
+	if userID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "User ID not provided"})
+		return
+	}
+	user_uuid, _ := uuid.Parse((userID))
+	// 2. Fetch Credential IDs from Access List
+	credentialIDs, err := repository.GetCredentialIDsByUserID(user_uuid)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch folders."})
+		return
+	}
+	if len(credentialIDs) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{})
+		return
+	}
+
+	// 3. Fetch Folder IDs from Credentials
+	uniqueFolderIDs, err := repository.GetFolderIDsByCredentialIDs(credentialIDs)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch folders."})
+		return
+	}
+	// 4. Fetch Folders
+	folders, _ := repository.GetFoldersByIds(uniqueFolderIDs)
+
+	// 5. Return the Folders to the Client
+	ctx.JSON(http.StatusOK, gin.H{"folders": folders})
+}
