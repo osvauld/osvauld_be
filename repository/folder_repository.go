@@ -1,24 +1,37 @@
 package repository
 
 import (
-	"fmt"
+	"database/sql"
+	db "osvauld/db/sqlc"
+	dto "osvauld/dtos"
 	"osvauld/infra/database"
-	"osvauld/models"
+	"osvauld/infra/logger"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func SaveFolder(folder *models.Folder) error {
-	db := database.DB
-	fmt.Printf("Folder data before saving %+v\n", folder)
-	result := db.Create(&folder)
-	fmt.Println(result.Error)
-	return result.Error
+func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) (uuid.UUID, error) {
+	arg := db.CreateFolderParams{
+		Name:        folder.Name,
+		Description: sql.NullString{String: folder.Description, Valid: true},
+		CreatedBy:   uuid.NullUUID{UUID: userID, Valid: true},
+	}
+	q := db.New(database.DB)
+	id, err := q.CreateFolder(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return uuid.Nil, err
+	}
+	return id, nil
 }
 
-func GetFoldersByIds(folderIds []uuid.UUID) ([]models.Folder, error) {
-	db := database.DB
-	var folderList []models.Folder
-	err := db.Where("id IN (?)", folderIds).Find(&folderList).Error
-	return folderList, err
+func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.Folder, error) {
+	q := db.New(database.DB)
+	folders, err := q.FetchAccessibleAndCreatedFoldersByUser(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return folders, nil
 }

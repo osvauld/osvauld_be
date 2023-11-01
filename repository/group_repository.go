@@ -1,32 +1,44 @@
 package repository
 
 import (
+	db "osvauld/db/sqlc"
+	dto "osvauld/dtos"
 	"osvauld/infra/database"
-	"osvauld/models"
+	"osvauld/infra/logger"
+	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func AddGroup(group models.Group) error {
-	db := database.DB
-	return db.Create(&group).Error
+func AddGroup(ctx *gin.Context, group dto.CreateGroup, userID uuid.UUID) error {
+	arg := db.CreateGroupParams{
+		Name:      group.Name,
+		CreatedBy: uuid.NullUUID{UUID: userID, Valid: true},
+		Members:   []uuid.UUID{userID},
+	}
+	q := db.New(database.DB)
+	_, err := q.CreateGroup(ctx, arg)
+	return err
 }
 
-func AddMembersToGroup(groupID uuid.UUID, members []uuid.UUID) error {
-	db := database.DB
-
-	// Convert the slice of UUIDs to a string format suitable for PostgreSQL
-	idsStr := "{"
-	for i, member := range members {
-		idsStr += member.String()
-		if i < len(members)-1 {
-			idsStr += ","
-		}
+func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUID) error {
+	uuidStrings := make([]string, len(payload.Members))
+	for i, u := range payload.Members {
+		uuidStrings[i] = u.String()
 	}
-	idsStr += "}"
+	pgArray := "{" + strings.Join(uuidStrings, ",") + "}"
+	arg := db.AddMemberToGroupParams{
+		CreatedBy:   uuid.NullUUID{UUID: userID, Valid: true},
+		ArrayAppend: pgArray,
+		ID:          payload.GroupID,
+	}
+	q := db.New(database.DB)
+	err := q.AddMemberToGroup(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return err
+	}
+	return nil
 
-	// Raw SQL query to append userIDs to the members array
-	query := `UPDATE groups SET members = array_cat(members, ?::uuid[]) WHERE id = ?`
-
-	return db.Exec(query, idsStr, groupID).Error
 }

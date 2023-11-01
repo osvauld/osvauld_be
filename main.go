@@ -4,7 +4,6 @@ import (
 	"osvauld/config"
 	"osvauld/infra/database"
 	"osvauld/infra/logger"
-	"osvauld/migrations"
 	"osvauld/routers"
 	"time"
 
@@ -21,13 +20,13 @@ func main() {
 	if err := config.SetupConfig(); err != nil {
 		logger.Fatalf("config SetupConfig() error: %s", err)
 	}
-	masterDSN, replicaDSN := config.DbConfiguration()
+	masterDSN, _ := config.DbConfiguration()
 
-	if err := database.DbConnection(masterDSN, replicaDSN); err != nil {
+	if err := database.DbConnection(masterDSN); err != nil {
 		logger.Fatalf("database DbConnection error: %s", err)
 	}
+
 	//later separate migration
-	migrations.Migrate()
 
 	router := routers.SetupRoute()
 	logger.Fatalf("%v", router.Run(config.ServerConfig()))

@@ -1,20 +1,25 @@
 package repository
 
 import (
+	db "osvauld/db/sqlc"
 	"osvauld/infra/database"
-	"osvauld/models"
+	"osvauld/infra/logger"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func AddAccessList(list *models.AccessList) error {
-	db := database.DB
-	return db.Create(&list).Error
-}
-
-func GetCredentialIDsByUserID(user_id uuid.UUID) ([]uuid.UUID, error) {
-	db := database.DB
-	var credentialIDs []uuid.UUID
-	err := db.Table("access_list").Where("user_id = ?", user_id).Pluck("credential_id", &credentialIDs).Error
-	return credentialIDs, err
+func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string, userID uuid.UUID) error {
+	arg := db.AddToAccessListParams{
+		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
+		AccessType:   db.AccessType(accessType),
+		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
+	}
+	q := db.New(database.DB)
+	_, err := q.AddToAccessList(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return err
+	}
+	return nil
 }

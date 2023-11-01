@@ -2,68 +2,40 @@ package controllers
 
 import (
 	"net/http"
-	"osvauld/models"
-	"osvauld/repository"
+	dto "osvauld/dtos"
+	"osvauld/infra/logger"
+	service "osvauld/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func CreateFolder(ctx *gin.Context) {
-	var folder models.Folder
-	if err := ctx.ShouldBindJSON(&folder); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	var req dto.CreateFolder
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logger.Errorf(err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request"})
 	}
 
-	// Validation using go-playground/validator
-	if err := validate.Struct(folder); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Retrieve user_id from header
-	user_id := ctx.GetHeader("user_id")
-	if user_id == "" {
+	userIdString := ctx.GetHeader("userId")
+	if userIdString == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
 		return
 	}
-	folder.CreatedBy, _ = uuid.Parse(user_id)
-	if err := repository.SaveFolder(&folder); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create folder."})
-		return
-	}
-	ctx.JSON(http.StatusOK, folder)
+	userID, _ := uuid.Parse(userIdString)
+	// TODO add validation
+	service.CreateFolder(ctx, req, userID)
 }
 
 func GetAccessibleFolders(ctx *gin.Context) {
 	// 1. Fetch User ID from Header
-	userID := ctx.GetHeader("user_id")
-	if userID == "" {
+	userIDString := ctx.GetHeader("userId")
+	if userIDString == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "User ID not provided"})
 		return
 	}
-	user_uuid, _ := uuid.Parse((userID))
-	// 2. Fetch Credential IDs from Access List
-	credentialIDs, err := repository.GetCredentialIDsByUserID(user_uuid)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch folders."})
-		return
-	}
-	if len(credentialIDs) == 0 {
-		ctx.JSON(http.StatusOK, gin.H{})
-		return
-	}
-
-	// 3. Fetch Folder IDs from Credentials
-	uniqueFolderIDs, err := repository.GetFolderIDsByCredentialIDs(credentialIDs)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch folders."})
-		return
-	}
-	// 4. Fetch Folders
-	folders, _ := repository.GetFoldersByIds(uniqueFolderIDs)
-
+	userID, _ := uuid.Parse(userIDString)
+	folders, _ := service.GetAccessibleFolders(ctx, userID)
 	// 5. Return the Folders to the Client
 	ctx.JSON(http.StatusOK, gin.H{"folders": folders})
 }
