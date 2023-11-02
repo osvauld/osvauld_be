@@ -53,8 +53,8 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 	arg := db.ShareSecretParams{
 		ShareSecret:   user.UserID,
 		ShareSecret_2: id,
-		ShareSecret_3: []string{"password"},
-		ShareSecret_4: []string{"fdsafsd"},
+		ShareSecret_3: GoSliceToPostgresArray(fieldNames),
+		ShareSecret_4: GoSliceToPostgresArray(fieldValues),
 		ShareSecret_5: user.AccessType,
 	}
 	q := db.New(database.DB)
@@ -65,26 +65,41 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 	}
 }
 func GoSliceToPostgresArray(arr []string) string {
-	escaped := make([]string, len(arr))
-	for i, element := range arr {
-		// Escape quotes in the string
-		escaped[i] = strings.ReplaceAll(element, "\"", "\\\"")
-	}
-	return "ARRAY[" + "\"" + strings.Join(escaped, "\",\"") + "\"" + "]::VARCHAR[]"
+	return "{" + strings.Join(arr, ",") + "}"
 }
 
-// func FetchCredentialByID(ctx *gin.Context, userID uuid.UUID, credentialID uuid.UUID) (db.FetchCredentialByIDRow, error) {
-// 	q := db.New(database.DB)
-// 	fmt.Println(credentialID)
-// 	fmt.Println(userID)
-// 	arg := db.FetchCredentialByIDParams{
-// 		ID:     credentialID,
-// 		UserID: uuid.NullUUID{UUID: userID, Valid: true},
-// 	}
-// 	credential, err := q.FetchCredentialByID(ctx, arg)
-// 	if err != nil {
-// 		logger.Errorf(err.Error())
-// 		return credential, err
-// 	}
-// 	return credential, nil
-// }
+func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID) (db.GetCredentialDetailsRow, error) {
+	q := db.New(database.DB)
+	credential, err := q.GetCredentialDetails(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return credential, err
+	}
+	return credential, nil
+
+}
+
+func FetchEncryptedData(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) ([]db.GetUserEncryptedDataRow, error) {
+	q := db.New(database.DB)
+	arg := db.GetUserEncryptedDataParams{
+		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
+		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
+	}
+	encryptedData, err := q.GetUserEncryptedData(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return encryptedData, err
+}
+
+func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
+	q := db.New(database.DB)
+
+	encryptedData, err := q.GetCredentialUnencryptedData(ctx, uuid.NullUUID{UUID: credentialID, Valid: true})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return encryptedData, err
+}

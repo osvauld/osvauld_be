@@ -1,7 +1,6 @@
 -- SQL Definition for BaseModel (common fields)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE access_type AS ENUM ('owner', 'read', 'manage');
 
 -- SQL Definition for User
 CREATE TABLE users (
@@ -39,7 +38,7 @@ CREATE TABLE access_list (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     credential_id UUID REFERENCES credentials(id),
     user_id UUID REFERENCES users(id),
-    access_type access_type NOT NULL
+    access_type VARCHAR(255) NOT NULL
 );
 
 

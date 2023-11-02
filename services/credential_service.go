@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -40,10 +42,28 @@ func ShareCredential(ctx *gin.Context, payload dto.ShareCredentialPayload, userI
 	}
 }
 
-// func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (db.FetchCredentialByIDRow, error) {
-// 	credential, err := repository.FetchCredentialByID(ctx, credentialID, userID)
-// 	if err != nil {
-// 		return credential, err
-// 	}
-// 	return credential, nil
-// }
+func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (dto.CredentialDetails, error) {
+	if hasAccess, err := repository.CheckAccessForCredential(ctx, credentialID, userID); !hasAccess {
+		logger.Errorf(err.Error())
+		return dto.CredentialDetails{}, errors.New("User does not have access to the credential")
+	}
+	credential, err := repository.FetchCredentialByID(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+	}
+	encryptedData, err := repository.FetchEncryptedData(ctx, credentialID, userID)
+	if err != nil {
+		logger.Errorf(err.Error())
+	}
+	unEncryptedData, err := repository.FetchUnEncryptedData(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+	}
+	credentialDetail := dto.CredentialDetails{
+		Credential:      credential,
+		EncryptedData:   encryptedData,
+		UnencryptedData: unEncryptedData,
+	}
+	return credentialDetail, err
+
+}

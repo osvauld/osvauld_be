@@ -6,55 +6,10 @@ package db
 
 import (
 	"database/sql"
-	"database/sql/driver"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
-
-type AccessType string
-
-const (
-	AccessTypeOwner  AccessType = "owner"
-	AccessTypeRead   AccessType = "read"
-	AccessTypeManage AccessType = "manage"
-)
-
-func (e *AccessType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = AccessType(s)
-	case string:
-		*e = AccessType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for AccessType: %T", src)
-	}
-	return nil
-}
-
-type NullAccessType struct {
-	AccessType AccessType `json:"access_type"`
-	Valid      bool       `json:"valid"` // Valid is true if AccessType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullAccessType) Scan(value interface{}) error {
-	if value == nil {
-		ns.AccessType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.AccessType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullAccessType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.AccessType), nil
-}
 
 type AccessList struct {
 	ID           uuid.UUID     `json:"id"`
@@ -62,7 +17,7 @@ type AccessList struct {
 	UpdatedAt    time.Time     `json:"updated_at"`
 	CredentialID uuid.NullUUID `json:"credential_id"`
 	UserID       uuid.NullUUID `json:"user_id"`
-	AccessType   AccessType    `json:"access_type"`
+	AccessType   string        `json:"access_type"`
 }
 
 type Credential struct {

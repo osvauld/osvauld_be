@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	db "osvauld/db/sqlc"
+
+	"github.com/google/uuid"
+)
 
 type AddCredentailRequest struct {
 	Name              string         `json:"name"`
@@ -28,4 +32,10 @@ type Credential struct {
 
 type ShareCredentialPayload struct {
 	CredentialList []Credential `json:"credentialList"`
+}
+
+type CredentialDetails struct {
+	Credential      db.GetCredentialDetailsRow           `json:"credential"`
+	EncryptedData   []db.GetUserEncryptedDataRow         `json:"encryptedData"`
+	UnencryptedData []db.GetCredentialUnencryptedDataRow `json:"unencryptedData"`
 }

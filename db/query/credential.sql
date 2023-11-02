@@ -25,6 +25,7 @@ LEFT JOIN unencrypted_data u ON c.id = u.credential_id
 WHERE a.user_id = $1 AND c.folder_id = $2
 GROUP BY c.id, c.name, c.description;
 ----------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION share_secret(
     p_user_id UUID,
     p_credential_id UUID,
@@ -54,29 +55,18 @@ $$ LANGUAGE plpgsql;
 SELECT share_secret($1, $2, $3, $4, $5);
 
 
--- -- name: FetchCredentialByID :one
--- SELECT
---   c.id,
---   c.name,
---   c.description,
--- FROM
---   credentials c
+-- name: GetCredentialDetails :one
+SELECT id, name, description
+FROM credentials
+WHERE id = $1;
 
--- -- For encrypted data accessible by user
--- LEFT JOIN encrypted_data e ON c.id = e.credential_id AND e.user_id = $1
 
--- -- For unencrypted data
--- LEFT JOIN unencrypted_data u ON c.id = u.credential_id
+-- name: GetUserEncryptedData :many
+SELECT field_name, field_value
+FROM encrypted_data
+WHERE user_id = $1 AND credential_id = $2;
 
--- -- Access control
--- WHERE
---   c.id = $2 AND COALESCE(EXISTS (
---     SELECT 1
---     FROM access_list
---     WHERE user_id = $1 AND credential_id = $2
---   ), TRUE)
-
--- GROUP BY
---   c.id,
---   c.name,
---   c.description;
+-- name: GetCredentialUnencryptedData :many
+SELECT field_name, field_value
+FROM unencrypted_data
+WHERE credential_id = $1;

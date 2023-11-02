@@ -12,7 +12,7 @@ import (
 func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string, userID uuid.UUID) error {
 	arg := db.AddToAccessListParams{
 		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
-		AccessType:   db.AccessType(accessType),
+		AccessType:   accessType,
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
 	q := db.New(database.DB)
@@ -22,4 +22,18 @@ func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string
 		return err
 	}
 	return nil
+}
+
+func CheckAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
+	arg := db.HasUserAccessParams{
+		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
+		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
+	}
+	q := db.New(database.DB)
+	hasAccess, err := q.HasUserAccess(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return hasAccess, err
+	}
+	return hasAccess, nil
 }

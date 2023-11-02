@@ -135,6 +135,98 @@ func (q *Queries) FetchCredentialsByUserAndFolder(ctx context.Context, arg Fetch
 	return items, nil
 }
 
+const getCredentialDetails = `-- name: GetCredentialDetails :one
+SELECT id, name, description
+FROM credentials
+WHERE id = $1
+`
+
+type GetCredentialDetailsRow struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+func (q *Queries) GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error) {
+	row := q.db.QueryRowContext(ctx, getCredentialDetails, id)
+	var i GetCredentialDetailsRow
+	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	return i, err
+}
+
+const getCredentialUnencryptedData = `-- name: GetCredentialUnencryptedData :many
+SELECT field_name, field_value
+FROM unencrypted_data
+WHERE credential_id = $1
+`
+
+type GetCredentialUnencryptedDataRow struct {
+	FieldName  string `json:"field_name"`
+	FieldValue string `json:"field_value"`
+}
+
+func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialUnencryptedData, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialUnencryptedDataRow{}
+	for rows.Next() {
+		var i GetCredentialUnencryptedDataRow
+		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserEncryptedData = `-- name: GetUserEncryptedData :many
+SELECT field_name, field_value
+FROM encrypted_data
+WHERE user_id = $1 AND credential_id = $2
+`
+
+type GetUserEncryptedDataParams struct {
+	UserID       uuid.NullUUID `json:"user_id"`
+	CredentialID uuid.NullUUID `json:"credential_id"`
+}
+
+type GetUserEncryptedDataRow struct {
+	FieldName  string `json:"field_name"`
+	FieldValue string `json:"field_value"`
+}
+
+func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserEncryptedData, arg.UserID, arg.CredentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetUserEncryptedDataRow{}
+	for rows.Next() {
+		var i GetUserEncryptedDataRow
+		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const shareSecret = `-- name: ShareSecret :exec
 SELECT share_secret($1, $2, $3, $4, $5)
 `

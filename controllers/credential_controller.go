@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	dto "osvauld/dtos"
 	service "osvauld/services"
@@ -38,7 +37,6 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 
 	// Get folder_id from query params
 	folderIDStr := ctx.DefaultQuery("folderId", "")
-	fmt.Println(folderIDStr)
 	folderID, err := uuid.Parse(folderIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder_id query parameter."})
@@ -64,4 +62,18 @@ func ShareCredential(ctx *gin.Context) {
 	}
 	service.ShareCredential(ctx, req, userID)
 	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
+func GetCredentialByID(ctx *gin.Context) {
+
+	userIDHeader := ctx.GetHeader("userId")
+	userID, err := uuid.Parse(userIDHeader)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id in header."})
+		return
+	}
+	credentialIDStr := ctx.Param("id")
+	credentailaID, _ := uuid.Parse(credentialIDStr)
+	credential, _ := service.FetchCredentialByID(ctx, credentailaID, userID)
+	ctx.JSON(http.StatusOK, credential)
 }

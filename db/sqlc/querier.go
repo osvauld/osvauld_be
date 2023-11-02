@@ -22,7 +22,11 @@ type Querier interface {
 	CreateUser(ctx context.Context, username string) (uuid.UUID, error)
 	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]Folder, error)
 	FetchCredentialsByUserAndFolder(ctx context.Context, arg FetchCredentialsByUserAndFolderParams) ([]FetchCredentialsByUserAndFolderRow, error)
+	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.NullUUID) ([]uuid.NullUUID, error)
+	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error)
+	GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error)
+	HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error)
 	//--------------------------------------------------
 	ShareSecret(ctx context.Context, arg ShareSecretParams) error
 }

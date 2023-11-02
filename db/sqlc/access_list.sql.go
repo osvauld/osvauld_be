@@ -21,7 +21,7 @@ RETURNING id
 type AddToAccessListParams struct {
 	CredentialID uuid.NullUUID `json:"credential_id"`
 	UserID       uuid.NullUUID `json:"user_id"`
-	AccessType   AccessType    `json:"access_type"`
+	AccessType   string        `json:"access_type"`
 }
 
 func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error) {
@@ -29,4 +29,24 @@ func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const hasUserAccess = `-- name: HasUserAccess :one
+SELECT EXISTS (
+  SELECT 1
+  FROM access_list
+  WHERE user_id = $1 AND credential_id = $2
+) AS has_access
+`
+
+type HasUserAccessParams struct {
+	UserID       uuid.NullUUID `json:"user_id"`
+	CredentialID uuid.NullUUID `json:"credential_id"`
+}
+
+func (q *Queries) HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasUserAccess, arg.UserID, arg.CredentialID)
+	var has_access bool
+	err := row.Scan(&has_access)
+	return has_access, err
 }
