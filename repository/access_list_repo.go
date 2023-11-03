@@ -15,8 +15,7 @@ func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string
 		AccessType:   accessType,
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	q := db.New(database.DB)
-	_, err := q.AddToAccessList(ctx, arg)
+	_, err := database.Q.AddToAccessList(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return err
@@ -29,8 +28,7 @@ func CheckAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID u
 		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	q := db.New(database.DB)
-	hasAccess, err := q.HasUserAccess(ctx, arg)
+	hasAccess, err := database.Q.HasUserAccess(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return hasAccess, err

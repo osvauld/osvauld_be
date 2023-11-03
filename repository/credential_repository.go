@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"database/sql"
+	"encoding/json"
+	"fmt"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -12,20 +13,24 @@ import (
 	"github.com/google/uuid"
 )
 
-func SaveCredential(ctx *gin.Context, name string, description string, folderID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
-	arg := db.CreateCredentialParams{
-		Name:        name,
-		Description: sql.NullString{String: description, Valid: true}, // replace with actual field name
-		FolderID:    uuid.NullUUID{UUID: folderID, Valid: true},       // replace with actual field name
-		CreatedBy:   uuid.NullUUID{UUID: userID, Valid: true},
-	}
-	q := db.New(database.DB)
-	id, err := q.CreateCredential(ctx, arg)
+func AddCredential(ctx *gin.Context, payload dto.SQLCPayload) (uuid.UUID, error) {
+	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
 	}
-	return id, err
+	credentialIdInterface, err := database.Q.AddCredential(ctx, payloadJSON)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return uuid.Nil, err
+	}
+	credentialId, ok := credentialIdInterface.(uuid.UUID)
+	if !ok {
+		logger.Errorf("Type assertion failed: Expected uuid.UUID, got %T", credentialIdInterface)
+		return uuid.Nil, fmt.Errorf("incorrect type returned from AddCredential")
+	}
+
+	return credentialId, nil
 }
 
 func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {

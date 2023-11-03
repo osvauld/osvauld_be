@@ -13,6 +13,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const addCredential = `-- name: AddCredential :one
+SELECT add_credential_with_access($1::JSONB)
+`
+
+func (q *Queries) AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, addCredential, dollar_1)
+	var add_credential_with_access interface{}
+	err := row.Scan(&add_credential_with_access)
+	return add_credential_with_access, err
+}
+
 const createCredential = `-- name: CreateCredential :one
 INSERT INTO credentials (name, description, folder_id, created_by)
 VALUES ($1, $2, $3, $4)

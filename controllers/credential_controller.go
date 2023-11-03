@@ -3,7 +3,9 @@ package controllers
 import (
 	"net/http"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	service "osvauld/services"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -21,7 +23,12 @@ func AddCredential(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
 		return
 	}
-	userID, _ := uuid.Parse(userIdString)
+	userID, err := uuid.Parse(strings.Trim(userIdString, `"`))
+	if err != nil {
+		logger.Errorf(err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
+		return
+	}
 	service.CreateCredential(ctx, req, userID)
 	ctx.JSON(http.StatusOK, gin.H{"message": "Secret successfully saved!"})
 }

@@ -11,18 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateCredential(ctx *gin.Context, data dto.AddCredentailRequest, userID uuid.UUID) error {
-	id, err := repository.SaveCredential(ctx, data.Name, data.Description, data.FolderID, userID)
-	for _, encryptedData := range data.EncryptedFields {
-
-		repository.SaveEncryptedData(ctx, encryptedData, id, userID)
+func CreateCredential(ctx *gin.Context, data dto.AddCredentailRequest, userID uuid.UUID) (uuid.UUID, error) {
+	uniqueUsersIDs, _ := extractUniqueUserIDs(data.EncryptedFields)
+	payload := dto.SQLCPayload{
+		Name:              data.Name,
+		Description:       data.Description,
+		UniqueUserIds:     uniqueUsersIDs,
+		EncryptedFields:   data.EncryptedFields,
+		UnencryptedFields: data.UnencryptedFields,
+		FolderID:          data.FolderID,
+		CreatedBy:         userID,
 	}
-	for _, unencryptedData := range data.UnencryptedFields {
-		repository.SaveUnEncryptedData(ctx, unencryptedData, id)
-	}
-	repository.AddToAccessList(ctx, id, "owner", userID)
-
-	return err
+	id, err := repository.AddCredential(ctx, payload)
+	return id, err
 }
 
 func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {
@@ -66,4 +67,18 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.U
 	}
 	return credentialDetail, err
 
+}
+
+func extractUniqueUserIDs(encryptedFields []dto.EncryptedFields) ([]uuid.UUID, error) {
+	userIDMap := make(map[uuid.UUID]bool)
+	var uniqueUserIDs []uuid.UUID
+
+	for _, field := range encryptedFields {
+		if _, exists := userIDMap[field.UserID]; !exists {
+			userIDMap[field.UserID] = true
+			uniqueUserIDs = append(uniqueUserIDs, field.UserID)
+		}
+	}
+
+	return uniqueUserIDs, nil
 }

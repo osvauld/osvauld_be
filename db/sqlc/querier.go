@@ -6,11 +6,13 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
 
 type Querier interface {
+	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
 	AddMemberToGroup(ctx context.Context, arg AddMemberToGroupParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
 	// sql/create_credential.sql

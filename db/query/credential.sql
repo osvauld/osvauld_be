@@ -70,3 +70,7 @@ WHERE user_id = $1 AND credential_id = $2;
 SELECT field_name, field_value
 FROM unencrypted_data
 WHERE credential_id = $1;
+
+
+-- name: AddCredential :one
+SELECT add_credential_with_access($1::JSONB);
