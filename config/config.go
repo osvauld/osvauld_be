@@ -1,7 +1,8 @@
 package config
 
 import (
-	"gin-boilerplate/infra/logger"
+	"osvauld/infra/logger"
+
 	"github.com/spf13/viper"
 )
 
