@@ -17,9 +17,9 @@ const addCredential = `-- name: AddCredential :one
 SELECT add_credential_with_access($1::JSONB)
 `
 
-func (q *Queries) AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error) {
+func (q *Queries) AddCredential(ctx context.Context, dollar_1 json.RawMessage) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, addCredential, dollar_1)
-	var add_credential_with_access interface{}
+	var add_credential_with_access uuid.UUID
 	err := row.Scan(&add_credential_with_access)
 	return add_credential_with_access, err
 }
@@ -243,21 +243,20 @@ SELECT share_secret($1, $2, $3, $4, $5)
 `
 
 type ShareSecretParams struct {
-	ShareSecret   interface{} `json:"share_secret"`
-	ShareSecret_2 interface{} `json:"share_secret_2"`
-	ShareSecret_3 interface{} `json:"share_secret_3"`
-	ShareSecret_4 interface{} `json:"share_secret_4"`
-	ShareSecret_5 interface{} `json:"share_secret_5"`
+	PUserID       uuid.UUID `json:"p_user_id"`
+	PCredentialID uuid.UUID `json:"p_credential_id"`
+	PFieldNames   string    `json:"p_field_names"`
+	PFieldValues  string    `json:"p_field_values"`
+	PAccessType   string    `json:"p_access_type"`
 }
 
-// --------------------------------------------------
 func (q *Queries) ShareSecret(ctx context.Context, arg ShareSecretParams) error {
 	_, err := q.db.ExecContext(ctx, shareSecret,
-		arg.ShareSecret,
-		arg.ShareSecret_2,
-		arg.ShareSecret_3,
-		arg.ShareSecret_4,
-		arg.ShareSecret_5,
+		arg.PUserID,
+		arg.PCredentialID,
+		arg.PFieldNames,
+		arg.PFieldValues,
+		arg.PAccessType,
 	)
 	return err
 }

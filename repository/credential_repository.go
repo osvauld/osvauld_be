@@ -2,7 +2,6 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -19,15 +18,10 @@ func AddCredential(ctx *gin.Context, payload dto.SQLCPayload) (uuid.UUID, error)
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
 	}
-	credentialIdInterface, err := database.Q.AddCredential(ctx, payloadJSON)
+	credentialId, err := database.Q.AddCredential(ctx, payloadJSON)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
-	}
-	credentialId, ok := credentialIdInterface.(uuid.UUID)
-	if !ok {
-		logger.Errorf("Type assertion failed: Expected uuid.UUID, got %T", credentialIdInterface)
-		return uuid.Nil, fmt.Errorf("incorrect type returned from AddCredential")
 	}
 
 	return credentialId, nil
@@ -56,11 +50,11 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 	}
 
 	arg := db.ShareSecretParams{
-		ShareSecret:   user.UserID,
-		ShareSecret_2: id,
-		ShareSecret_3: GoSliceToPostgresArray(fieldNames),
-		ShareSecret_4: GoSliceToPostgresArray(fieldValues),
-		ShareSecret_5: user.AccessType,
+		PUserID:       user.UserID,
+		PCredentialID: id,
+		PFieldNames:   GoSliceToPostgresArray(fieldNames),
+		PFieldValues:  GoSliceToPostgresArray(fieldValues),
+		PAccessType:   user.AccessType,
 	}
 	q := db.New(database.DB)
 	err := q.ShareSecret(ctx, arg)

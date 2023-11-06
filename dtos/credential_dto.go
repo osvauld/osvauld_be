@@ -20,9 +20,8 @@ type UnEncryptedFields struct {
 }
 
 type EncryptedFields struct {
-	FieldName  string    `json:"fieldName"`
-	FieldValue string    `json:"fieldValue"`
-	UserID     uuid.UUID `json:"userId"`
+	UserID uuid.UUID      `json:"userId"`
+	Fields []FieldRequest `json:"fields"`
 }
 
 type FieldRequest struct {
