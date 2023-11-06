@@ -17,8 +17,7 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) (
 		Description: sql.NullString{String: folder.Description, Valid: true},
 		CreatedBy:   uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	q := db.New(database.DB)
-	id, err := q.CreateFolder(ctx, arg)
+	id, err := database.Q.CreateFolder(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
@@ -26,9 +25,8 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) (
 	return id, nil
 }
 
-func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.Folder, error) {
-	q := db.New(database.DB)
-	folders, err := q.FetchAccessibleAndCreatedFoldersByUser(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleAndCreatedFoldersByUserRow, error) {
+	folders, err := database.Q.FetchAccessibleAndCreatedFoldersByUser(ctx, uuid.NullUUID{UUID: userID, Valid: true})
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err

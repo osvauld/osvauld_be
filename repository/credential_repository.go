@@ -2,7 +2,6 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -19,15 +18,10 @@ func AddCredential(ctx *gin.Context, payload dto.SQLCPayload) (uuid.UUID, error)
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
 	}
-	credentialIdInterface, err := database.Q.AddCredential(ctx, payloadJSON)
+	credentialId, err := database.Q.AddCredential(ctx, payloadJSON)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
-	}
-	credentialId, ok := credentialIdInterface.(uuid.UUID)
-	if !ok {
-		logger.Errorf("Type assertion failed: Expected uuid.UUID, got %T", credentialIdInterface)
-		return uuid.Nil, fmt.Errorf("incorrect type returned from AddCredential")
 	}
 
 	return credentialId, nil
@@ -38,8 +32,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		UserID:   uuid.NullUUID{UUID: userID, Valid: true},
 		FolderID: uuid.NullUUID{UUID: folderID, Valid: true},
 	}
-	q := db.New(database.DB)
-	data, err := q.FetchCredentialsByUserAndFolder(ctx, arg)
+	data, err := database.Q.FetchCredentialsByUserAndFolder(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -56,14 +49,13 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 	}
 
 	arg := db.ShareSecretParams{
-		ShareSecret:   user.UserID,
-		ShareSecret_2: id,
-		ShareSecret_3: GoSliceToPostgresArray(fieldNames),
-		ShareSecret_4: GoSliceToPostgresArray(fieldValues),
-		ShareSecret_5: user.AccessType,
+		PUserID:       user.UserID,
+		PCredentialID: id,
+		PFieldNames:   GoSliceToPostgresArray(fieldNames),
+		PFieldValues:  GoSliceToPostgresArray(fieldValues),
+		PAccessType:   user.AccessType,
 	}
-	q := db.New(database.DB)
-	err := q.ShareSecret(ctx, arg)
+	err := database.Q.ShareSecret(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return
@@ -74,8 +66,7 @@ func GoSliceToPostgresArray(arr []string) string {
 }
 
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID) (db.GetCredentialDetailsRow, error) {
-	q := db.New(database.DB)
-	credential, err := q.GetCredentialDetails(ctx, credentialID)
+	credential, err := database.Q.GetCredentialDetails(ctx, credentialID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return credential, err
@@ -85,12 +76,11 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID) (db.GetCreden
 }
 
 func FetchEncryptedData(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) ([]db.GetUserEncryptedDataRow, error) {
-	q := db.New(database.DB)
 	arg := db.GetUserEncryptedDataParams{
 		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	encryptedData, err := q.GetUserEncryptedData(ctx, arg)
+	encryptedData, err := database.Q.GetUserEncryptedData(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -99,9 +89,8 @@ func FetchEncryptedData(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UU
 }
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
-	q := db.New(database.DB)
 
-	encryptedData, err := q.GetCredentialUnencryptedData(ctx, uuid.NullUUID{UUID: credentialID, Valid: true})
+	encryptedData, err := database.Q.GetCredentialUnencryptedData(ctx, uuid.NullUUID{UUID: credentialID, Valid: true})
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err

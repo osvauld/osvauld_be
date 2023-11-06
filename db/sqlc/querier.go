@@ -12,7 +12,7 @@ import (
 )
 
 type Querier interface {
-	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
+	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (uuid.UUID, error)
 	AddMemberToGroup(ctx context.Context, arg AddMemberToGroupParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
 	// sql/create_credential.sql
@@ -22,14 +22,13 @@ type Querier interface {
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.UUID, error)
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, username string) (uuid.UUID, error)
-	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]Folder, error)
+	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
 	FetchCredentialsByUserAndFolder(ctx context.Context, arg FetchCredentialsByUserAndFolderParams) ([]FetchCredentialsByUserAndFolderRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.NullUUID) ([]uuid.NullUUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error)
 	GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error)
 	HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error)
-	//--------------------------------------------------
 	ShareSecret(ctx context.Context, arg ShareSecretParams) error
 }
 

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
@@ -46,7 +45,8 @@ func ShareCredential(ctx *gin.Context, payload dto.ShareCredentialPayload, userI
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (dto.CredentialDetails, error) {
 	if hasAccess, err := repository.CheckAccessForCredential(ctx, credentialID, userID); !hasAccess {
 		logger.Errorf(err.Error())
-		return dto.CredentialDetails{}, errors.New("User does not have access to the credential")
+		logger.Errorf("user does not have access to the credential")
+		return dto.CredentialDetails{}, err
 	}
 	credential, err := repository.FetchCredentialByID(ctx, credentialID)
 	if err != nil {

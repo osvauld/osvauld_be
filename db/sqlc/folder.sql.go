@@ -42,29 +42,31 @@ unique_folder_ids AS (
   FROM credentials
   WHERE id IN (SELECT credential_id FROM unique_credential_ids)
 )
-SELECT f.id, f.created_at, f.updated_at, f.name, f.description, f.created_by
+SELECT 
+    id, 
+    name, 
+    COALESCE(description, '') AS description 
 FROM folders f
 WHERE f.id IN (SELECT folder_id FROM unique_folder_ids)
    OR f.created_by = $1
 `
 
-func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]Folder, error) {
+type FetchAccessibleAndCreatedFoldersByUserRow struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+}
+
+func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, fetchAccessibleAndCreatedFoldersByUser, createdBy)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Folder{}
+	items := []FetchAccessibleAndCreatedFoldersByUserRow{}
 	for rows.Next() {
-		var i Folder
-		if err := rows.Scan(
-			&i.ID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.Name,
-			&i.Description,
-			&i.CreatedBy,
-		); err != nil {
+		var i FetchAccessibleAndCreatedFoldersByUserRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
