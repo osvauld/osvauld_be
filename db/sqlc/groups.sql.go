@@ -14,19 +14,19 @@ import (
 
 const addMemberToGroup = `-- name: AddMemberToGroup :exec
 UPDATE groups 
-SET members = array_append(members, $3)
+SET members = array_cat(members, $3)
 WHERE id = $1 AND created_by = $2
 RETURNING id
 `
 
 type AddMemberToGroupParams struct {
-	ID          uuid.UUID     `json:"id"`
-	CreatedBy   uuid.NullUUID `json:"created_by"`
-	ArrayAppend interface{}   `json:"array_append"`
+	ID        uuid.UUID     `json:"id"`
+	CreatedBy uuid.NullUUID `json:"created_by"`
+	ArrayCat  interface{}   `json:"array_cat"`
 }
 
 func (q *Queries) AddMemberToGroup(ctx context.Context, arg AddMemberToGroupParams) error {
-	_, err := q.db.ExecContext(ctx, addMemberToGroup, arg.ID, arg.CreatedBy, arg.ArrayAppend)
+	_, err := q.db.ExecContext(ctx, addMemberToGroup, arg.ID, arg.CreatedBy, arg.ArrayCat)
 	return err
 }
 

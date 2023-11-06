@@ -16,8 +16,7 @@ func SaveUnEncryptedData(ctx *gin.Context, encrypedData dto.FieldRequest, creden
 		FieldValue:   encrypedData.FieldValue,
 		CredentialID: uuid.NullUUID{UUID: credentiaId, Valid: true},
 	}
-	q := db.New(database.DB)
-	id, err := q.CreateUnencryptedData(ctx, arg)
+	id, err := database.Q.CreateUnencryptedData(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return uuid.Nil, err

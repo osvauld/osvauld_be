@@ -17,7 +17,7 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) e
 	return nil
 }
 
-func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.Folder, error) {
+func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleAndCreatedFoldersByUserRow, error) {
 	folders, err := repository.GetAccessibleFolders(ctx, userID)
 	if err != nil {
 		return nil, err

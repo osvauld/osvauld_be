@@ -5,6 +5,6 @@ RETURNING id;
 
 -- name: AddMemberToGroup :exec
 UPDATE groups 
-SET members = array_append(members, $3)
+SET members = array_cat(members, $3)
 WHERE id = $1 AND created_by = $2
 RETURNING id;

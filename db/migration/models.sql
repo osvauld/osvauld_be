@@ -98,6 +98,8 @@ BEGIN
     VALUES (p_user_id, p_credential_id, p_access_type);
 END;
 $$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION add_credential_with_access(
     jsonb_input JSONB
 ) RETURNS UUID AS $$

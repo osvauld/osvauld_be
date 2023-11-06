@@ -15,7 +15,10 @@ unique_folder_ids AS (
   FROM credentials
   WHERE id IN (SELECT credential_id FROM unique_credential_ids)
 )
-SELECT f.*
+SELECT 
+    id, 
+    name, 
+    COALESCE(description, '') AS description 
 FROM folders f
 WHERE f.id IN (SELECT folder_id FROM unique_folder_ids)
    OR f.created_by = $1;
