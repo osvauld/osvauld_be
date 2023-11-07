@@ -48,3 +48,75 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.
 	err := row.Scan(&id)
 	return id, err
 }
+
+const getGroupMembers = `-- name: GetGroupMembers :many
+SELECT u.id, u.username, u.name
+FROM users u
+JOIN groups g ON u.id = ANY(g.members)
+WHERE $1 = ANY(g.members)
+`
+
+type GetGroupMembersRow struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	Name     string    `json:"name"`
+}
+
+func (q *Queries) GetGroupMembers(ctx context.Context, members []uuid.UUID) ([]GetGroupMembersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupMembers, pq.Array(members))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetGroupMembersRow{}
+	for rows.Next() {
+		var i GetGroupMembersRow
+		if err := rows.Scan(&i.ID, &i.Username, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserGroups = `-- name: GetUserGroups :many
+SELECT groups.id, groups.created_at, groups.updated_at, groups.name, groups.members, groups.created_by
+FROM groups
+WHERE $1 = ANY(groups.members)
+`
+
+func (q *Queries) GetUserGroups(ctx context.Context, members []uuid.UUID) ([]Group, error) {
+	rows, err := q.db.QueryContext(ctx, getUserGroups, pq.Array(members))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Group{}
+	for rows.Next() {
+		var i Group
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			pq.Array(&i.Members),
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

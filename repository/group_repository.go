@@ -36,3 +36,22 @@ func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUI
 	return nil
 
 }
+
+func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.Group, error) {
+
+	groups, err := database.Q.GetUserGroups(ctx, []uuid.UUID{userID})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return groups, err
+	}
+	return groups, nil
+}
+
+func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID) ([]db.GetGroupMembersRow, error) {
+	users, err := database.Q.GetGroupMembers(ctx, []uuid.UUID{groupID})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
+}

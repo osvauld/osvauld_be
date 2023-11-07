@@ -1,11 +1,10 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	dto "osvauld/dtos"
-	"osvauld/infra/logger"
 	service "osvauld/services"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -18,30 +17,19 @@ func AddCredential(ctx *gin.Context) {
 		return
 	}
 
-	userIdString := ctx.GetHeader("userId")
-	if userIdString == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
-		return
-	}
-	userID, err := uuid.Parse(strings.Trim(userIdString, `"`))
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	credentialId, err := service.CreateCredential(ctx, req, userID)
 	if err != nil {
-		logger.Errorf(err.Error())
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
-		return
+		SendResponse(ctx, 500, nil, "Failed to add credential", errors.New("failed to add credential"))
 	}
-	service.CreateCredential(ctx, req, userID)
-	ctx.JSON(http.StatusOK, gin.H{"message": "Secret successfully saved!"})
+	SendResponse(ctx, 201, credentialId, "Added Credential", nil)
 }
 
 func GetCredentialsByFolder(ctx *gin.Context) {
-	// Parse user_id from header
-	userIDHeader := ctx.GetHeader("userId")
-	userID, err := uuid.Parse(userIDHeader)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id in header."})
-		return
-	}
-
+	// Parse user_id from headerss
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
 	// Get folder_id from query params
 	folderIDStr := ctx.DefaultQuery("folderId", "")
 	folderID, err := uuid.Parse(folderIDStr)
@@ -49,9 +37,13 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder_id query parameter."})
 		return
 	}
-	credentials, _ := service.GetCredentialsByFolder(ctx, folderID, userID)
+	credentials, err := service.GetCredentialsByFolder(ctx, folderID, userID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to fetch credential", errors.New("Failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credentials, "Fetched credentials", nil)
 
-	ctx.JSON(http.StatusOK, credentials)
 }
 
 func ShareCredential(ctx *gin.Context) {
@@ -61,26 +53,21 @@ func ShareCredential(ctx *gin.Context) {
 		return
 	}
 
-	userIDHeader := ctx.GetHeader("userId")
-	userID, err := uuid.Parse(userIDHeader)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id in header."})
-		return
-	}
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
 	service.ShareCredential(ctx, req, userID)
-	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
+	SendResponse(ctx, 200, nil, "Success", nil)
 }
 
 func GetCredentialByID(ctx *gin.Context) {
-
-	userIDHeader := ctx.GetHeader("userId")
-	userID, err := uuid.Parse(userIDHeader)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id in header."})
-		return
-	}
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
 	credentialIDStr := ctx.Param("id")
 	credentailaID, _ := uuid.Parse(credentialIDStr)
-	credential, _ := service.FetchCredentialByID(ctx, credentailaID, userID)
-	ctx.JSON(http.StatusOK, credential)
+	credential, err := service.FetchCredentialByID(ctx, credentailaID, userID)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credential, "Fetched credential", nil)
 }
