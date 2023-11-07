@@ -19,7 +19,7 @@ type Querier interface {
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateEncryptedData(ctx context.Context, arg CreateEncryptedDataParams) (uuid.UUID, error)
 	CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error)
-	CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.UUID, error)
+	CreateGroup(ctx context.Context, arg CreateGroupParams) error
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
 	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
@@ -27,10 +27,11 @@ type Querier interface {
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.NullUUID) ([]uuid.NullUUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error)
-	GetGroupMembers(ctx context.Context, members []uuid.UUID) ([]GetGroupMembersRow, error)
+	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error)
-	GetUserGroups(ctx context.Context, members []uuid.UUID) ([]Group, error)
+	GetUserGroups(ctx context.Context, userID uuid.UUID) ([]Grouping, error)
+	GetUsersByFolder(ctx context.Context, folderID uuid.NullUUID) ([]GetUsersByFolderRow, error)
 	HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error)
 	ShareSecret(ctx context.Context, arg ShareSecretParams) error
 }

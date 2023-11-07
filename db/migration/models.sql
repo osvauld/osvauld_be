@@ -68,14 +68,27 @@ CREATE TABLE unencrypted_data (
 
 
 -- SQL Definition for Group
-CREATE TABLE groups (
+CREATE TABLE groupings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    members UUID[] NOT NULL,
     created_by UUID REFERENCES users(id)
 );
+
+
+-- SQL Definition for Group List
+CREATE TABLE group_list (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    grouping_id UUID NOT NULL REFERENCES groupings(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    access_type VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(grouping_id, user_id)
+);
+
+
+
 CREATE OR REPLACE FUNCTION share_secret(
     p_user_id UUID,
     p_credential_id UUID,

@@ -49,12 +49,19 @@ type Folder struct {
 	CreatedBy   uuid.NullUUID  `json:"created_by"`
 }
 
-type Group struct {
+type GroupList struct {
+	ID         uuid.UUID `json:"id"`
+	GroupingID uuid.UUID `json:"grouping_id"`
+	UserID     uuid.UUID `json:"user_id"`
+	AccessType string    `json:"access_type"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type Grouping struct {
 	ID        uuid.UUID     `json:"id"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at"`
 	Name      string        `json:"name"`
-	Members   []uuid.UUID   `json:"members"`
 	CreatedBy uuid.NullUUID `json:"created_by"`
 }
 

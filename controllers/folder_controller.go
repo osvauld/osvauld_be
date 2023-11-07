@@ -41,3 +41,20 @@ func GetAccessibleFolders(ctx *gin.Context) {
 	SendResponse(ctx, 200, folders, "Fetched folders", nil)
 
 }
+
+func GetUsersByFolder(ctx *gin.Context) {
+
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+
+	folderIDStr := ctx.Param("id")
+	folderID, _ := uuid.Parse(folderIDStr)
+	users, err := service.GetUsersByFolder(ctx, folderID, userID)
+
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to get users", errors.New("failed to fetch required users"))
+		return
+	}
+
+	SendResponse(ctx, 200, users, "Fetched users", nil)
+}

@@ -20,7 +20,7 @@ func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUI
 	return err
 }
 
-func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.Group, error) {
+func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.Grouping, error) {
 	groups, err := repository.GetUserGroups(ctx, userID)
 	return groups, err
 

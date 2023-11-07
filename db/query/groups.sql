@@ -1,22 +1,30 @@
--- name: CreateGroup :one
-INSERT INTO groups (name, members, created_by)
-VALUES ($1, $2, $3)
-RETURNING id;
+-- name: CreateGroup :exec
+WITH new_group AS (
+  INSERT INTO groupings (name, created_by)
+  VALUES ($1, $2)
+  RETURNING id
+)
+INSERT INTO group_list (grouping_id, user_id, access_type)
+SELECT id, $2, 'owner'
+FROM new_group;
 
 -- name: AddMemberToGroup :exec
-UPDATE groups 
-SET members = array_cat(members, $3)
-WHERE id = $1 AND created_by = $2
-RETURNING id;
 
+INSERT INTO group_list (grouping_id, user_id, access_type)
+SELECT $1, u.id, 'member'
+FROM unnest($2::uuid[]) AS u(id)
+LEFT JOIN group_list gl ON gl.grouping_id = $1 AND gl.user_id = u.id
+WHERE gl.user_id IS NULL;
 -- name: GetUserGroups :many
-SELECT groups.*
-FROM groups
-WHERE $1 = ANY(groups.members);
+SELECT g.*
+FROM groupings g
+JOIN group_list gl ON g.id = gl.grouping_id
+WHERE gl.user_id = $1;
+
 
 
 -- name: GetGroupMembers :many
-SELECT u.id, u.username, u.name
+SELECT u.id, u.name, u.username
 FROM users u
-JOIN groups g ON u.id = ANY(g.members)
-WHERE $1 = ANY(g.members);
+JOIN group_list gl ON u.id = gl.user_id
+WHERE gl.grouping_id = $1;
