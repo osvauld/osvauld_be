@@ -8,25 +8,26 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 func AddGroup(ctx *gin.Context, group dto.CreateGroup, userID uuid.UUID) error {
 	arg := db.CreateGroupParams{
-		Name:      group.Name,
-		CreatedBy: uuid.NullUUID{UUID: userID, Valid: true},
-		Members:   []uuid.UUID{userID},
+		Name:   group.Name,
+		UserID: userID,
 	}
-	_, err := database.Q.CreateGroup(ctx, arg)
-	return err
+	err := database.Q.CreateGroup(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return err
+	}
+	return nil
 }
 
 func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUID) error {
-	uuidArray := pq.Array(payload.Members)
+	// uuidArray := pq.Array(payload.Members)
 	arg := db.AddMemberToGroupParams{
-		CreatedBy: uuid.NullUUID{UUID: userID, Valid: true},
-		ID:        payload.GroupID,
-		ArrayCat:  uuidArray,
+		GroupingID: payload.GroupID,
+		Column2:    payload.Members,
 	}
 	err := database.Q.AddMemberToGroup(ctx, arg)
 	if err != nil {
@@ -35,4 +36,23 @@ func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUI
 	}
 	return nil
 
+}
+
+func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.Grouping, error) {
+
+	groups, err := database.Q.GetUserGroups(ctx, userID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return groups, err
+	}
+	return groups, nil
+}
+
+func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID) ([]db.GetGroupMembersRow, error) {
+	users, err := database.Q.GetGroupMembers(ctx, groupID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
 }

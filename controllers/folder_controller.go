@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
@@ -17,25 +18,43 @@ func CreateFolder(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request"})
 	}
 
-	userIdString := ctx.GetHeader("userId")
-	if userIdString == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user_id header is required"})
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	err := service.CreateFolder(ctx, req, userID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to create folder", errors.New("failed to create folder"))
 		return
 	}
-	userID, _ := uuid.Parse(userIdString)
-	// TODO add validation
-	service.CreateFolder(ctx, req, userID)
+	SendResponse(ctx, 201, nil, "Created folder", nil)
 }
 
 func GetAccessibleFolders(ctx *gin.Context) {
 	// 1. Fetch User ID from Header
-	userIDString := ctx.GetHeader("userId")
-	if userIDString == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "User ID not provided"})
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	folders, err := service.GetAccessibleFolders(ctx, userID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to get folders", errors.New("failed to fetch required folders"))
 		return
 	}
-	userID, _ := uuid.Parse(userIDString)
-	folders, _ := service.GetAccessibleFolders(ctx, userID)
-	// 5. Return the Folders to the Client
-	ctx.JSON(http.StatusOK, gin.H{"folders": folders})
+
+	SendResponse(ctx, 200, folders, "Fetched folders", nil)
+
+}
+
+func GetUsersByFolder(ctx *gin.Context) {
+
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+
+	folderIDStr := ctx.Param("id")
+	folderID, _ := uuid.Parse(folderIDStr)
+	users, err := service.GetUsersByFolder(ctx, folderID, userID)
+
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to get users", errors.New("failed to fetch required users"))
+		return
+	}
+
+	SendResponse(ctx, 200, users, "Fetched users", nil)
 }

@@ -31,6 +31,49 @@ func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams
 	return id, err
 }
 
+const getUsersByFolder = `-- name: GetUsersByFolder :many
+SELECT DISTINCT u.id, u.username, u.name, u.public_key as "publicKey"
+FROM users u
+JOIN access_list al ON u.id = al.user_id
+JOIN credentials c ON al.credential_id = c.id
+WHERE c.folder_id = $1
+`
+
+type GetUsersByFolderRow struct {
+	ID        uuid.UUID `json:"id"`
+	Username  string    `json:"username"`
+	Name      string    `json:"name"`
+	PublicKey string    `json:"publicKey"`
+}
+
+func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.NullUUID) ([]GetUsersByFolderRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersByFolder, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetUsersByFolderRow{}
+	for rows.Next() {
+		var i GetUsersByFolderRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Name,
+			&i.PublicKey,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const hasUserAccess = `-- name: HasUserAccess :one
 SELECT EXISTS (
   SELECT 1

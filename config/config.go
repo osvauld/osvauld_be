@@ -29,3 +29,8 @@ func SetupConfig() error {
 
 	return nil
 }
+
+func GetJWTSecret() string {
+	jwtSecret := viper.GetString("SECRET")
+	return jwtSecret
+}

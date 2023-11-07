@@ -6,7 +6,6 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
 	"osvauld/infra/logger"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -60,9 +59,6 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 		logger.Errorf(err.Error())
 		return
 	}
-}
-func GoSliceToPostgresArray(arr []string) string {
-	return "{" + strings.Join(arr, ",") + "}"
 }
 
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID) (db.GetCredentialDetailsRow, error) {

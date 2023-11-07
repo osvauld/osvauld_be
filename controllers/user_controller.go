@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	dto "osvauld/dtos"
 	service "osvauld/services"
@@ -27,7 +28,22 @@ func CreateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, _ := service.CreateUser(ctx, req)
+	user, err := service.CreateUser(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to create user", errors.New("failed to create user"))
+		return
+	}
+	SendResponse(ctx, 201, user, "created user", nil)
 
-	ctx.JSON(http.StatusOK, user)
+}
+
+func Login(ctx *gin.Context) {
+	var req dto.Login
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	user := service.Login(ctx, req)
+	SendResponse(ctx, 200, user, "Login successfull", nil)
 }

@@ -33,3 +33,12 @@ func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessi
 	}
 	return folders, nil
 }
+
+func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
+	users, err := database.Q.GetUsersByFolder(ctx, uuid.NullUUID{UUID: folderID, Valid: true})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
+}
