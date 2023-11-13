@@ -172,14 +172,14 @@ func (q *Queries) GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCr
 }
 
 const getCredentialUnencryptedData = `-- name: GetCredentialUnencryptedData :many
-SELECT field_name AS fieldName, field_value AS fieldValue
+SELECT field_name AS "fieldName", field_value AS "fieldValue"
 FROM unencrypted_data
 WHERE credential_id = $1
 `
 
 type GetCredentialUnencryptedDataRow struct {
-	Fieldname  string `json:"fieldname"`
-	Fieldvalue string `json:"fieldvalue"`
+	FieldName  string `json:"fieldName"`
+	FieldValue string `json:"fieldValue"`
 }
 
 func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error) {
@@ -191,7 +191,61 @@ func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID
 	items := []GetCredentialUnencryptedDataRow{}
 	for rows.Next() {
 		var i GetCredentialUnencryptedDataRow
-		if err := rows.Scan(&i.Fieldname, &i.Fieldvalue); err != nil {
+		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEncryptedCredentialsByFolder = `-- name: GetEncryptedCredentialsByFolder :many
+SELECT 
+    c.id, 
+    json_agg(
+        json_build_object(
+            'fieldName', e.field_name, 
+            'fieldValue', e.field_value
+        )
+    ) AS "encryptedFields"
+FROM 
+    credentials c
+JOIN 
+    encrypted_data e ON c.id = e.credential_id
+WHERE 
+    c.folder_id = $1 AND e.user_id = $2
+GROUP BY 
+    c.id
+ORDER BY 
+    c.id
+`
+
+type GetEncryptedCredentialsByFolderParams struct {
+	FolderID uuid.NullUUID `json:"folder_id"`
+	UserID   uuid.NullUUID `json:"user_id"`
+}
+
+type GetEncryptedCredentialsByFolderRow struct {
+	ID              uuid.UUID       `json:"id"`
+	EncryptedFields json.RawMessage `json:"encryptedFields"`
+}
+
+func (q *Queries) GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEncryptedCredentialsByFolderParams) ([]GetEncryptedCredentialsByFolderRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEncryptedCredentialsByFolder, arg.FolderID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetEncryptedCredentialsByFolderRow{}
+	for rows.Next() {
+		var i GetEncryptedCredentialsByFolderRow
+		if err := rows.Scan(&i.ID, &i.EncryptedFields); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -206,7 +260,7 @@ func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID
 }
 
 const getUserEncryptedData = `-- name: GetUserEncryptedData :many
-SELECT field_name AS fieldName, field_value AS fieldValue
+SELECT field_name AS "fieldName", field_value AS "fieldValue"
 FROM encrypted_data
 WHERE user_id = $1 AND credential_id = $2
 `
@@ -217,8 +271,8 @@ type GetUserEncryptedDataParams struct {
 }
 
 type GetUserEncryptedDataRow struct {
-	Fieldname  string `json:"fieldname"`
-	Fieldvalue string `json:"fieldvalue"`
+	FieldName  string `json:"fieldName"`
+	FieldValue string `json:"fieldValue"`
 }
 
 func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error) {
@@ -230,7 +284,7 @@ func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncrypted
 	items := []GetUserEncryptedDataRow{}
 	for rows.Next() {
 		var i GetUserEncryptedDataRow
-		if err := rows.Scan(&i.Fieldname, &i.Fieldvalue); err != nil {
+		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

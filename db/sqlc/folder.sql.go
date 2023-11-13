@@ -10,12 +10,36 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
+const addFolderAccess = `-- name: AddFolderAccess :exec
+INSERT INTO folder_access (folder_id, user_id, access_type)
+SELECT $1, unnest($2::uuid[]), unnest($3::text[])
+`
+
+type AddFolderAccessParams struct {
+	FolderID uuid.UUID   `json:"folder_id"`
+	Column2  []uuid.UUID `json:"column_2"`
+	Column3  []string    `json:"column_3"`
+}
+
+func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
+	_, err := q.db.ExecContext(ctx, addFolderAccess, arg.FolderID, pq.Array(arg.Column2), pq.Array(arg.Column3))
+	return err
+}
+
 const createFolder = `-- name: CreateFolder :one
-INSERT INTO folders (name, description, created_by)
-VALUES ($1, $2, $3)
-RETURNING id
+WITH new_folder AS (
+  INSERT INTO folders (name, description, created_by)
+  VALUES ($1, $2, $3)
+  RETURNING id
+),
+folder_access_insert AS (
+  INSERT INTO folder_access (folder_id, user_id, access_type)
+  SELECT id, $3, 'owner' FROM new_folder
+)
+SELECT id FROM new_folder
 `
 
 type CreateFolderParams struct {
@@ -78,4 +102,65 @@ func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, cr
 		return nil, err
 	}
 	return items, nil
+}
+
+const getSharedUsers = `-- name: GetSharedUsers :many
+SELECT users.name, users.username, users.public_key as "publicKey", folder_access.access_type as "accessType"
+FROM folder_access
+JOIN users ON folder_access.user_id = users.id
+WHERE folder_access.folder_id = $1
+`
+
+type GetSharedUsersRow struct {
+	Name       string `json:"name"`
+	Username   string `json:"username"`
+	PublicKey  string `json:"publicKey"`
+	AccessType string `json:"accessType"`
+}
+
+func (q *Queries) GetSharedUsers(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSharedUsers, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetSharedUsersRow{}
+	for rows.Next() {
+		var i GetSharedUsersRow
+		if err := rows.Scan(
+			&i.Name,
+			&i.Username,
+			&i.PublicKey,
+			&i.AccessType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const isFolderOwner = `-- name: IsFolderOwner :one
+SELECT EXISTS (
+  SELECT 1 FROM folder_access
+  WHERE folder_id = $1 AND user_id = $2 AND access_type = 'owner'
+)
+`
+
+type IsFolderOwnerParams struct {
+	FolderID uuid.UUID `json:"folder_id"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, isFolderOwner, arg.FolderID, arg.UserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

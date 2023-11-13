@@ -5,7 +5,11 @@ RETURNING id;
 
 
 -- name: GetUserByUsername :one
-SELECT *
+SELECT id,name,username, public_key as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1;
+
+
+-- name: GetAllUsers :many
+SELECT id,name,username, public_key AS "publicKey" FROM users;

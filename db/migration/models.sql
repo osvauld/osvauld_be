@@ -88,6 +88,17 @@ CREATE TABLE group_list (
 );
 
 
+-- SQL Definition for Folder Access
+CREATE TABLE folder_access (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    folder_id UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    access_type VARCHAR(255) NOT NULL,
+    UNIQUE(folder_id, user_id)
+);
+
 
 CREATE OR REPLACE FUNCTION share_secret(
     p_user_id UUID,

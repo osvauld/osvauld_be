@@ -93,3 +93,16 @@ func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCre
 	}
 	return encryptedData, err
 }
+
+func GetEncryptedCredentails(ctx *gin.Context, folderId uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
+	arg := db.GetEncryptedCredentialsByFolderParams{
+		FolderID: uuid.NullUUID{UUID: folderId, Valid: true},
+		UserID:   uuid.NullUUID{UUID: userID, Valid: true},
+	}
+	encryptedData, err := database.Q.GetEncryptedCredentialsByFolder(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return encryptedData, err
+}

@@ -82,3 +82,11 @@ func extractUniqueUserIDs(encryptedFields []dto.EncryptedFields) ([]uuid.UUID, e
 
 	return uniqueUserIDs, nil
 }
+
+func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
+	credentials, err := repository.GetEncryptedCredentails(ctx, folderID, userID)
+	if err != nil {
+		return nil, err
+	}
+	return credentials, nil
+}
