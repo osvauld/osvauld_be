@@ -31,6 +31,50 @@ func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams
 	return id, err
 }
 
+const getUsersByCredential = `-- name: GetUsersByCredential :many
+SELECT users.id, users.username, users.name, users.public_key as "publicKey", access_list.access_type as "accessType"
+FROM access_list
+JOIN users ON access_list.user_id = users.id
+WHERE access_list.credential_id = $1
+`
+
+type GetUsersByCredentialRow struct {
+	ID         uuid.UUID `json:"id"`
+	Username   string    `json:"username"`
+	Name       string    `json:"name"`
+	PublicKey  string    `json:"publicKey"`
+	AccessType string    `json:"accessType"`
+}
+
+func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.NullUUID) ([]GetUsersByCredentialRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersByCredential, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetUsersByCredentialRow{}
+	for rows.Next() {
+		var i GetUsersByCredentialRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Name,
+			&i.PublicKey,
+			&i.AccessType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUsersByFolder = `-- name: GetUsersByFolder :many
 SELECT DISTINCT u.id, u.username, u.name, u.public_key as "publicKey"
 FROM users u

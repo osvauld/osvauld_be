@@ -60,10 +60,15 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.U
 	if err != nil {
 		logger.Errorf(err.Error())
 	}
+	userList, err := repository.GetUsersByCredential(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+	}
 	credentialDetail := dto.CredentialDetails{
 		Credential:      credential,
 		EncryptedData:   encryptedData,
 		UnencryptedData: unEncryptedData,
+		Users:           userList,
 	}
 	return credentialDetail, err
 

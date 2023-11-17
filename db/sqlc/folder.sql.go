@@ -105,17 +105,18 @@ func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, cr
 }
 
 const getSharedUsers = `-- name: GetSharedUsers :many
-SELECT users.name, users.username, users.public_key as "publicKey", folder_access.access_type as "accessType"
+SELECT users.id, users.name, users.username, users.public_key as "publicKey", folder_access.access_type as "accessType"
 FROM folder_access
 JOIN users ON folder_access.user_id = users.id
 WHERE folder_access.folder_id = $1
 `
 
 type GetSharedUsersRow struct {
-	Name       string `json:"name"`
-	Username   string `json:"username"`
-	PublicKey  string `json:"publicKey"`
-	AccessType string `json:"accessType"`
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	Username   string    `json:"username"`
+	PublicKey  string    `json:"publicKey"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) GetSharedUsers(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersRow, error) {
@@ -128,6 +129,7 @@ func (q *Queries) GetSharedUsers(ctx context.Context, folderID uuid.UUID) ([]Get
 	for rows.Next() {
 		var i GetSharedUsersRow
 		if err := rows.Scan(
+			&i.ID,
 			&i.Name,
 			&i.Username,
 			&i.PublicKey,
