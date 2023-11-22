@@ -39,7 +39,7 @@ type Querier interface {
 	GetUsersByFolder(ctx context.Context, folderID uuid.NullUUID) ([]GetUsersByFolderRow, error)
 	HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
-	ShareSecret(ctx context.Context, arg ShareSecretParams) error
+	ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error
 }
 
 var _ Querier = (*Queries)(nil)

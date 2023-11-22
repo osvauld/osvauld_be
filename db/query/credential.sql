@@ -31,7 +31,7 @@ LEFT JOIN unencrypted_data u ON c.id = u.credential_id
 WHERE a.user_id = $1 AND c.folder_id = $2
 GROUP BY c.id;
 -- name: ShareSecret :exec
-SELECT share_secret($1, $2, $3, $4, $5);
+SELECT share_secret($1::jsonb);
 
 
 -- name: GetCredentialDetails :one

@@ -46,15 +46,19 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 		fieldNames[idx] = user.Fields[idx].FieldName
 		fieldValues[idx] = user.Fields[idx].FieldValue
 	}
-
-	arg := db.ShareSecretParams{
-		PUserID:       user.UserID,
-		PCredentialID: id,
-		PFieldNames:   GoSliceToPostgresArray(fieldNames),
-		PFieldValues:  GoSliceToPostgresArray(fieldValues),
-		PAccessType:   user.AccessType,
+	params := map[string]interface{}{
+		"userId":       user.UserID,
+		"credentialId": id,
+		"fieldNames":   fieldNames,
+		"fieldValues":  fieldValues,
+		"accessType":   user.AccessType,
 	}
-	err := database.Q.ShareSecret(ctx, arg)
+	paramsJson, err := json.Marshal(params)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return
+	}
+	err = database.Q.ShareSecret(ctx, paramsJson)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return

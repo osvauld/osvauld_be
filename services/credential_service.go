@@ -35,6 +35,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 
 func ShareCredential(ctx *gin.Context, payload dto.ShareCredentialPayload, userID uuid.UUID) {
 	for _, credential := range payload.CredentialList {
+		logger.Infof("Sharing credential with id: %s", credential.CredentialID)
 		id := credential.CredentialID
 		for _, user := range credential.Users {
 			repository.ShareCredential(ctx, id, user)

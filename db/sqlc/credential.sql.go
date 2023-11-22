@@ -299,24 +299,10 @@ func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncrypted
 }
 
 const shareSecret = `-- name: ShareSecret :exec
-SELECT share_secret($1, $2, $3, $4, $5)
+SELECT share_secret($1::jsonb)
 `
 
-type ShareSecretParams struct {
-	PUserID       uuid.UUID `json:"p_user_id"`
-	PCredentialID uuid.UUID `json:"p_credential_id"`
-	PFieldNames   string    `json:"p_field_names"`
-	PFieldValues  string    `json:"p_field_values"`
-	PAccessType   string    `json:"p_access_type"`
-}
-
-func (q *Queries) ShareSecret(ctx context.Context, arg ShareSecretParams) error {
-	_, err := q.db.ExecContext(ctx, shareSecret,
-		arg.PUserID,
-		arg.PCredentialID,
-		arg.PFieldNames,
-		arg.PFieldValues,
-		arg.PAccessType,
-	)
+func (q *Queries) ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error {
+	_, err := q.db.ExecContext(ctx, shareSecret, dollar_1)
 	return err
 }
