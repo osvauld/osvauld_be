@@ -47,6 +47,7 @@ type CredentialDetails struct {
 	Credential      db.GetCredentialDetailsRow           `json:"credential"`
 	EncryptedData   []db.GetUserEncryptedDataRow         `json:"encryptedData"`
 	UnencryptedData []db.GetCredentialUnencryptedDataRow `json:"unencryptedData"`
+	Users           []db.GetUsersByCredentialRow         `json:"users"`
 }
 
 type SQLCPayload struct {

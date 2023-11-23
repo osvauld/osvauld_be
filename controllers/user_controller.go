@@ -47,3 +47,8 @@ func Login(ctx *gin.Context) {
 	user := service.Login(ctx, req)
 	SendResponse(ctx, 200, user, "Login successfull", nil)
 }
+
+func GetAllUsers(ctx *gin.Context) {
+	users, _ := service.GetAllUsers(ctx)
+	SendResponse(ctx, 200, users, "fetched users", nil)
+}

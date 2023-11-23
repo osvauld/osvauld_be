@@ -71,3 +71,16 @@ func GetCredentialByID(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, credential, "Fetched credential", nil)
 }
+
+func GetEncryptedCredentails(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	folderIDStr := ctx.Param("folderId")
+	folderID, _ := uuid.Parse(folderIDStr)
+	credential, err := service.GetEncryptedCredentials(ctx, folderID, userID)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credential, "Fetched credential", nil)
+}

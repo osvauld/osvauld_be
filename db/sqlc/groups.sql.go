@@ -53,16 +53,17 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error 
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT u.id, u.name, u.username
+SELECT u.id, u.name, u.username, u.public_key as "publicKey"
 FROM users u
 JOIN group_list gl ON u.id = gl.user_id
 WHERE gl.grouping_id = $1
 `
 
 type GetGroupMembersRow struct {
-	ID       uuid.UUID `json:"id"`
-	Name     string    `json:"name"`
-	Username string    `json:"username"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Username  string    `json:"username"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error) {
@@ -74,7 +75,12 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]
 	items := []GetGroupMembersRow{}
 	for rows.Next() {
 		var i GetGroupMembersRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Username); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Username,
+			&i.PublicKey,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

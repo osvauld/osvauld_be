@@ -35,6 +35,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 
 func ShareCredential(ctx *gin.Context, payload dto.ShareCredentialPayload, userID uuid.UUID) {
 	for _, credential := range payload.CredentialList {
+		logger.Infof("Sharing credential with id: %s", credential.CredentialID)
 		id := credential.CredentialID
 		for _, user := range credential.Users {
 			repository.ShareCredential(ctx, id, user)
@@ -60,10 +61,15 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.U
 	if err != nil {
 		logger.Errorf(err.Error())
 	}
+	userList, err := repository.GetUsersByCredential(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+	}
 	credentialDetail := dto.CredentialDetails{
 		Credential:      credential,
 		EncryptedData:   encryptedData,
 		UnencryptedData: unEncryptedData,
+		Users:           userList,
 	}
 	return credentialDetail, err
 
@@ -81,4 +87,12 @@ func extractUniqueUserIDs(encryptedFields []dto.EncryptedFields) ([]uuid.UUID, e
 	}
 
 	return uniqueUserIDs, nil
+}
+
+func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
+	credentials, err := repository.GetEncryptedCredentails(ctx, folderID, userID)
+	if err != nil {
+		return nil, err
+	}
+	return credentials, nil
 }

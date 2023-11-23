@@ -31,7 +31,7 @@ LEFT JOIN unencrypted_data u ON c.id = u.credential_id
 WHERE a.user_id = $1 AND c.folder_id = $2
 GROUP BY c.id;
 -- name: ShareSecret :exec
-SELECT share_secret($1, $2, $3, $4, $5);
+SELECT share_secret($1::jsonb);
 
 
 -- name: GetCredentialDetails :one
@@ -41,15 +41,36 @@ WHERE id = $1;
 
 
 -- name: GetUserEncryptedData :many
-SELECT field_name AS fieldName, field_value AS fieldValue
+SELECT field_name AS "fieldName", field_value AS "fieldValue"
 FROM encrypted_data
 WHERE user_id = $1 AND credential_id = $2;
 
 -- name: GetCredentialUnencryptedData :many
-SELECT field_name AS fieldName, field_value AS fieldValue
+SELECT field_name AS "fieldName", field_value AS "fieldValue"
 FROM unencrypted_data
 WHERE credential_id = $1;
 
 
 -- name: AddCredential :one
 SELECT add_credential_with_access($1::JSONB);
+
+
+-- name: GetEncryptedCredentialsByFolder :many
+SELECT 
+    c.id, 
+    json_agg(
+        json_build_object(
+            'fieldName', e.field_name, 
+            'fieldValue', e.field_value
+        )
+    ) AS "encryptedFields"
+FROM 
+    credentials c
+JOIN 
+    encrypted_data e ON c.id = e.credential_id
+WHERE 
+    c.folder_id = $1 AND e.user_id = $2
+GROUP BY 
+    c.id
+ORDER BY 
+    c.id;

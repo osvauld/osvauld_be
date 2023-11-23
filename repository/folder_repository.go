@@ -42,3 +42,48 @@ func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFold
 	}
 	return users, nil
 }
+
+func CheckFolderAccess(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
+
+	arg := db.IsFolderOwnerParams{
+		UserID:   userID,
+		FolderID: folderID,
+	}
+	access, err := database.Q.IsFolderOwner(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return false, err
+	}
+	return access, nil
+}
+
+func ShareFolder(ctx *gin.Context, folder dto.ShareFolder) error {
+
+	var users []uuid.UUID
+	var accessTypes []string
+
+	for _, userAccess := range folder.Users {
+		users = append(users, userAccess.UserID)
+		accessTypes = append(accessTypes, userAccess.AccessType)
+	}
+	arg := db.AddFolderAccessParams{
+		FolderID: folder.FolderID,
+		Column2:  users,
+		Column3:  accessTypes,
+	}
+	err := database.Q.AddFolderAccess(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return err
+	}
+	return nil
+}
+
+func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRow, error) {
+	users, err := database.Q.GetSharedUsers(ctx, folderID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
+}

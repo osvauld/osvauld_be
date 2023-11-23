@@ -16,8 +16,11 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/login", controllers.Login)
 	route.POST("/user/", middleware.JWTAuthMiddleware(), controllers.CreateUser)
+	route.GET("/users", middleware.JWTAuthMiddleware(), controllers.GetAllUsers)
 	route.POST("/folder/", middleware.JWTAuthMiddleware(), controllers.CreateFolder)
+	route.PUT("/folder", middleware.JWTAuthMiddleware(), controllers.ShareFolder)
 	route.GET("/folder/:id", middleware.JWTAuthMiddleware(), controllers.GetUsersByFolder)
+	route.GET("/folder/:id/users", middleware.JWTAuthMiddleware(), controllers.GetSharedUsers)
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)
 	route.GET("/secrets/", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByFolder)
 	route.PUT("/secrets/", middleware.JWTAuthMiddleware(), controllers.ShareCredential)
@@ -27,6 +30,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.GetGroupMembers)
 	route.GET("/groups", middleware.JWTAuthMiddleware(), controllers.GetUserGroups)
 	route.POST("/group/members", middleware.JWTAuthMiddleware(), controllers.AppendMembersToGroup)
+	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentails)
 	//Add All route
 	//TestRoutes(route)
 }
