@@ -35,3 +35,12 @@ func CheckAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID u
 	}
 	return hasAccess, nil
 }
+
+func GetUsersByCredential(ctx *gin.Context, credentailID uuid.UUID) ([]db.GetUsersByCredentialRow, error) {
+	users, err := database.Q.GetUsersByCredential(ctx, uuid.NullUUID{UUID: credentailID, Valid: true})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
+}

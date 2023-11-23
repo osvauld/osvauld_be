@@ -24,7 +24,7 @@ WHERE gl.user_id = $1;
 
 
 -- name: GetGroupMembers :many
-SELECT u.id, u.name, u.username
+SELECT u.id, u.name, u.username, u.public_key as "publicKey"
 FROM users u
 JOIN group_list gl ON u.id = gl.user_id
 WHERE gl.grouping_id = $1;

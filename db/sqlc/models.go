@@ -49,6 +49,15 @@ type Folder struct {
 	CreatedBy   uuid.NullUUID  `json:"created_by"`
 }
 
+type FolderAccess struct {
+	ID         uuid.UUID `json:"id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	FolderID   uuid.UUID `json:"folder_id"`
+	UserID     uuid.UUID `json:"user_id"`
+	AccessType string    `json:"access_type"`
+}
+
 type GroupList struct {
 	ID         uuid.UUID `json:"id"`
 	GroupingID uuid.UUID `json:"grouping_id"`

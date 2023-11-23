@@ -51,7 +51,7 @@ CREATE TABLE encrypted_data (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     field_name VARCHAR(255) NOT NULL,
     credential_id UUID REFERENCES credentials(id),
-    field_value VARCHAR(255) NOT NULL,
+    field_value TEXT NOT NULL,
     user_id UUID REFERENCES users(id)
 );
 
@@ -88,32 +88,50 @@ CREATE TABLE group_list (
 );
 
 
+-- SQL Definition for Folder Access
+CREATE TABLE folder_access (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    folder_id UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    access_type VARCHAR(255) NOT NULL,
+    UNIQUE(folder_id, user_id)
+);
+
 
 CREATE OR REPLACE FUNCTION share_secret(
-    p_user_id UUID,
-    p_credential_id UUID,
-    p_field_names VARCHAR[],
-    p_field_values VARCHAR[],
-    p_access_type VARCHAR)
-RETURNS VOID AS $$
+    jsonb_input JSONB
+) RETURNS VOID AS $$
 DECLARE
+    v_user_id UUID;
+    v_credential_id UUID;
+    v_field_names TEXT[];
+    v_field_values TEXT[];
+    v_access_type VARCHAR;
     v_field_name VARCHAR;
-    v_field_value VARCHAR;
+    v_field_value TEXT;
 BEGIN
-    FOR i IN array_lower(p_field_names, 1)..array_upper(p_field_names, 1)
+    -- Extract fields from input
+    v_user_id := (jsonb_input->>'userId')::UUID;
+    v_credential_id := (jsonb_input->>'credentialId')::UUID;
+    v_field_names := ARRAY(SELECT jsonb_array_elements_text(jsonb_input->'fieldNames'));
+    v_field_values := ARRAY(SELECT jsonb_array_elements_text(jsonb_input->'fieldValues'));
+    v_access_type := jsonb_input->>'accessType';
+
+    FOR i IN array_lower(v_field_names, 1)..array_upper(v_field_names, 1)
     LOOP
-        v_field_name := p_field_names[i];
-        v_field_value := p_field_values[i];
+        v_field_name := v_field_names[i];
+        v_field_value := v_field_values[i];
 
         INSERT INTO encrypted_data (user_id, credential_id, field_name, field_value)
-        VALUES (p_user_id, p_credential_id, v_field_name, v_field_value);
+        VALUES (v_user_id, v_credential_id, v_field_name, v_field_value);
     END LOOP;
 
     INSERT INTO access_list (user_id, credential_id, access_type)
-    VALUES (p_user_id, p_credential_id, p_access_type);
+    VALUES (v_user_id, v_credential_id, v_access_type);
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION add_credential_with_access(
     jsonb_input JSONB
@@ -160,7 +178,7 @@ BEGIN
         FOR v_encrypted_field IN SELECT * FROM jsonb_array_elements(v_encrypted_field_data->'fields')
         LOOP
             INSERT INTO encrypted_data (field_name, field_value, credential_id, user_id)
-            VALUES ((v_encrypted_field->>'fieldName')::varchar(255), (v_encrypted_field->>'fieldValue')::varchar(255), v_credential_id, v_user_id);
+            VALUES ((v_encrypted_field->>'fieldName')::varchar(255), (v_encrypted_field->>'fieldValue')::TEXT, v_credential_id, v_user_id);
         END LOOP;
     END LOOP;
 

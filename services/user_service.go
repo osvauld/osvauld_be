@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"osvauld/auth"
+	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/repository"
 
@@ -18,6 +19,13 @@ func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
 	return id, nil
 }
 
+func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
+	users, err := repository.GetAllUsers(ctx)
+	if err != nil {
+		return users, err
+	}
+	return users, nil
+}
 func Login(ctx *gin.Context, userData dto.Login) dto.LoginReturn {
 	user, _ := repository.GetUser(ctx, userData)
 	token, _ := auth.GenerateToken(user.Username, user.ID)

@@ -58,3 +58,33 @@ func GetUsersByFolder(ctx *gin.Context) {
 
 	SendResponse(ctx, 200, users, "Fetched users", nil)
 }
+
+func ShareFolder(ctx *gin.Context) {
+	var req dto.ShareFolder
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logger.Errorf(err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request"})
+		return
+	}
+
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	err := service.ShareFolder(ctx, req, userID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to share folder", errors.New("failed to share folder"))
+		return
+	}
+	SendResponse(ctx, 201, nil, "Shared folder", nil)
+}
+
+func GetSharedUsers(ctx *gin.Context) {
+	folderIDStr := ctx.Param("id")
+	folderID, _ := uuid.Parse(folderIDStr)
+	users, err := service.GetSharedUsers(ctx, folderID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to get users", errors.New("failed to fetch required users"))
+		return
+	}
+
+	SendResponse(ctx, 200, users, "Fetched users", nil)
+}

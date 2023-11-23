@@ -13,6 +13,6 @@ type Login struct {
 }
 
 type LoginReturn struct {
-	User  db.User `json:"user"`
-	Token string  `json:"token"`
+	User  db.GetUserByUsernameRow `json:"user"`
+	Token string                  `json:"token"`
 }

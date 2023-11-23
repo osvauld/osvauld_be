@@ -13,6 +13,7 @@ import (
 
 type Querier interface {
 	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (uuid.UUID, error)
+	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddMemberToGroup(ctx context.Context, arg AddMemberToGroupParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
 	// sql/create_credential.sql
@@ -24,16 +25,21 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
 	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
 	FetchCredentialsByUserAndFolder(ctx context.Context, arg FetchCredentialsByUserAndFolderParams) ([]FetchCredentialsByUserAndFolderRow, error)
+	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.NullUUID) ([]uuid.NullUUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error)
+	GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEncryptedCredentialsByFolderParams) ([]GetEncryptedCredentialsByFolderRow, error)
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
-	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetSharedUsers(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersRow, error)
+	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error)
 	GetUserGroups(ctx context.Context, userID uuid.UUID) ([]Grouping, error)
+	GetUsersByCredential(ctx context.Context, credentialID uuid.NullUUID) ([]GetUsersByCredentialRow, error)
 	GetUsersByFolder(ctx context.Context, folderID uuid.NullUUID) ([]GetUsersByFolderRow, error)
 	HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error)
-	ShareSecret(ctx context.Context, arg ShareSecretParams) error
+	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
+	ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error
 }
 
 var _ Querier = (*Queries)(nil)
