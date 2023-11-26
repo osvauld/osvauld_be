@@ -1,5 +1,5 @@
 # Start from golang base image
-FROM golang:1.17-alpine as builder
+FROM golang:1.20-alpine as builder
 
 # Install git.
 RUN apk update && apk add --no-cache git
@@ -27,7 +27,7 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage. Also copy config yml file
 COPY --from=builder /app/main .
-COPY --from=builder /app/.env.example .env
+COPY --from=builder /app/.env .env
 
 # Expose port 8080 to the outside world
 EXPOSE 8000
