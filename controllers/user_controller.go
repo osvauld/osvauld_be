@@ -44,7 +44,12 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user := service.Login(ctx, req)
+	user, err := service.Login(ctx, req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	SendResponse(ctx, 200, user, "Login successfull", nil)
 }
 

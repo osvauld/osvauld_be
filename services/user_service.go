@@ -26,8 +26,11 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	}
 	return users, nil
 }
-func Login(ctx *gin.Context, userData dto.Login) dto.LoginReturn {
-	user, _ := repository.GetUser(ctx, userData)
+func Login(ctx *gin.Context, userData dto.Login) (dto.LoginReturn, error) {
+	user, err := repository.GetUser(ctx, userData)
+	if err != nil {
+		return dto.LoginReturn{}, err
+	}
 	token, _ := auth.GenerateToken(user.Username, user.ID)
 	fmt.Println(token)
 	loginReturn := dto.LoginReturn{
@@ -35,5 +38,5 @@ func Login(ctx *gin.Context, userData dto.Login) dto.LoginReturn {
 		Token: token,
 	}
 
-	return loginReturn
+	return loginReturn, nil
 }
