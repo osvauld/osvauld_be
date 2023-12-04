@@ -1,6 +1,6 @@
 
 
-ssh ubuntu@13.127.6.232 << EOF
+ssh ubuntu@3.110.128.10 << EOF
 
     cd osvauld_be
 
@@ -14,6 +14,6 @@ ssh ubuntu@13.127.6.232 << EOF
 
     sudo docker build -t osvauld_be:latest .
 
-    sudo docker run -d -p 8000:8000 --name osvauld_backend osvauld_be:latest
+    sudo docker run -d -p 80:8000 --name osvauld_backend osvauld_be:latest
 EOF
 
