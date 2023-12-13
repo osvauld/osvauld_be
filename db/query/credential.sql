@@ -74,3 +74,21 @@ GROUP BY
     c.id
 ORDER BY 
     c.id;
+
+-- name: GetEncryptedDataByCredentialIds :many
+SELECT 
+    e.credential_id AS id, 
+    json_agg(
+        json_build_object(
+            'fieldName', e.field_name, 
+            'fieldValue', e.field_value
+        )
+    ) AS "encryptedFields"
+FROM 
+    encrypted_data e
+WHERE 
+    e.credential_id = ANY($1::uuid[]) AND e.user_id = $2
+GROUP BY 
+    e.credential_id
+ORDER BY 
+    e.credential_id;

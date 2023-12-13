@@ -96,3 +96,11 @@ func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.U
 	}
 	return credentials, nil
 }
+
+func GetEncryptedCredentialsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedDataByCredentialIdsRow, error) {
+	credentials, err := repository.GetEncryptedCredentailsByIds(ctx, credentialIds, userID)
+	if err != nil {
+		return nil, err
+	}
+	return credentials, nil
+}

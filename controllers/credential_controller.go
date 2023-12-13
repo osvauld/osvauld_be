@@ -84,3 +84,19 @@ func GetEncryptedCredentails(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, credential, "Fetched credential", nil)
 }
+
+func GetEncryptedCredentailsByIds(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	var req dto.GetEncryptedCredentialsByIdsRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	credentials, err := service.GetEncryptedCredentialsByIds(ctx, req.CredentialIds, userID)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
+}

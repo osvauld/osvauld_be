@@ -59,3 +59,6 @@ type SQLCPayload struct {
 	EncryptedFields   []EncryptedFields   `json:"encryptedFields"`
 	CreatedBy         uuid.UUID           `json:"createdBy"`
 }
+type GetEncryptedCredentialsByIdsRequest struct {
+	CredentialIds []uuid.UUID `json:"credentialIds"`
+}
