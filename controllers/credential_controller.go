@@ -31,7 +31,7 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 	// Get folder_id from query params
-	folderIDStr := ctx.DefaultQuery("folderId", "")
+	folderIDStr := ctx.Param("id")
 	folderID, err := uuid.Parse(folderIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder_id query parameter."})
