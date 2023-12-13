@@ -10,20 +10,23 @@ import (
 )
 
 var (
-	DB  *sql.DB
-	Q   *db.Queries
-	err error
+	Q *db.Queries
 )
 
 func DbConnection(masterDSN string) error {
 	// Connecting to master database
-	DB, err = sql.Open("postgres", masterDSN)
+	conn, err := sql.Open("postgres", masterDSN)
 	if err != nil {
 		log.Fatalf("Failed to connect to master database: %v", err)
 		return err
 	}
 
-	Q = db.New(DB)
+	if err := conn.Ping(); err != nil {
+		log.Fatalf("Failed to connect to master database: %v", err)
+		return err
+	}
+
+	Q = db.New(conn)
 
 	// TODO: Add logic for connecting to replica, if needed
 

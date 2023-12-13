@@ -15,7 +15,7 @@ func RegisterRoutes(route *gin.Engine) {
 	})
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/login", controllers.Login)
-	route.POST("/user/", middleware.JWTAuthMiddleware(), controllers.CreateUser)
+	route.POST("/user/", controllers.CreateUser)
 	route.GET("/users", middleware.JWTAuthMiddleware(), controllers.GetAllUsers)
 	route.POST("/folder/", middleware.JWTAuthMiddleware(), controllers.CreateFolder)
 	route.PUT("/folder", middleware.JWTAuthMiddleware(), controllers.ShareFolder)
