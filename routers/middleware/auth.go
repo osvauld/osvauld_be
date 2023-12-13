@@ -20,8 +20,8 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
 			return
 		}
-
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
 		if tokenString == authHeader {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header must start with Bearer"})
 			return
