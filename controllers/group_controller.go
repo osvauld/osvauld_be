@@ -39,7 +39,7 @@ func AppendMembersToGroup(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 
-	// Check user is autorized to append users to group
+	// Check user is authorized to append users to group
 	isMember, err := service.CheckUserMemberOfGroup(ctx, userID, req.GroupID)
 	if !isMember {
 		SendResponse(ctx, 401, nil, "", errors.New("unauthorized for group append"))
@@ -79,7 +79,7 @@ func GetGroupMembers(ctx *gin.Context) {
 	groupIDStr := ctx.Param("groupId")
 	groupID, _ := uuid.Parse(groupIDStr)
 
-	// Check user is autorized to see members of the group
+	// Check user is authorized to see members of the group
 	isMember, err := service.CheckUserMemberOfGroup(ctx, userID, groupID)
 	if !isMember {
 		SendResponse(ctx, 401, nil, "", errors.New("unauthorized for group view"))
