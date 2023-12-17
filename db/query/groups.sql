@@ -28,3 +28,10 @@ SELECT u.id, u.name, u.username, u.public_key as "publicKey"
 FROM users u
 JOIN group_list gl ON u.id = gl.user_id
 WHERE gl.grouping_id = $1;
+
+
+-- name: CheckUserMemberOfGroup :one
+SELECT EXISTS (
+  SELECT 1 FROM group_list
+  WHERE user_id = $1 AND grouping_id = $2
+) as "exists";

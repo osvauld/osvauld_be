@@ -30,3 +30,8 @@ func GetGroupMembers(ctx *gin.Context, userID uuid.UUID, groupId uuid.UUID) ([]d
 	users, err := repository.GetGroupMembers(ctx, groupId)
 	return users, err
 }
+
+func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
+	isMember, err := repository.CheckUserMemberOfGroup(ctx, userID, groupID)
+	return isMember, err
+}
