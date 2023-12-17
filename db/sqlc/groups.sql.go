@@ -31,6 +31,25 @@ func (q *Queries) AddMemberToGroup(ctx context.Context, arg AddMemberToGroupPara
 	return err
 }
 
+const checkUserMemberOfGroup = `-- name: CheckUserMemberOfGroup :one
+SELECT EXISTS (
+  SELECT 1 FROM group_list
+  WHERE user_id = $1 AND grouping_id = $2
+) as "exists"
+`
+
+type CheckUserMemberOfGroupParams struct {
+	UserID     uuid.UUID `json:"user_id"`
+	GroupingID uuid.UUID `json:"grouping_id"`
+}
+
+func (q *Queries) CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserMemberOfGroup, arg.UserID, arg.GroupingID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createGroup = `-- name: CreateGroup :exec
 WITH new_group AS (
   INSERT INTO groupings (name, created_by)

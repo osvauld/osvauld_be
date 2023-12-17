@@ -16,6 +16,7 @@ type Querier interface {
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddMemberToGroup(ctx context.Context, arg AddMemberToGroupParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
+	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	// sql/create_credential.sql
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateEncryptedData(ctx context.Context, arg CreateEncryptedDataParams) (uuid.UUID, error)

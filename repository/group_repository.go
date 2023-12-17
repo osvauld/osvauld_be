@@ -56,3 +56,16 @@ func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID) ([]db.GetGroupMembersR
 	}
 	return users, nil
 }
+
+func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
+	args := db.CheckUserMemberOfGroupParams{
+		UserID:     userID,
+		GroupingID: groupID,
+	}
+	isMember, err := database.Q.CheckUserMemberOfGroup(ctx, args)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return false, err
+	}
+	return isMember, nil
+}
