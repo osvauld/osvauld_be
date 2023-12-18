@@ -31,6 +31,33 @@ func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams
 	return id, err
 }
 
+const getCredentialIDsByUserID = `-- name: GetCredentialIDsByUserID :many
+SELECT credential_id FROM access_list WHERE user_id = $1
+`
+
+func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.NullUUID) ([]uuid.NullUUID, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialIDsByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.NullUUID{}
+	for rows.Next() {
+		var credential_id uuid.NullUUID
+		if err := rows.Scan(&credential_id); err != nil {
+			return nil, err
+		}
+		items = append(items, credential_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUsersByCredential = `-- name: GetUsersByCredential :many
 SELECT users.id, users.username, users.name, users.public_key as "publicKey", access_list.access_type as "accessType"
 FROM access_list
