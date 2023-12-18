@@ -27,3 +27,7 @@ SELECT users.id, users.username, users.name, users.public_key as "publicKey", ac
 FROM access_list
 JOIN users ON access_list.user_id = users.id
 WHERE access_list.credential_id = $1;
+
+
+-- name: GetCredentialIDsByUserID :many
+SELECT credential_id FROM access_list WHERE user_id = $1;
