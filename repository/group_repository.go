@@ -15,7 +15,7 @@ func AddGroup(ctx *gin.Context, group dto.CreateGroup, userID uuid.UUID) error {
 		Name:   group.Name,
 		UserID: userID,
 	}
-	err := database.Q.CreateGroup(ctx, arg)
+	err := database.Store.CreateGroup(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return err
@@ -29,7 +29,7 @@ func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUI
 		GroupingID: payload.GroupID,
 		Column2:    payload.Members,
 	}
-	err := database.Q.AddMemberToGroup(ctx, arg)
+	err := database.Store.AddMemberToGroup(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return err
@@ -40,7 +40,7 @@ func AddMembersToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUI
 
 func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.Grouping, error) {
 
-	groups, err := database.Q.GetUserGroups(ctx, userID)
+	groups, err := database.Store.GetUserGroups(ctx, userID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return groups, err
@@ -49,7 +49,7 @@ func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.Grouping, error) {
 }
 
 func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID) ([]db.GetGroupMembersRow, error) {
-	users, err := database.Q.GetGroupMembers(ctx, groupID)
+	users, err := database.Store.GetGroupMembers(ctx, groupID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return users, err
@@ -62,7 +62,7 @@ func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUI
 		UserID:     userID,
 		GroupingID: groupID,
 	}
-	isMember, err := database.Q.CheckUserMemberOfGroup(ctx, args)
+	isMember, err := database.Store.CheckUserMemberOfGroup(ctx, args)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return false, err

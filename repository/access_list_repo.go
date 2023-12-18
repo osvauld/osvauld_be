@@ -15,7 +15,7 @@ func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string
 		AccessType:   accessType,
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	_, err := database.Q.AddToAccessList(ctx, arg)
+	_, err := database.Store.AddToAccessList(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return err
@@ -28,7 +28,7 @@ func CheckAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID u
 		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	hasAccess, err := database.Q.HasUserAccess(ctx, arg)
+	hasAccess, err := database.Store.HasUserAccess(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return hasAccess, err
@@ -37,7 +37,7 @@ func CheckAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID u
 }
 
 func GetUsersByCredential(ctx *gin.Context, credentailID uuid.UUID) ([]db.GetUsersByCredentialRow, error) {
-	users, err := database.Q.GetUsersByCredential(ctx, uuid.NullUUID{UUID: credentailID, Valid: true})
+	users, err := database.Store.GetUsersByCredential(ctx, uuid.NullUUID{UUID: credentailID, Valid: true})
 	if err != nil {
 		logger.Errorf(err.Error())
 		return users, err
