@@ -17,7 +17,7 @@ func AddCredential(ctx *gin.Context, payload dto.SQLCPayload) (uuid.UUID, error)
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
 	}
-	credentialId, err := database.Q.AddCredential(ctx, payloadJSON)
+	credentialId, err := database.Store.AddCredential(ctx, payloadJSON)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return uuid.Nil, err
@@ -31,7 +31,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		UserID:   uuid.NullUUID{UUID: userID, Valid: true},
 		FolderID: uuid.NullUUID{UUID: folderID, Valid: true},
 	}
-	data, err := database.Q.FetchCredentialsByUserAndFolder(ctx, arg)
+	data, err := database.Store.FetchCredentialsByUserAndFolder(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -58,7 +58,7 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 		logger.Errorf(err.Error())
 		return
 	}
-	err = database.Q.ShareSecret(ctx, paramsJson)
+	err = database.Store.ShareSecret(ctx, paramsJson)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return
@@ -66,7 +66,7 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 }
 
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID) (db.GetCredentialDetailsRow, error) {
-	credential, err := database.Q.GetCredentialDetails(ctx, credentialID)
+	credential, err := database.Store.GetCredentialDetails(ctx, credentialID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return credential, err
@@ -80,7 +80,7 @@ func FetchEncryptedData(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UU
 		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
 		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	encryptedData, err := database.Q.GetUserEncryptedData(ctx, arg)
+	encryptedData, err := database.Store.GetUserEncryptedData(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -90,7 +90,7 @@ func FetchEncryptedData(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UU
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
 
-	encryptedData, err := database.Q.GetCredentialUnencryptedData(ctx, uuid.NullUUID{UUID: credentialID, Valid: true})
+	encryptedData, err := database.Store.GetCredentialUnencryptedData(ctx, uuid.NullUUID{UUID: credentialID, Valid: true})
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -103,7 +103,7 @@ func GetEncryptedCredentails(ctx *gin.Context, folderId uuid.UUID, userID uuid.U
 		FolderID: uuid.NullUUID{UUID: folderId, Valid: true},
 		UserID:   uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	encryptedData, err := database.Q.GetEncryptedCredentialsByFolder(ctx, arg)
+	encryptedData, err := database.Store.GetEncryptedCredentialsByFolder(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -116,7 +116,7 @@ func GetEncryptedCredentailsByIds(ctx *gin.Context, credentialIds []uuid.UUID, u
 		Column1: credentialIds,
 		UserID:        uuid.NullUUID{UUID: userID, Valid: true},
 	}
-	encryptedData, err := database.Q.GetEncryptedDataByCredentialIds(ctx, arg)
+	encryptedData, err := database.Store.GetEncryptedDataByCredentialIds(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
