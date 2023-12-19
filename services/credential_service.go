@@ -3,7 +3,6 @@ package service
 import (
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
-	"osvauld/infra/database"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -22,18 +21,7 @@ func AddCredential(ctx *gin.Context, data dto.AddCredentailRequest, createdBy uu
 		}
 	}
 
-	addCredentialTransactionParams := db.AddCredentialTransactionParams{
-		Name:              data.Name,
-		Description:       data.Description,
-		FolderID:          data.FolderID,
-		UnencryptedFields: data.UnencryptedFields,
-		UserAccessDetails: data.UserAccessDetails,
-		CreatedBy:         createdBy,
-	}
-
-	id, err := database.Store.AddCredentialTransaction(ctx, addCredentialTransactionParams)
-	return id, err
-
+	return repository.AddCredential(ctx, data, createdBy)
 }
 
 func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {
@@ -53,8 +41,6 @@ func ShareCredential(ctx *gin.Context, payload dto.ShareCredentialPayload, userI
 		}
 	}
 }
-
-
 
 // func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (dto.CredentialDetails, error) {
 // 	if hasAccess, err := repository.CheckAccessForCredential(ctx, credentialID, userID); !hasAccess {
