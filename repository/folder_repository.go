@@ -35,7 +35,7 @@ func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessi
 }
 
 func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
-	users, err := database.Store.GetUsersByFolder(ctx, uuid.NullUUID{UUID: folderID, Valid: true})
+	users, err := database.Store.GetUsersByFolder(ctx, folderID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return users, err

@@ -19,9 +19,9 @@ RETURNING id
 `
 
 type AddToAccessListParams struct {
-	CredentialID uuid.NullUUID `json:"credential_id"`
-	UserID       uuid.NullUUID `json:"user_id"`
-	AccessType   string        `json:"access_type"`
+	CredentialID uuid.UUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	AccessType   string    `json:"access_type"`
 }
 
 func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error) {
@@ -35,15 +35,15 @@ const getCredentialIDsByUserID = `-- name: GetCredentialIDsByUserID :many
 SELECT credential_id FROM access_list WHERE user_id = $1
 `
 
-func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.NullUUID) ([]uuid.NullUUID, error) {
+func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	rows, err := q.db.QueryContext(ctx, getCredentialIDsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []uuid.NullUUID{}
+	items := []uuid.UUID{}
 	for rows.Next() {
-		var credential_id uuid.NullUUID
+		var credential_id uuid.UUID
 		if err := rows.Scan(&credential_id); err != nil {
 			return nil, err
 		}
@@ -73,7 +73,7 @@ type GetUsersByCredentialRow struct {
 	AccessType string    `json:"accessType"`
 }
 
-func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.NullUUID) ([]GetUsersByCredentialRow, error) {
+func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error) {
 	rows, err := q.db.QueryContext(ctx, getUsersByCredential, credentialID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ type GetUsersByFolderRow struct {
 	PublicKey string    `json:"publicKey"`
 }
 
-func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.NullUUID) ([]GetUsersByFolderRow, error) {
+func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error) {
 	rows, err := q.db.QueryContext(ctx, getUsersByFolder, folderID)
 	if err != nil {
 		return nil, err
@@ -154,8 +154,8 @@ SELECT EXISTS (
 `
 
 type HasUserAccessParams struct {
-	UserID       uuid.NullUUID `json:"user_id"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	CredentialID uuid.UUID `json:"credential_id"`
 }
 
 func (q *Queries) HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error) {

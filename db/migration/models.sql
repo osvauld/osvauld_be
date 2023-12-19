@@ -28,8 +28,8 @@ CREATE TABLE credentials (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
     description VARCHAR(255),
-    folder_id UUID REFERENCES folders(id),
-    created_by UUID REFERENCES users(id)
+    folder_id UUID NOT NULL REFERENCES folders(id),
+    created_by UUID NOT NULL REFERENCES users(id)
 );
 
 
@@ -38,9 +38,10 @@ CREATE TABLE access_list (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    credential_id UUID REFERENCES credentials(id),
-    user_id UUID REFERENCES users(id),
-    access_type VARCHAR(255) NOT NULL
+    credential_id UUID NOT NULL REFERENCES credentials(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    access_type VARCHAR(255) NOT NULL,
+    group_id UUID REFERENCES groupings(id)
 );
 
 
@@ -50,9 +51,9 @@ CREATE TABLE encrypted_data (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     field_name VARCHAR(255) NOT NULL,
-    credential_id UUID REFERENCES credentials(id),
+    credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value TEXT NOT NULL,
-    user_id UUID REFERENCES users(id)
+    user_id UUID NOT NULL REFERENCES users(id)
 );
 
 -- SQL Definition for UnencryptedData
@@ -61,7 +62,7 @@ CREATE TABLE unencrypted_data (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     field_name VARCHAR(255) NOT NULL,
-    credential_id UUID REFERENCES credentials(id),
+    credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value VARCHAR(255) NOT NULL
 );
 

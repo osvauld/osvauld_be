@@ -15,9 +15,10 @@ type AccessList struct {
 	ID           uuid.UUID     `json:"id"`
 	CreatedAt    time.Time     `json:"created_at"`
 	UpdatedAt    time.Time     `json:"updated_at"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
-	UserID       uuid.NullUUID `json:"user_id"`
+	CredentialID uuid.UUID     `json:"credential_id"`
+	UserID       uuid.UUID     `json:"user_id"`
 	AccessType   string        `json:"access_type"`
+	GroupID      uuid.NullUUID `json:"group_id"`
 }
 
 type Credential struct {
@@ -26,18 +27,18 @@ type Credential struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	FolderID    uuid.NullUUID  `json:"folder_id"`
-	CreatedBy   uuid.NullUUID  `json:"created_by"`
+	FolderID    uuid.UUID      `json:"folder_id"`
+	CreatedBy   uuid.UUID      `json:"created_by"`
 }
 
 type EncryptedDatum struct {
-	ID           uuid.UUID     `json:"id"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	FieldName    string        `json:"field_name"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
-	FieldValue   string        `json:"field_value"`
-	UserID       uuid.NullUUID `json:"user_id"`
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	FieldName    string    `json:"field_name"`
+	CredentialID uuid.UUID `json:"credential_id"`
+	FieldValue   string    `json:"field_value"`
+	UserID       uuid.UUID `json:"user_id"`
 }
 
 type Folder struct {
@@ -75,12 +76,12 @@ type Grouping struct {
 }
 
 type UnencryptedDatum struct {
-	ID           uuid.UUID     `json:"id"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	FieldName    string        `json:"field_name"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
-	FieldValue   string        `json:"field_value"`
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	FieldName    string    `json:"field_name"`
+	CredentialID uuid.UUID `json:"credential_id"`
+	FieldValue   string    `json:"field_value"`
 }
 
 type User struct {

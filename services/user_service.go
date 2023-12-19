@@ -34,7 +34,7 @@ func Login(ctx *gin.Context, userData dto.Login) (dto.LoginReturn, error) {
 	token, _ := auth.GenerateToken(user.Username, user.ID)
 	fmt.Println(token)
 	loginReturn := dto.LoginReturn{
-		User:  user,
+		User:  user.ID.String(),
 		Token: token,
 	}
 

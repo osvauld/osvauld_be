@@ -25,7 +25,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/folder/:id/credential", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByFolder)
 	route.PUT("/credentials/", middleware.JWTAuthMiddleware(), controllers.ShareCredential)
 	route.GET("/folders/", middleware.JWTAuthMiddleware(), controllers.GetAccessibleFolders)
-	route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialByID)
+	// route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialByID)
 	route.POST("/group", middleware.JWTAuthMiddleware(), controllers.AddGroup)
 	route.GET("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.GetGroupMembers)
 	route.GET("/groups", middleware.JWTAuthMiddleware(), controllers.GetUserGroups)

@@ -3,6 +3,7 @@ package service
 import (
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/database"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -10,19 +11,29 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateCredential(ctx *gin.Context, data dto.AddCredentailRequest, userID uuid.UUID) (uuid.UUID, error) {
-	uniqueUsersIDs, _ := extractUniqueUserIDs(data.EncryptedFields)
-	payload := dto.SQLCPayload{
+func AddCredential(ctx *gin.Context, data dto.AddCredentailRequest, createdBy uuid.UUID) (uuid.UUID, error) {
+
+	// add access type for users
+	for _, user := range data.UserAccessDetails {
+		if user.UserID == createdBy {
+			user.AccessType = "owner"
+		} else {
+			user.AccessType = "read"
+		}
+	}
+
+	addCredentialTransactionParams := db.AddCredentialTransactionParams{
 		Name:              data.Name,
 		Description:       data.Description,
-		UniqueUserIds:     uniqueUsersIDs,
-		EncryptedFields:   data.EncryptedFields,
-		UnencryptedFields: data.UnencryptedFields,
 		FolderID:          data.FolderID,
-		CreatedBy:         userID,
+		UnencryptedFields: data.UnencryptedFields,
+		UserAccessDetails: data.UserAccessDetails,
+		CreatedBy:         createdBy,
 	}
-	id, err := repository.AddCredential(ctx, payload)
+
+	id, err := database.Store.AddCredentialTransaction(ctx, addCredentialTransactionParams)
 	return id, err
+
 }
 
 func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {
@@ -43,51 +54,53 @@ func ShareCredential(ctx *gin.Context, payload dto.ShareCredentialPayload, userI
 	}
 }
 
-func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (dto.CredentialDetails, error) {
-	if hasAccess, err := repository.CheckAccessForCredential(ctx, credentialID, userID); !hasAccess {
-		logger.Errorf(err.Error())
-		logger.Errorf("user does not have access to the credential")
-		return dto.CredentialDetails{}, err
-	}
-	credential, err := repository.FetchCredentialByID(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-	}
-	encryptedData, err := repository.FetchEncryptedData(ctx, credentialID, userID)
-	if err != nil {
-		logger.Errorf(err.Error())
-	}
-	unEncryptedData, err := repository.FetchUnEncryptedData(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-	}
-	userList, err := repository.GetUsersByCredential(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-	}
-	credentialDetail := dto.CredentialDetails{
-		Credential:      credential,
-		EncryptedData:   encryptedData,
-		UnencryptedData: unEncryptedData,
-		Users:           userList,
-	}
-	return credentialDetail, err
 
-}
 
-func extractUniqueUserIDs(encryptedFields []dto.EncryptedFields) ([]uuid.UUID, error) {
-	userIDMap := make(map[uuid.UUID]bool)
-	var uniqueUserIDs []uuid.UUID
+// func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (dto.CredentialDetails, error) {
+// 	if hasAccess, err := repository.CheckAccessForCredential(ctx, credentialID, userID); !hasAccess {
+// 		logger.Errorf(err.Error())
+// 		logger.Errorf("user does not have access to the credential")
+// 		return dto.CredentialDetails{}, err
+// 	}
+// 	credential, err := repository.FetchCredentialByID(ctx, credentialID)
+// 	if err != nil {
+// 		logger.Errorf(err.Error())
+// 	}
+// 	encryptedData, err := repository.FetchEncryptedData(ctx, credentialID, userID)
+// 	if err != nil {
+// 		logger.Errorf(err.Error())
+// 	}
+// 	unEncryptedData, err := repository.FetchUnEncryptedData(ctx, credentialID)
+// 	if err != nil {
+// 		logger.Errorf(err.Error())
+// 	}
+// 	userList, err := repository.GetUsersByCredential(ctx, credentialID)
+// 	if err != nil {
+// 		logger.Errorf(err.Error())
+// 	}
+// 	credentialDetail := dto.CredentialDetails{
+// 		Credential:      credential,
+// 		EncryptedData:   encryptedData,
+// 		UnencryptedData: unEncryptedData,
+// 		Users:           userList,
+// 	}
+// 	return credentialDetail, err
 
-	for _, field := range encryptedFields {
-		if _, exists := userIDMap[field.UserID]; !exists {
-			userIDMap[field.UserID] = true
-			uniqueUserIDs = append(uniqueUserIDs, field.UserID)
-		}
-	}
+// }
 
-	return uniqueUserIDs, nil
-}
+// func extractUniqueUserIDs(encryptedFields []dto.EncryptedFields) ([]uuid.UUID, error) {
+// 	userIDMap := make(map[uuid.UUID]bool)
+// 	var uniqueUserIDs []uuid.UUID
+
+// 	for _, field := range encryptedFields {
+// 		if _, exists := userIDMap[field.UserID]; !exists {
+// 			userIDMap[field.UserID] = true
+// 			uniqueUserIDs = append(uniqueUserIDs, field.UserID)
+// 		}
+// 	}
+
+// 	return uniqueUserIDs, nil
+// }
 
 func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
 	credentials, err := repository.GetEncryptedCredentails(ctx, folderID, userID)

@@ -34,8 +34,8 @@ RETURNING id
 type CreateCredentialParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	FolderID    uuid.NullUUID  `json:"folder_id"`
-	CreatedBy   uuid.NullUUID  `json:"created_by"`
+	FolderID    uuid.UUID      `json:"folder_id"`
+	CreatedBy   uuid.UUID      `json:"created_by"`
 }
 
 // sql/create_credential.sql
@@ -58,10 +58,10 @@ RETURNING id
 `
 
 type CreateEncryptedDataParams struct {
-	FieldName    string        `json:"field_name"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
-	FieldValue   string        `json:"field_value"`
-	UserID       uuid.NullUUID `json:"user_id"`
+	FieldName    string    `json:"field_name"`
+	CredentialID uuid.UUID `json:"credential_id"`
+	FieldValue   string    `json:"field_value"`
+	UserID       uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) CreateEncryptedData(ctx context.Context, arg CreateEncryptedDataParams) (uuid.UUID, error) {
@@ -83,9 +83,9 @@ RETURNING id
 `
 
 type CreateUnencryptedDataParams struct {
-	FieldName    string        `json:"field_name"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
-	FieldValue   string        `json:"field_value"`
+	FieldName    string    `json:"field_name"`
+	CredentialID uuid.UUID `json:"credential_id"`
+	FieldValue   string    `json:"field_value"`
 }
 
 func (q *Queries) CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error) {
@@ -114,8 +114,8 @@ GROUP BY c.id
 `
 
 type FetchCredentialsByUserAndFolderParams struct {
-	UserID   uuid.NullUUID `json:"user_id"`
-	FolderID uuid.NullUUID `json:"folder_id"`
+	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folder_id"`
 }
 
 type FetchCredentialsByUserAndFolderRow struct {
@@ -183,7 +183,7 @@ type GetCredentialUnencryptedDataRow struct {
 	FieldValue string `json:"fieldValue"`
 }
 
-func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.NullUUID) ([]GetCredentialUnencryptedDataRow, error) {
+func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error) {
 	rows, err := q.db.QueryContext(ctx, getCredentialUnencryptedData, credentialID)
 	if err != nil {
 		return nil, err
@@ -228,8 +228,8 @@ ORDER BY
 `
 
 type GetEncryptedCredentialsByFolderParams struct {
-	FolderID uuid.NullUUID `json:"folder_id"`
-	UserID   uuid.NullUUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folder_id"`
+	UserID   uuid.UUID `json:"user_id"`
 }
 
 type GetEncryptedCredentialsByFolderRow struct {
@@ -280,12 +280,12 @@ ORDER BY
 `
 
 type GetEncryptedDataByCredentialIdsParams struct {
-	Column1 []uuid.UUID   `json:"column_1"`
-	UserID  uuid.NullUUID `json:"user_id"`
+	Column1 []uuid.UUID `json:"column_1"`
+	UserID  uuid.UUID   `json:"user_id"`
 }
 
 type GetEncryptedDataByCredentialIdsRow struct {
-	ID              uuid.NullUUID   `json:"id"`
+	ID              uuid.UUID       `json:"id"`
 	EncryptedFields json.RawMessage `json:"encryptedFields"`
 }
 
@@ -319,8 +319,8 @@ WHERE user_id = $1 AND credential_id = $2
 `
 
 type GetUserEncryptedDataParams struct {
-	UserID       uuid.NullUUID `json:"user_id"`
-	CredentialID uuid.NullUUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	CredentialID uuid.UUID `json:"credential_id"`
 }
 
 type GetUserEncryptedDataRow struct {

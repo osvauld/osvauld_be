@@ -1,8 +1,6 @@
 package dto
 
 import (
-	db "osvauld/db/sqlc"
-
 	"github.com/google/uuid"
 )
 
@@ -10,28 +8,36 @@ type AddCredentailRequest struct {
 	Name              string              `json:"name"`
 	Description       string              `json:"description"`
 	FolderID          uuid.UUID           `json:"folderId"`
-	EncryptedFields   []EncryptedFields   `json:"encryptedFields"`
-	UnencryptedFields []UnEncryptedFields `json:"unencryptedFields"`
+	UnencryptedFields []Field             `json:"unencryptedFields"`
+	UserAccessDetails []UserAccessDetails `json:"userAccessDetails"`
 }
 
-type UnEncryptedFields struct {
+type UserAccessDetails struct {
+	UserID          uuid.UUID     `json:"userId"`
+	AccessType      string        `json:"accessType"`
+	GroupID         uuid.NullUUID `json:"groupId"`
+	EncryptedFields []Field       `json:"encryptedFields"`
+}
+
+type CredentialDetails struct {
+	CredentialID      Credential `json:"credentialId"`
+	Name              string     `json:"name"`
+	Description       string     `json:"description"`
+	FolderID          uuid.UUID  `json:"folderId"`
+	UnencryptedFields []Field    `json:"unencryptedFields"`
+	EncryptedFields   []Field    `json:"encryptedFields"`
+	UserID            uuid.UUID  `json:"userId"`
+}
+
+type Field struct {
 	FieldName  string `json:"fieldName"`
 	FieldValue string `json:"fieldValue"`
 }
 
-type EncryptedFields struct {
-	UserID uuid.UUID      `json:"userId"`
-	Fields []FieldRequest `json:"fields"`
-}
-
-type FieldRequest struct {
-	FieldName  string `json:"fieldName"`
-	FieldValue string `json:"fieldValue"`
-}
 type User struct {
-	UserID     uuid.UUID      `json:"userId"`
-	Fields     []FieldRequest `json:"fields"`
-	AccessType string         `json:"accessType"`
+	UserID     uuid.UUID `json:"userId"`
+	Fields     []Field   `json:"fields"`
+	AccessType string    `json:"accessType"`
 }
 
 type Credential struct {
@@ -43,22 +49,13 @@ type ShareCredentialPayload struct {
 	CredentialList []Credential `json:"credentialList"`
 }
 
-type CredentialDetails struct {
-	Credential      db.GetCredentialDetailsRow           `json:"credential"`
-	EncryptedData   []db.GetUserEncryptedDataRow         `json:"encryptedData"`
-	UnencryptedData []db.GetCredentialUnencryptedDataRow `json:"unencryptedData"`
-	Users           []db.GetUsersByCredentialRow         `json:"users"`
-}
+// type CredentialDetails struct {
+// 	Credential      db.GetCredentialDetailsRow           `json:"credential"`
+// 	EncryptedData   []EncryptedFields        `json:"encryptedData"`
+// 	UnencryptedData []db.GetCredentialUnencryptedDataRow `json:"unencryptedData"`
+// 	Users           []db.GetUsersByCredentialRow         `json:"users"`
+// }
 
-type SQLCPayload struct {
-	Name              string              `json:"name"`
-	Description       string              `json:"description"`
-	FolderID          uuid.UUID           `json:"folderId"`
-	UniqueUserIds     []uuid.UUID         `json:"uniqueUserIds"`
-	UnencryptedFields []UnEncryptedFields `json:"unencryptedFields"`
-	EncryptedFields   []EncryptedFields   `json:"encryptedFields"`
-	CreatedBy         uuid.UUID           `json:"createdBy"`
-}
 type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }

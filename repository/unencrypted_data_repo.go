@@ -10,11 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func SaveUnEncryptedData(ctx *gin.Context, encrypedData dto.FieldRequest, credentiaId uuid.UUID) (uuid.UUID, error) {
+func SaveUnEncryptedData(ctx *gin.Context, encrypedData dto.Field, credentiaId uuid.UUID) (uuid.UUID, error) {
 	arg := db.CreateUnencryptedDataParams{
 		FieldName:    encrypedData.FieldName,
 		FieldValue:   encrypedData.FieldValue,
-		CredentialID: uuid.NullUUID{UUID: credentiaId, Valid: true},
+		CredentialID: credentiaId,
 	}
 	id, err := database.Store.CreateUnencryptedData(ctx, arg)
 	if err != nil {

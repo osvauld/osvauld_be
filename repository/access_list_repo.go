@@ -11,9 +11,8 @@ import (
 
 func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string, userID uuid.UUID) error {
 	arg := db.AddToAccessListParams{
-		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
-		AccessType:   accessType,
-		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
+		CredentialID: credentialID,
+		UserID:       userID,
 	}
 	_, err := database.Store.AddToAccessList(ctx, arg)
 	if err != nil {
@@ -23,21 +22,9 @@ func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string
 	return nil
 }
 
-func CheckAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
-	arg := db.HasUserAccessParams{
-		CredentialID: uuid.NullUUID{UUID: credentialID, Valid: true},
-		UserID:       uuid.NullUUID{UUID: userID, Valid: true},
-	}
-	hasAccess, err := database.Store.HasUserAccess(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return hasAccess, err
-	}
-	return hasAccess, nil
-}
 
 func GetUsersByCredential(ctx *gin.Context, credentailID uuid.UUID) ([]db.GetUsersByCredentialRow, error) {
-	users, err := database.Store.GetUsersByCredential(ctx, uuid.NullUUID{UUID: credentailID, Valid: true})
+	users, err := database.Store.GetUsersByCredential(ctx, credentailID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return users, err

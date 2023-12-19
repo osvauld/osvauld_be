@@ -1,7 +1,5 @@
 package dto
 
-import db "osvauld/db/sqlc"
-
 type CreateUser struct {
 	UserName  string `json:"username"`
 	Name      string `json:"name"`
@@ -13,6 +11,6 @@ type Login struct {
 }
 
 type LoginReturn struct {
-	User  db.GetUserByUsernameRow `json:"user"`
-	Token string                  `json:"token"`
+	User  string `json:"user"`
+	Token string `json:"token"`
 }
