@@ -34,7 +34,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.GetGroupMembers)
 	route.GET("/groups", middleware.JWTAuthMiddleware(), controllers.GetUserGroups)
 	route.POST("/group/members", middleware.JWTAuthMiddleware(), controllers.AppendMembersToGroup)
-	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentails)
+	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetAllEncryptedCredentailsForFolderID)
 	route.POST("/credentials/encrypted/", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentailsByIds)
 	//Add All route
 	//TestRoutes(route)

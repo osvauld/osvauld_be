@@ -80,7 +80,7 @@ func ShareCredential(ctx *gin.Context) {
 	SendResponse(ctx, 200, nil, "Success", nil)
 }
 
-func GetEncryptedCredentails(ctx *gin.Context) {
+func GetAllEncryptedCredentailsForFolderID(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 	folderIDStr := ctx.Param("folderId")
