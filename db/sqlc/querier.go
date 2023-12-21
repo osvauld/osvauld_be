@@ -12,7 +12,7 @@ import (
 )
 
 type Querier interface {
-	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (uuid.UUID, error)
+	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddMemberToGroup(ctx context.Context, arg AddMemberToGroupParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
@@ -24,9 +24,13 @@ type Querier interface {
 	CreateGroup(ctx context.Context, arg CreateGroupParams) error
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
-	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
+	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
+	FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (Credential, error)
 	FetchCredentialsByUserAndFolder(ctx context.Context, arg FetchCredentialsByUserAndFolderParams) ([]FetchCredentialsByUserAndFolderRow, error)
+	FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error)
+	FetchUnencryptedFieldsByCredentialID(ctx context.Context, credentialID uuid.UUID) ([]FetchUnencryptedFieldsByCredentialIDRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
+	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error)
@@ -39,7 +43,6 @@ type Querier interface {
 	GetUserGroups(ctx context.Context, userID uuid.UUID) ([]Grouping, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error)
-	HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
 	ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error
 }

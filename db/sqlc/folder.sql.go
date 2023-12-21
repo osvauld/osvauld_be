@@ -45,7 +45,7 @@ SELECT id FROM new_folder
 type CreateFolderParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.NullUUID  `json:"created_by"`
+	CreatedBy   uuid.UUID      `json:"created_by"`
 }
 
 func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error) {
@@ -81,7 +81,7 @@ type FetchAccessibleAndCreatedFoldersByUserRow struct {
 	Description string    `json:"description"`
 }
 
-func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.NullUUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error) {
+func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, fetchAccessibleAndCreatedFoldersByUser, createdBy)
 	if err != nil {
 		return nil, err

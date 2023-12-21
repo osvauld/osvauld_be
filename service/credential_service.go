@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
@@ -22,6 +24,28 @@ func AddCredential(ctx *gin.Context, data dto.AddCredentailRequest, createdBy uu
 	}
 
 	return repository.AddCredential(ctx, data, createdBy)
+}
+
+func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {
+
+	// Check if caller has access
+	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
+	if err != nil {
+		return dto.CredentialDetails{}, err
+	}
+
+	if !hasAccess {
+		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
+		return dto.CredentialDetails{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
+	}
+
+	credential, err := repository.FetchCredentialByID(ctx, credentialID, caller)
+	if err != nil {
+		return dto.CredentialDetails{}, err
+	}
+
+	fmt.Println(credential)
+	return credential, err
 }
 
 func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {

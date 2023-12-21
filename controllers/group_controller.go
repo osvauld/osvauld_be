@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	dto "osvauld/dtos"
-	service "osvauld/services"
+	service "osvauld/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

@@ -18,7 +18,7 @@ CREATE TABLE folders (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
     description VARCHAR(255),
-    created_by UUID REFERENCES users(id)
+    created_by UUID NOT NULL REFERENCES users(id)
 );
 
 -- SQL Definition for Credential
@@ -131,65 +131,5 @@ BEGIN
 
     INSERT INTO access_list (user_id, credential_id, access_type)
     VALUES (v_user_id, v_credential_id, v_access_type);
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION add_credential_with_access(
-    jsonb_input JSONB
-) RETURNS UUID AS $$
-DECLARE
-    v_credential_id UUID;
-    v_folder_id UUID;
-    v_name TEXT;
-    v_description TEXT;
-    v_unencrypted_fields JSONB;
-    v_encrypted_fields JSONB;
-    v_unique_user_ids JSONB;
-    v_user_id UUID;
-    v_unencrypted_field JSONB;
-    v_encrypted_field JSONB;
-    v_encrypted_field_data JSONB;
-    v_created_by UUID;
-BEGIN
-    -- Extract fields from input
-    v_name := jsonb_input->>'name';
-    v_description := jsonb_input->>'description';
-    v_folder_id := (jsonb_input->>'folderId')::UUID;
-    v_unencrypted_fields := jsonb_input->'unencryptedFields';
-    v_encrypted_fields := jsonb_input->'encryptedFields';
-    v_unique_user_ids := jsonb_input->'uniqueUserIds';
-    v_created_by := (jsonb_input->>'createdBy')::UUID;
-
-    -- Create the credential
-    INSERT INTO credentials (name, description, folder_id, created_by)
-    VALUES (v_name, v_description, v_folder_id, v_created_by)
-    RETURNING id INTO v_credential_id;
-
-    -- Add unencrypted fields
-    FOR v_unencrypted_field IN SELECT * FROM jsonb_array_elements(v_unencrypted_fields)
-    LOOP
-        INSERT INTO unencrypted_data (field_name, field_value, credential_id)
-        VALUES ((v_unencrypted_field->>'fieldName')::varchar(255), (v_unencrypted_field->>'fieldValue')::varchar(255), v_credential_id);
-    END LOOP;
-
-    -- Add encrypted fields and access list entries
-    FOR v_encrypted_field_data IN SELECT * FROM jsonb_array_elements(v_encrypted_fields)
-    LOOP
-        v_user_id := (v_encrypted_field_data->>'userId')::UUID;
-        FOR v_encrypted_field IN SELECT * FROM jsonb_array_elements(v_encrypted_field_data->'fields')
-        LOOP
-            INSERT INTO encrypted_data (field_name, field_value, credential_id, user_id)
-            VALUES ((v_encrypted_field->>'fieldName')::varchar(255), (v_encrypted_field->>'fieldValue')::TEXT, v_credential_id, v_user_id);
-        END LOOP;
-    END LOOP;
-
-    -- Process unique user IDs for access list
-    FOR v_user_id IN SELECT * FROM jsonb_array_elements_text(v_unique_user_ids)
-    LOOP
-        INSERT INTO access_list (credential_id, user_id, access_type)
-        VALUES (v_credential_id, v_user_id::UUID, 'default_access');
-    END LOOP;
-
-    RETURN v_credential_id;
 END;
 $$ LANGUAGE plpgsql;

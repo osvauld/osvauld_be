@@ -5,14 +5,10 @@ VALUES ($1, $2, $3)
 RETURNING id;
 
 
--- name: HasUserAccess :one
-SELECT EXISTS (
-  SELECT 1
-  FROM access_list
-  WHERE user_id = $1 AND credential_id = $2
-) AS has_access;
-
-
+-- name: GetCredentialAccessForUser :many
+SELECT id, user_id, credential_id, group_id, access_type
+FROM access_list
+WHERE user_id = $1 AND credential_id = $2;
 
 
 -- name: GetUsersByFolder :many

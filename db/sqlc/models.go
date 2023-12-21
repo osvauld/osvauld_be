@@ -47,7 +47,7 @@ type Folder struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.NullUUID  `json:"created_by"`
+	CreatedBy   uuid.UUID      `json:"created_by"`
 }
 
 type FolderAccess struct {

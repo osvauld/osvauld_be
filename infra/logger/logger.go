@@ -2,15 +2,16 @@ package logger
 
 import (
 	"bytes"
-	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var logger = logrus.New()
 
 func init() {
-	logger.Level = logrus.InfoLevel
+	logger.Level = logrus.DebugLevel
 	logger.Formatter = &formatter{}
 
 	logger.SetReportCaller(true)

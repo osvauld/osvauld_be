@@ -31,6 +31,54 @@ func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams
 	return id, err
 }
 
+const getCredentialAccessForUser = `-- name: GetCredentialAccessForUser :many
+SELECT id, user_id, credential_id, group_id, access_type
+FROM access_list
+WHERE user_id = $1 AND credential_id = $2
+`
+
+type GetCredentialAccessForUserParams struct {
+	UserID       uuid.UUID `json:"user_id"`
+	CredentialID uuid.UUID `json:"credential_id"`
+}
+
+type GetCredentialAccessForUserRow struct {
+	ID           uuid.UUID     `json:"id"`
+	UserID       uuid.UUID     `json:"user_id"`
+	CredentialID uuid.UUID     `json:"credential_id"`
+	GroupID      uuid.NullUUID `json:"group_id"`
+	AccessType   string        `json:"access_type"`
+}
+
+func (q *Queries) GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialAccessForUser, arg.UserID, arg.CredentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialAccessForUserRow{}
+	for rows.Next() {
+		var i GetCredentialAccessForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CredentialID,
+			&i.GroupID,
+			&i.AccessType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCredentialIDsByUserID = `-- name: GetCredentialIDsByUserID :many
 SELECT credential_id FROM access_list WHERE user_id = $1
 `
@@ -143,24 +191,4 @@ func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]G
 		return nil, err
 	}
 	return items, nil
-}
-
-const hasUserAccess = `-- name: HasUserAccess :one
-SELECT EXISTS (
-  SELECT 1
-  FROM access_list
-  WHERE user_id = $1 AND credential_id = $2
-) AS has_access
-`
-
-type HasUserAccessParams struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CredentialID uuid.UUID `json:"credential_id"`
-}
-
-func (q *Queries) HasUserAccess(ctx context.Context, arg HasUserAccessParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, hasUserAccess, arg.UserID, arg.CredentialID)
-	var has_access bool
-	err := row.Scan(&has_access)
-	return has_access, err
 }

@@ -3,9 +3,10 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
-	service "osvauld/services"
+	"osvauld/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -29,6 +30,23 @@ func AddCredential(ctx *gin.Context) {
 	SendResponse(ctx, 201, credentialId, "Added Credential", nil)
 }
 
+func GetCredentialByID(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	credentialIDStr := ctx.Param("id")
+	credentailaID, _ := uuid.Parse(credentialIDStr)
+	credential, err := service.FetchCredentialByID(ctx, credentailaID, userID)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
+			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+			return
+		}
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credential, "Fetched credential", nil)
+}
+
 func GetCredentialsByFolder(ctx *gin.Context) {
 	// Parse user_id from headerss
 	userIdInterface, _ := ctx.Get("userId")
@@ -42,7 +60,7 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 	}
 	credentials, err := service.GetCredentialsByFolder(ctx, folderID, userID)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to fetch credential", errors.New("Failed to fetch credential"))
+		SendResponse(ctx, 500, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
 	}
 	SendResponse(ctx, 200, credentials, "Fetched credentials", nil)
@@ -61,19 +79,6 @@ func ShareCredential(ctx *gin.Context) {
 	service.ShareCredential(ctx, req, userID)
 	SendResponse(ctx, 200, nil, "Success", nil)
 }
-
-// func GetCredentialByID(ctx *gin.Context) {
-// 	userIdInterface, _ := ctx.Get("userId")
-// 	userID, _ := userIdInterface.(uuid.UUID)
-// 	credentialIDStr := ctx.Param("id")
-// 	credentailaID, _ := uuid.Parse(credentialIDStr)
-// 	credential, err := service.FetchCredentialByID(ctx, credentailaID, userID)
-// 	if err != nil {
-// 		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
-// 		return
-// 	}
-// 	SendResponse(ctx, 200, credential, "Fetched credential", nil)
-// }
 
 func GetEncryptedCredentails(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
