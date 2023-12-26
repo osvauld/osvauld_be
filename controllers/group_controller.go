@@ -3,8 +3,10 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	service "osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -96,4 +98,37 @@ func GetGroupMembers(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, 200, groups, "Fetched group memebers", nil)
+}
+
+func FetchEncryptedValuesWithGroupAccess(ctx *gin.Context) {
+
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	groupIDStr := ctx.Param("groupId")
+	groupID, err := uuid.Parse(groupIDStr)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "Invalid group id", nil)
+		return
+	}
+
+	encrypteData, err := service.FetchEncryptedDataWithGroupAccess(ctx, userID, groupID)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
+			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+			return
+		}
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+
+	if len(encrypteData) == 0 {
+		SendResponse(ctx, 204, nil, "No credentials found", nil)
+		return
+	}
+
+	SendResponse(ctx, 200, encrypteData, "Fetched credentials", nil)
 }

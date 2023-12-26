@@ -45,42 +45,6 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.U
 		credentialDetails.Description = credential.Description.String
 	}
 
-	unencryptedFields, err := database.Store.FetchUnencryptedFieldsByCredentialID(ctx, credentialID)
-	if err != nil {
-		return dto.CredentialDetails{}, err
-	}
-
-	for _, unencryptedField := range unencryptedFields {
-		credentialDetails.UnencryptedFields = append(
-			credentialDetails.UnencryptedFields,
-			dto.Field{
-				ID:         unencryptedField.ID,
-				FieldName:  unencryptedField.FieldName,
-				FieldValue: unencryptedField.FieldValue,
-			},
-		)
-	}
-
-	fetchEncryptedFieldsParams := db.FetchEncryptedFieldsByCredentialIDAndUserIDParams{
-		CredentialID: credentialID,
-		UserID:       userID,
-	}
-	encryptedFields, err := database.Store.FetchEncryptedFieldsByCredentialIDAndUserID(ctx, fetchEncryptedFieldsParams)
-	if err != nil {
-		return dto.CredentialDetails{}, err
-	}
-
-	for _, encryptedField := range encryptedFields {
-		credentialDetails.EncryptedFields = append(
-			credentialDetails.EncryptedFields,
-			dto.Field{
-				ID:         encryptedField.ID,
-				FieldName:  encryptedField.FieldName,
-				FieldValue: encryptedField.FieldValue,
-			},
-		)
-	}
-
 	return credentialDetails, nil
 }
 
@@ -132,19 +96,6 @@ func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
 // 	return credential, nil
 
 // }
-
-func FetchEncryptedData(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) ([]db.GetUserEncryptedDataRow, error) {
-	arg := db.GetUserEncryptedDataParams{
-		CredentialID: credentialID,
-		UserID:       userID,
-	}
-	encryptedData, err := database.Store.GetUserEncryptedData(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return encryptedData, err
-}
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
 

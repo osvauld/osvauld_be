@@ -35,3 +35,8 @@ SELECT EXISTS (
   SELECT 1 FROM group_list
   WHERE user_id = $1 AND grouping_id = $2
 ) as "exists";
+
+
+-- name: FetchCredentialIDsWithGroupAccess :many
+SELECT distinct(credential_id) from access_list
+WHERE group_id = $1;

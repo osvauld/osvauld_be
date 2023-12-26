@@ -64,8 +64,17 @@ func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUI
 	}
 	isMember, err := database.Store.CheckUserMemberOfGroup(ctx, args)
 	if err != nil {
-		logger.Errorf(err.Error())
 		return false, err
 	}
 	return isMember, nil
+}
+
+func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID) ([]uuid.UUID, error) {
+	// doing this because in the table the group_id is nullable
+	nullableGroupID := uuid.NullUUID{UUID: groupID, Valid: true}
+	credentialIDs, err := database.Store.FetchCredentialIDsWithGroupAccess(ctx, nullableGroupID)
+	if err != nil {
+		return []uuid.UUID{}, err
+	}
+	return credentialIDs, nil
 }

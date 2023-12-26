@@ -1,6 +1,7 @@
 package service
 
 import (
+	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/repository"
@@ -34,4 +35,49 @@ func GetGroupMembers(ctx *gin.Context, userID uuid.UUID, groupId uuid.UUID) ([]d
 func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
 	isMember, err := repository.CheckUserMemberOfGroup(ctx, userID, groupID)
 	return isMember, err
+}
+
+func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]uuid.UUID, error) {
+
+	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID)
+	return credentialIDs, err
+}
+
+func FetchEncryptedDataWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]dto.CredentialEncryptedFielsdDto, error) {
+
+	isMember, err := repository.CheckUserMemberOfGroup(ctx, caller, groupID)
+	if !isMember {
+		return []dto.CredentialEncryptedFielsdDto{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the group"}
+	}
+	if err != nil {
+		return []dto.CredentialEncryptedFielsdDto{}, err
+	}
+
+	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID)
+	if err != nil {
+		return []dto.CredentialEncryptedFielsdDto{}, err
+	}
+
+	allCredentialEncryptedFields := []dto.CredentialEncryptedFielsdDto{}
+	for _, credentialID := range credentialIDs {
+
+		credentialEncryptedFields, err := repository.FetchEncryptedFieldsByCredentialIDByAndUserID(ctx, credentialID, caller)
+		if err != nil {
+			return []dto.CredentialEncryptedFielsdDto{}, err
+		}
+
+		dtoObject := dto.CredentialEncryptedFielsdDto{
+			CredentialID:    credentialID,
+			EncryptedFields: credentialEncryptedFields,
+		}
+
+		allCredentialEncryptedFields = append(allCredentialEncryptedFields, dtoObject)
+	}
+
+	return allCredentialEncryptedFields, nil
+}
+
+func AddMemberToGroup(ctx *gin.Context, payload dto.AddMembers, userID uuid.UUID) error {
+	err := repository.AddMembersToGroup(ctx, payload, userID)
+	return err
 }

@@ -32,27 +32,6 @@ FROM
 WHERE
     id = $1;
 
--- name: FetchUnencryptedFieldsByCredentialID :many
-SELECT
-    id,
-    field_name,
-    field_value
-FROM
-    unencrypted_data
-WHERE
-    credential_id = $1;
-
--- name: FetchEncryptedFieldsByCredentialIDAndUserID :many
-SELECT
-    id,
-    field_name,
-    field_value
-FROM
-    encrypted_data
-WHERE
-    credential_id = $1
-    AND user_id = $2;
-
 -- name: FetchCredentialsByUserAndFolder :many
 SELECT
     C .id AS "id",

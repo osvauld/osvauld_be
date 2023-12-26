@@ -23,3 +23,26 @@ func SaveUnEncryptedData(ctx *gin.Context, encrypedData dto.Field, credentiaId u
 	}
 	return id, nil
 }
+
+func FetchUnencryptedFieldsByCredentialID(ctx *gin.Context, credentialID uuid.UUID) ([]dto.Field, error) {
+
+	unEncryptedData, err := database.Store.FetchUnencryptedFieldsByCredentialID(ctx, credentialID)
+	if err != nil {
+		return nil, err
+	}
+
+	unEncryptedFields := []dto.Field{}
+
+	for _, unEncryptedField := range unEncryptedData {
+		unEncryptedFields = append(
+			unEncryptedFields,
+			dto.Field{
+				ID:         unEncryptedField.ID,
+				FieldName:  unEncryptedField.FieldName,
+				FieldValue: unEncryptedField.FieldValue,
+			},
+		)
+	}
+
+	return unEncryptedFields, err
+}

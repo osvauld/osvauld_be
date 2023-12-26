@@ -71,6 +71,34 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error 
 	return err
 }
 
+const fetchCredentialIDsWithGroupAccess = `-- name: FetchCredentialIDsWithGroupAccess :many
+SELECT distinct(credential_id) from access_list
+WHERE group_id = $1
+`
+
+func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, fetchCredentialIDsWithGroupAccess, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var credential_id uuid.UUID
+		if err := rows.Scan(&credential_id); err != nil {
+			return nil, err
+		}
+		items = append(items, credential_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGroupMembers = `-- name: GetGroupMembers :many
 SELECT u.id, u.name, u.username, u.public_key as "publicKey"
 FROM users u

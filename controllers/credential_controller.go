@@ -76,7 +76,7 @@ func ShareCredential(ctx *gin.Context) {
 
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
-	service.ShareCredential(ctx, req, userID)
+	service.ShareCredentials(ctx, req, userID)
 	SendResponse(ctx, 200, nil, "Success", nil)
 }
 
