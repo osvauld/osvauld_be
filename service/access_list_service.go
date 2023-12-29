@@ -41,8 +41,22 @@ func HasReadAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID
 	if err != nil {
 		return false, err
 	}
-	if access == "unauthorized" {
-		return false, nil
+	if accessLevels[access] > 0 {
+		return true, nil
 	}
-	return true, nil
+	return false, nil
+}
+
+func HasOwnerAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
+
+	access, err := GetAccessForCredential(ctx, credentialID, userID)
+	logger.Debugf("access level for credential %s, user: %s is %s", credentialID, userID, access)
+	if err != nil {
+		return false, err
+	}
+	if accessLevels[access] == 99 {
+		return true, nil
+	}
+	return false, nil
+
 }

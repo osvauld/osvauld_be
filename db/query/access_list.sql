@@ -1,7 +1,7 @@
 -- name: AddToAccessList :one
 
-INSERT INTO access_list (credential_id, user_id, access_type)
-VALUES ($1, $2, $3)
+INSERT INTO access_list (credential_id, user_id, access_type, group_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id;
 
 

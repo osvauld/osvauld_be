@@ -68,16 +68,19 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return credentials, nil
 }
 
+func ShareCredential(ctx *gin.Context, credentialID uuid.UUID, userEncryptedFields []dto.UserEncryptedData, caller uuid.UUID) error {
 
-
-func ShareCredentials(ctx *gin.Context, payload dto.ShareCredentialPayload, userID uuid.UUID) {
-	for _, credential := range payload.CredentialList {
-		logger.Infof("Sharing credential with id: %s", credential.CredentialID)
-		id := credential.CredentialID
-		for _, user := range credential.Users {
-			repository.ShareCredential(ctx, id, user)
-		}
+	hasAccess, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
+	if err != nil {
+		return err
 	}
+
+	if !hasAccess {
+		logger.Errorf("user %s does not have share access to the credential %s", caller, credentialID)
+		return &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
+	}
+
+	return repository.ShareCredential(ctx, credentialID, userEncryptedFields)
 }
 
 func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {

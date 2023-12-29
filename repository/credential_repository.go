@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -61,41 +60,21 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return data, nil
 }
 
-func ShareCredential(ctx *gin.Context, id uuid.UUID, user dto.User) {
-	fieldNames := make([]string, len(user.Fields))
-	fieldValues := make([]string, len(user.Fields))
-	for idx := range user.Fields {
-		fieldNames[idx] = user.Fields[idx].FieldName
-		fieldValues[idx] = user.Fields[idx].FieldValue
+func ShareCredential(ctx *gin.Context, credentialID uuid.UUID, userEncryptedData []dto.UserEncryptedData) error {
+
+	args := db.ShareCredentialParams{
+		CredentialID:      credentialID,
+		UserEncryptedData: userEncryptedData,
 	}
-	params := map[string]interface{}{
-		"userId":       user.UserID,
-		"credentialId": id,
-		"fieldNames":   fieldNames,
-		"fieldValues":  fieldValues,
-		"accessType":   user.AccessType,
-	}
-	paramsJson, err := json.Marshal(params)
+
+	err := database.Store.ShareCredentialTransaction(ctx, args)
 	if err != nil {
-		logger.Errorf(err.Error())
-		return
+		return err
 	}
-	err = database.Store.ShareSecret(ctx, paramsJson)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return
-	}
+
+	return nil
+
 }
-
-// func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID) (db.GetCredentialDetailsRow, error) {
-// 	credential, err := database.Store.GetCredentialDetails(ctx, credentialID)
-// 	if err != nil {
-// 		logger.Errorf(err.Error())
-// 		return credential, err
-// 	}
-// 	return credential, nil
-
-// }
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
 

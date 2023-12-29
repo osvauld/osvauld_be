@@ -74,7 +74,7 @@ CREATE TABLE groupings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    created_by UUID REFERENCES users(id)
+    created_by UUID NOT NULL REFERENCES users(id)
 );
 
 
@@ -100,36 +100,3 @@ CREATE TABLE folder_access (
     UNIQUE(folder_id, user_id)
 );
 
-
-CREATE OR REPLACE FUNCTION share_secret(
-    jsonb_input JSONB
-) RETURNS VOID AS $$
-DECLARE
-    v_user_id UUID;
-    v_credential_id UUID;
-    v_field_names TEXT[];
-    v_field_values TEXT[];
-    v_access_type VARCHAR;
-    v_field_name VARCHAR;
-    v_field_value TEXT;
-BEGIN
-    -- Extract fields from input
-    v_user_id := (jsonb_input->>'userId')::UUID;
-    v_credential_id := (jsonb_input->>'credentialId')::UUID;
-    v_field_names := ARRAY(SELECT jsonb_array_elements_text(jsonb_input->'fieldNames'));
-    v_field_values := ARRAY(SELECT jsonb_array_elements_text(jsonb_input->'fieldValues'));
-    v_access_type := jsonb_input->>'accessType';
-
-    FOR i IN array_lower(v_field_names, 1)..array_upper(v_field_names, 1)
-    LOOP
-        v_field_name := v_field_names[i];
-        v_field_value := v_field_values[i];
-
-        INSERT INTO encrypted_data (user_id, credential_id, field_name, field_value)
-        VALUES (v_user_id, v_credential_id, v_field_name, v_field_value);
-    END LOOP;
-
-    INSERT INTO access_list (user_id, credential_id, access_type)
-    VALUES (v_user_id, v_credential_id, v_access_type);
-END;
-$$ LANGUAGE plpgsql;
