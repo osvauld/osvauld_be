@@ -70,3 +70,16 @@ func GetChallenge(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, ChallengeResponse{Challenge: challenge}, "fetched challenge", nil)
 }
+
+func VerifyChallenge(ctx *gin.Context) {
+	var req dto.VerifyChallenge
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	token, _ := service.VerifyChallenge(ctx, req)
+	type TokenResponse struct {
+		Token string `json:"token"`
+	}
+	SendResponse(ctx, 200, TokenResponse{Token: token}, "verified challenge", nil)
+}

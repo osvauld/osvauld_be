@@ -61,6 +61,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 	return id, err
 }
 
+const fetchChallenge = `-- name: FetchChallenge :one
+SELECT challenge FROM session_table WHERE user_id = $1
+`
+
+func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, fetchChallenge, userID)
+	var challenge string
+	err := row.Scan(&challenge)
+	return challenge, err
+}
+
 const getAllUsers = `-- name: GetAllUsers :many
 SELECT id,name,username, public_key AS "publicKey" FROM users
 `
@@ -103,12 +114,12 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 const getUserByPublicKey = `-- name: GetUserByPublicKey :one
 SELECT id
 FROM users
-WHERE public_key = $1
+WHERE ecc_pub_key = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserByPublicKey(ctx context.Context, publicKey string) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, getUserByPublicKey, publicKey)
+func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey string) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getUserByPublicKey, eccPubKey)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err

@@ -56,3 +56,22 @@ func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error)
 	}
 	return challenge.Challenge, nil
 }
+
+func VerifyChallenge(ctx *gin.Context, challenge dto.VerifyChallenge) (string, error) {
+	userId, err := repository.GetUserByPubKey(ctx, challenge.PublicKey)
+	if err != nil || userId == uuid.Nil {
+		logger.Errorf(err.Error())
+		return "", err
+	}
+	challengeStr, err := repository.FetchChallenge(ctx, userId)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return "", err
+	}
+	resp, err := auth.VerifySignature(challenge.Signature, challenge.PublicKey, challengeStr, userId)
+	if err != nil || userId == uuid.Nil {
+		return "", err
+	}
+	return resp, nil
+
+}

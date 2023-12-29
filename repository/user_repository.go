@@ -64,3 +64,12 @@ func CreateChallenge(ctx *gin.Context, pubKey string, challenge string, userId u
 	}
 	return challengeRow, nil
 }
+
+func FetchChallenge(ctx *gin.Context, userId uuid.UUID) (string, error) {
+	challenge, err := database.Store.FetchChallenge(ctx, userId)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return challenge, err
+	}
+	return challenge, nil
+}

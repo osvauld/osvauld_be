@@ -9,7 +9,8 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     username VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL, 
-    public_key TEXT NOT NULL 
+    public_key TEXT NOT NULL,
+    ecc_pub_key TEXT NOT NULL
 );
 -- SQL Definition for Folder
 CREATE TABLE folders (

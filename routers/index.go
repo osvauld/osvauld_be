@@ -17,6 +17,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/login", controllers.Login)
 	route.POST("/user/", controllers.CreateUser)
 	route.POST("/user/challenge", controllers.GetChallenge)
+	route.POST("/user/verify", controllers.VerifyChallenge)
 	route.GET("/users", middleware.JWTAuthMiddleware(), controllers.GetAllUsers)
 	route.POST("/folder/", middleware.JWTAuthMiddleware(), controllers.CreateFolder)
 	route.PUT("/folder", middleware.JWTAuthMiddleware(), controllers.ShareFolder)

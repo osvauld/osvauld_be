@@ -102,4 +102,5 @@ type User struct {
 	Username  string    `json:"username"`
 	Name      string    `json:"name"`
 	PublicKey string    `json:"public_key"`
+	EccPubKey string    `json:"ecc_pub_key"`
 }
