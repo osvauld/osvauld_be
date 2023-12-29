@@ -7,6 +7,7 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -30,7 +31,7 @@ func AddCredential(ctx *gin.Context) {
 	SendResponse(ctx, 201, credentialId, "Added Credential", nil)
 }
 
-func GetCredentialByID(ctx *gin.Context) {
+func FetchCredentialByID(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 	credentialIDStr := ctx.Param("id")
@@ -68,15 +69,24 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 }
 
 func ShareCredential(ctx *gin.Context) {
+
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
 	var req dto.ShareCredentialPayload
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	service.ShareCredentials(ctx, req, userID)
+	err = service.ShareCredential(ctx, req.CredentialID, req.UserEncryptedData, userID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
+		return
+	}
 	SendResponse(ctx, 200, nil, "Success", nil)
 }
 

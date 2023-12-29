@@ -13,19 +13,25 @@ import (
 
 const addToAccessList = `-- name: AddToAccessList :one
 
-INSERT INTO access_list (credential_id, user_id, access_type)
-VALUES ($1, $2, $3)
+INSERT INTO access_list (credential_id, user_id, access_type, group_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
 type AddToAccessListParams struct {
-	CredentialID uuid.UUID `json:"credential_id"`
-	UserID       uuid.UUID `json:"user_id"`
-	AccessType   string    `json:"access_type"`
+	CredentialID uuid.UUID     `json:"credential_id"`
+	UserID       uuid.UUID     `json:"user_id"`
+	AccessType   string        `json:"access_type"`
+	GroupID      uuid.NullUUID `json:"group_id"`
 }
 
 func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, addToAccessList, arg.CredentialID, arg.UserID, arg.AccessType)
+	row := q.db.QueryRowContext(ctx, addToAccessList,
+		arg.CredentialID,
+		arg.UserID,
+		arg.AccessType,
+		arg.GroupID,
+	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err

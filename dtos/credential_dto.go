@@ -11,10 +11,10 @@ type AddCredentailRequest struct {
 	Description       string              `json:"description"`
 	FolderID          uuid.UUID           `json:"folderId"`
 	UnencryptedFields []Field             `json:"unencryptedFields"`
-	UserAccessDetails []UserAccessDetails `json:"userAccessDetails"`
+	UserAccessDetails []UserEncryptedData `json:"userAccessDetails"`
 }
 
-type UserAccessDetails struct {
+type UserEncryptedData struct {
 	UserID          uuid.UUID     `json:"userId"`
 	AccessType      string        `json:"accessType"`
 	GroupID         uuid.NullUUID `json:"groupId"`
@@ -52,16 +52,11 @@ type Credential struct {
 }
 
 type ShareCredentialPayload struct {
-	CredentialList []Credential `json:"credentialList"`
+	CredentialID      uuid.UUID           `json:"credentialId"`
+	UserEncryptedData []UserEncryptedData `json:"userEncryptedData"`
 }
-
-// type CredentialDetails struct {
-// 	Credential      db.GetCredentialDetailsRow           `json:"credential"`
-// 	EncryptedData   []EncryptedFields        `json:"encryptedData"`
-// 	UnencryptedData []db.GetCredentialUnencryptedDataRow `json:"unencryptedData"`
-// 	Users           []db.GetUsersByCredentialRow         `json:"users"`
-// }
 
 type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }
+

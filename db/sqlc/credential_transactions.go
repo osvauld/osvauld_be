@@ -14,7 +14,7 @@ type AddCredentialTransactionParams struct {
 	Description       string                  `json:"description"`
 	FolderID          uuid.UUID               `json:"folderId"`
 	UnencryptedFields []dto.Field             `json:"unencryptedFields"`
-	UserAccessDetails []dto.UserAccessDetails `json:"userAccessDetails"`
+	UserAccessDetails []dto.UserEncryptedData `json:"userAccessDetails"`
 	CreatedBy         uuid.UUID               `json:"createdBy"`
 }
 
@@ -78,4 +78,45 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 	})
 
 	return credentialID, err
+}
+
+type ShareCredentialParams struct {
+	CredentialID      uuid.UUID               `json:"credentialId"`
+	UserEncryptedData []dto.UserEncryptedData `json:"encryptedFields"`
+}
+
+func (store *SQLStore) ShareCredentialTransaction(ctx context.Context, args ShareCredentialParams) error {
+
+	err := store.execTx(ctx, func(q *Queries) error {
+
+		// Create encrypted data records
+		for _, userDetails := range args.UserEncryptedData {
+			for _, field := range userDetails.EncryptedFields {
+				_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+					FieldName:    field.FieldName,
+					FieldValue:   field.FieldValue,
+					CredentialID: args.CredentialID,
+					UserID:       userDetails.UserID,
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		// Add rows in access list
+		for _, user := range args.UserEncryptedData {
+			accessListParams := AddToAccessListParams{
+				CredentialID: args.CredentialID,
+				UserID:       user.UserID,
+				AccessType:   user.AccessType,
+				GroupID:      user.GroupID,
+			}
+			q.AddToAccessList(ctx, accessListParams)
+		}
+
+		return nil
+	})
+
+	return err
 }

@@ -68,11 +68,11 @@ type GroupList struct {
 }
 
 type Grouping struct {
-	ID        uuid.UUID     `json:"id"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
-	Name      string        `json:"name"`
-	CreatedBy uuid.NullUUID `json:"created_by"`
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Name      string    `json:"name"`
+	CreatedBy uuid.UUID `json:"created_by"`
 }
 
 type SessionTable struct {
