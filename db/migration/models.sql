@@ -133,3 +133,18 @@ BEGIN
     VALUES (v_user_id, v_credential_id, v_access_type);
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+CREATE TABLE session_table (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    public_key TEXT NOT NULL UNIQUE,
+    challenge VARCHAR(255) NOT NULL,
+    device_id VARCHAR(255),
+    session_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_user_id ON session_table(user_id);
+CREATE INDEX idx_session_id ON session_table(session_id);

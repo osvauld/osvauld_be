@@ -41,3 +41,26 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	}
 	return user, nil
 }
+
+func GetUserByPubKey(ctx *gin.Context, pubKey string) (uuid.UUID, error) {
+	user, err := database.Store.GetUserByPublicKey(ctx, pubKey)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return user, err
+	}
+	return user, nil
+}
+
+func CreateChallenge(ctx *gin.Context, pubKey string, challenge string, userId uuid.UUID) (db.SessionTable, error) {
+	arg := db.CreateChallengeParams{
+		PublicKey: pubKey,
+		Challenge: challenge,
+		UserID:    userId,
+	}
+	challengeRow, err := database.Store.CreateChallenge(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return challengeRow, err
+	}
+	return challengeRow, nil
+}
