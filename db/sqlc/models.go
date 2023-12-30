@@ -73,6 +73,7 @@ type Grouping struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	CreatedBy uuid.UUID `json:"created_by"`
+
 }
 
 type SessionTable struct {
@@ -84,6 +85,7 @@ type SessionTable struct {
 	SessionID sql.NullString `json:"session_id"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 	UpdatedAt sql.NullTime   `json:"updated_at"`
+
 }
 
 type UnencryptedDatum struct {

@@ -102,40 +102,7 @@ CREATE TABLE folder_access (
 );
 
 
-CREATE OR REPLACE FUNCTION share_secret(
-    jsonb_input JSONB
-) RETURNS VOID AS $$
-DECLARE
-    v_user_id UUID;
-    v_credential_id UUID;
-    v_field_names TEXT[];
-    v_field_values TEXT[];
-    v_access_type VARCHAR;
-    v_field_name VARCHAR;
-    v_field_value TEXT;
-BEGIN
-    -- Extract fields from input
-    v_user_id := (jsonb_input->>'userId')::UUID;
-    v_credential_id := (jsonb_input->>'credentialId')::UUID;
-    v_field_names := ARRAY(SELECT jsonb_array_elements_text(jsonb_input->'fieldNames'));
-    v_field_values := ARRAY(SELECT jsonb_array_elements_text(jsonb_input->'fieldValues'));
-    v_access_type := jsonb_input->>'accessType';
-
-    FOR i IN array_lower(v_field_names, 1)..array_upper(v_field_names, 1)
-    LOOP
-        v_field_name := v_field_names[i];
-        v_field_value := v_field_values[i];
-
-        INSERT INTO encrypted_data (user_id, credential_id, field_name, field_value)
-        VALUES (v_user_id, v_credential_id, v_field_name, v_field_value);
-    END LOOP;
-
-    INSERT INTO access_list (user_id, credential_id, access_type)
-    VALUES (v_user_id, v_credential_id, v_access_type);
-END;
-$$ LANGUAGE plpgsql;
-
-
+-- SQL Definition for session table
 
 CREATE TABLE session_table (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -149,3 +116,4 @@ CREATE TABLE session_table (
 );
 CREATE INDEX idx_user_id ON session_table(user_id);
 CREATE INDEX idx_session_id ON session_table(session_id);
+
