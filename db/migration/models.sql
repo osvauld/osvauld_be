@@ -9,7 +9,8 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     username VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL, 
-    public_key TEXT NOT NULL 
+    public_key TEXT NOT NULL,
+    ecc_pub_key TEXT NOT NULL
 );
 -- SQL Definition for Folder
 CREATE TABLE folders (
@@ -99,4 +100,20 @@ CREATE TABLE folder_access (
     access_type VARCHAR(255) NOT NULL,
     UNIQUE(folder_id, user_id)
 );
+
+
+-- SQL Definition for session table
+
+CREATE TABLE session_table (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    public_key TEXT NOT NULL UNIQUE,
+    challenge VARCHAR(255) NOT NULL,
+    device_id VARCHAR(255),
+    session_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_user_id ON session_table(user_id);
+CREATE INDEX idx_session_id ON session_table(session_id);
 

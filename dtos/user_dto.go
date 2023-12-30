@@ -14,3 +14,12 @@ type LoginReturn struct {
 	User  string `json:"user"`
 	Token string `json:"token"`
 }
+
+type CreateChallenge struct {
+	PublicKey string `json:"publicKey"`
+}
+
+type VerifyChallenge struct {
+	Signature string `json:"signature"`
+	PublicKey string `json:"publicKey"`
+}
