@@ -1,12 +1,25 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type CreateGroup struct {
 	Name string `json:"name"`
 }
 
-type AddMembers struct {
-	Members []uuid.UUID `json:"members"`
-	GroupID uuid.UUID   `json:"groupId"`
+type GroupDetails struct {
+	GroupID   uuid.UUID `json:"groupId"`
+	Name      string    `json:"name"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type AddMemberToGroupRequest struct {
+	GroupID       uuid.UUID                      `json:"groupId"`
+	MemberID      uuid.UUID                      `json:"memberId"`
+	MemberRole    string                         `json:"MemberRole"`
+	EncryptedData []CredentialEncryptedFieldsDto `json:"encryptedData"`
 }

@@ -15,7 +15,7 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) (
 	arg := db.CreateFolderParams{
 		Name:        folder.Name,
 		Description: sql.NullString{String: folder.Description, Valid: true},
-		CreatedBy:   uuid.NullUUID{UUID: userID, Valid: true},
+		CreatedBy:   userID,
 	}
 	id, err := database.Store.CreateFolder(ctx, arg)
 	if err != nil {
@@ -26,7 +26,7 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) (
 }
 
 func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleAndCreatedFoldersByUserRow, error) {
-	folders, err := database.Store.FetchAccessibleAndCreatedFoldersByUser(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+	folders, err := database.Store.FetchAccessibleAndCreatedFoldersByUser(ctx, userID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -35,7 +35,7 @@ func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessi
 }
 
 func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
-	users, err := database.Store.GetUsersByFolder(ctx, uuid.NullUUID{UUID: folderID, Valid: true})
+	users, err := database.Store.GetUsersByFolder(ctx, folderID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return users, err

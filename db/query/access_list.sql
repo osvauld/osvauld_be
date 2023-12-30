@@ -1,18 +1,14 @@
 -- name: AddToAccessList :one
 
-INSERT INTO access_list (credential_id, user_id, access_type)
-VALUES ($1, $2, $3)
+INSERT INTO access_list (credential_id, user_id, access_type, group_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id;
 
 
--- name: HasUserAccess :one
-SELECT EXISTS (
-  SELECT 1
-  FROM access_list
-  WHERE user_id = $1 AND credential_id = $2
-) AS has_access;
-
-
+-- name: GetCredentialAccessForUser :many
+SELECT id, user_id, credential_id, group_id, access_type
+FROM access_list
+WHERE user_id = $1 AND credential_id = $2;
 
 
 -- name: GetUsersByFolder :many

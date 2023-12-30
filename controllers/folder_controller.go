@@ -5,7 +5,7 @@ import (
 	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
-	service "osvauld/services"
+	service "osvauld/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -29,7 +29,7 @@ func CreateFolder(ctx *gin.Context) {
 }
 
 func GetAccessibleFolders(ctx *gin.Context) {
-	// 1. Fetch User ID from Header
+	
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 	folders, err := service.GetAccessibleFolders(ctx, userID)
