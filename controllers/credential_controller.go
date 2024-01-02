@@ -90,6 +90,7 @@ func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
 	SendResponse(ctx, 200, response, "Success", nil)
 }
 
+
 func GetAllEncryptedCredentailsForFolderID(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)

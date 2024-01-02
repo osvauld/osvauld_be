@@ -122,3 +122,46 @@ func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, a
 
 	return err
 }
+
+type ShareCredentialWithGroupParams struct {
+	CredentialID        uuid.UUID               `json:"credentialId"`
+	GroupID             uuid.UUID               `json:"groupId"`
+	UserEncryptedFields []dto.UserEncryptedData `json:"userEncryptedFields"`
+	AccessType          string                  `json:"accessType"`
+}
+
+func (store *SQLStore) ShareCredentialWithGroupTransaction(ctx context.Context, args ShareCredentialWithGroupParams) error {
+
+	err := store.execTx(ctx, func(q *Queries) error {
+
+		// Create encrypted data records
+		for _, userData := range args.UserEncryptedFields {
+			for _, field := range userData.EncryptedFields {
+				_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+					FieldName:    field.FieldName,
+					FieldValue:   field.FieldValue,
+					CredentialID: args.CredentialID,
+					UserID:       userData.UserID,
+				})
+				if err != nil {
+					return err
+				}
+			}
+
+			accessListParams := AddToAccessListParams{
+				CredentialID: args.CredentialID,
+				UserID:       userData.UserID,
+				AccessType:   args.AccessType,
+				GroupID:      uuid.NullUUID{Valid: true, UUID: args.GroupID},
+			}
+			_, err := q.AddToAccessList(ctx, accessListParams)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	return err
+}

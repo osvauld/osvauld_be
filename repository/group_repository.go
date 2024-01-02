@@ -131,3 +131,5 @@ func FetchCredentialAccessTypeForGroupMember(ctx *gin.Context, credentialID uuid
 
 	return accessType, nil
 }
+
+

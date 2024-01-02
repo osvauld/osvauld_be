@@ -63,3 +63,9 @@ type ShareMultipleCredentialsWithMultipleUsersPayload struct {
 type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }
+
+type ShareCredentialWithGroup struct {
+	GroupID           uuid.UUID           `json:"groupId"`
+	UserEncryptedData []UserEncryptedData `json:"userEncryptedData"`
+	AccessType        string              `json:"accessType"`
+}
