@@ -68,7 +68,7 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 
 }
 
-func ShareCredentialsWithUsers(ctx *gin.Context) {
+func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
