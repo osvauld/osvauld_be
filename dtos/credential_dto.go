@@ -51,12 +51,15 @@ type Credential struct {
 	Users        []User    `json:"users"`
 }
 
-type ShareCredentialPayload struct {
+type ShareCredentialWithUsers struct {
 	CredentialID      uuid.UUID           `json:"credentialId"`
 	UserEncryptedData []UserEncryptedData `json:"userEncryptedData"`
+}
+
+type ShareMultipleCredentialsWithMultipleUsersPayload struct {
+	Credentials []ShareCredentialWithUsers `json:"credentials"`
 }
 
 type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }
-

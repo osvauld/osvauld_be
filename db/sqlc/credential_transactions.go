@@ -80,39 +80,41 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 	return credentialID, err
 }
 
-type ShareCredentialParams struct {
-	CredentialID      uuid.UUID               `json:"credentialId"`
-	UserEncryptedData []dto.UserEncryptedData `json:"encryptedFields"`
+type ShareCredentialWithUserParams struct {
+	CredentialID    uuid.UUID     `json:"credentialId"`
+	UserID          uuid.UUID     `json:"userId"`
+	EncryptedFields []dto.Field   `json:"encryptedFields"`
+	AccessType      string        `json:"accessType"`
+	GroupID         uuid.NullUUID `json:"groupId"`
 }
 
-func (store *SQLStore) ShareCredentialTransaction(ctx context.Context, args ShareCredentialParams) error {
+func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, args ShareCredentialWithUserParams) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		// Create encrypted data records
-		for _, userDetails := range args.UserEncryptedData {
-			for _, field := range userDetails.EncryptedFields {
-				_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					CredentialID: args.CredentialID,
-					UserID:       userDetails.UserID,
-				})
-				if err != nil {
-					return err
-				}
+		for _, field := range args.EncryptedFields {
+			_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+				FieldName:    field.FieldName,
+				FieldValue:   field.FieldValue,
+				CredentialID: args.CredentialID,
+				UserID:       args.UserID,
+			})
+			if err != nil {
+				return err
 			}
 		}
 
-		// Add rows in access list
-		for _, user := range args.UserEncryptedData {
-			accessListParams := AddToAccessListParams{
-				CredentialID: args.CredentialID,
-				UserID:       user.UserID,
-				AccessType:   user.AccessType,
-				GroupID:      user.GroupID,
-			}
-			q.AddToAccessList(ctx, accessListParams)
+		// Add row in access list
+		accessListParams := AddToAccessListParams{
+			CredentialID: args.CredentialID,
+			UserID:       args.UserID,
+			AccessType:   args.AccessType,
+			GroupID:      args.GroupID,
+		}
+		_, err := q.AddToAccessList(ctx, accessListParams)
+		if err != nil {
+			return err
 		}
 
 		return nil

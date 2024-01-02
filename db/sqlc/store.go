@@ -10,7 +10,7 @@ import (
 type Store interface {
 	Querier
 	AddCredentialTransaction(context.Context, AddCredentialTransactionParams) (uuid.UUID, error)
-	ShareCredentialTransaction(context.Context, ShareCredentialParams) error
+	ShareCredentialWithUserTransaction(context.Context, ShareCredentialWithUserParams) error
 	CreateGroupAndAddManager(context.Context, CreateGroupParams) (uuid.UUID, error)
 	AddMemberToGroupTransaction(context.Context, AddMemberToGroupTransactionParams) error
 }
