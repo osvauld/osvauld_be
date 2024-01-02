@@ -1,9 +1,9 @@
 package dto
 
 type CreateUser struct {
-	UserName  string `json:"username"`
-	Name      string `json:"name"`
-	PublicKey string `json:"publicKey"`
+	UserName     string `json:"username"`
+	Name         string `json:"name"`
+	TempPassword string `json:"tempPassword"`
 }
 
 type Login struct {

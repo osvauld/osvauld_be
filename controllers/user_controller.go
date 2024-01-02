@@ -16,6 +16,7 @@ var validate = validator.New()
 func CreateUser(ctx *gin.Context) {
 	// Define a struct just for request body
 
+	//TODO: add created by field
 	var req dto.CreateUser
 	// Bind the request body to the struct
 	if err := ctx.ShouldBindJSON(&req); err != nil {

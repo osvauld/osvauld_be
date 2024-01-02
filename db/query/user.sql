@@ -1,18 +1,18 @@
 -- name: CreateUser :one
-INSERT INTO users (username, name, public_key)
+INSERT INTO users (username, name, temp_password)
 VALUES ($1, $2, $3)
 RETURNING id;
 
 
 -- name: GetUserByUsername :one
-SELECT id,name,username, public_key as "publicKey"
+SELECT id,name,username, rsa_public_key as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1;
 
 
 -- name: GetAllUsers :many
-SELECT id,name,username, public_key AS "publicKey" FROM users;
+SELECT id,name,username, rsa_public_key AS "publicKey" FROM users;
 
 -- name: GetUserByPublicKey :one
 SELECT id

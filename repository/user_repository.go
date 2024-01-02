@@ -12,9 +12,9 @@ import (
 
 func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
 	arg := db.CreateUserParams{
-		Username:  user.UserName,
-		Name:      user.Name,
-		PublicKey: user.PublicKey,
+		Username:     user.UserName,
+		Name:         user.Name,
+		TempPassword: user.TempPassword,
 	}
 	id, err := database.Store.CreateUser(ctx, arg)
 	if err != nil {
