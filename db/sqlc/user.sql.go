@@ -43,19 +43,19 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, name, public_key)
+INSERT INTO users (username, name, temp_password)
 VALUES ($1, $2, $3)
 RETURNING id
 `
 
 type CreateUserParams struct {
-	Username  string `json:"username"`
-	Name      string `json:"name"`
-	PublicKey string `json:"public_key"`
+	Username     string `json:"username"`
+	Name         string `json:"name"`
+	TempPassword string `json:"temp_password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Name, arg.PublicKey)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Name, arg.TempPassword)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err

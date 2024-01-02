@@ -1,5 +1,5 @@
 -- name: CreateUser :one
-INSERT INTO users (username, name, public_key)
+INSERT INTO users (username, name, temp_password)
 VALUES ($1, $2, $3)
 RETURNING id;
 
