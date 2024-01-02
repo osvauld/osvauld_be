@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -113,18 +114,18 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 }
 
 const getUsersByCredential = `-- name: GetUsersByCredential :many
-SELECT users.id, users.username, users.name, users.public_key as "publicKey", access_list.access_type as "accessType"
+SELECT users.id, users.username, users.name, users.rsa_pub_key as "publicKey", access_list.access_type as "accessType"
 FROM access_list
 JOIN users ON access_list.user_id = users.id
 WHERE access_list.credential_id = $1
 `
 
 type GetUsersByCredentialRow struct {
-	ID         uuid.UUID `json:"id"`
-	Username   string    `json:"username"`
-	Name       string    `json:"name"`
-	PublicKey  string    `json:"publicKey"`
-	AccessType string    `json:"accessType"`
+	ID         uuid.UUID      `json:"id"`
+	Username   string         `json:"username"`
+	Name       string         `json:"name"`
+	PublicKey  sql.NullString `json:"publicKey"`
+	AccessType string         `json:"accessType"`
 }
 
 func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error) {
@@ -157,7 +158,7 @@ func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UU
 }
 
 const getUsersByFolder = `-- name: GetUsersByFolder :many
-SELECT DISTINCT u.id, u.username, u.name, u.public_key as "publicKey"
+SELECT DISTINCT u.id, u.username, u.name, u.rsa_pub_key as "publicKey"
 FROM users u
 JOIN access_list al ON u.id = al.user_id
 JOIN credentials c ON al.credential_id = c.id
@@ -165,10 +166,10 @@ WHERE c.folder_id = $1
 `
 
 type GetUsersByFolderRow struct {
-	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Name      string    `json:"name"`
-	PublicKey string    `json:"publicKey"`
+	ID        uuid.UUID      `json:"id"`
+	Username  string         `json:"username"`
+	Name      string         `json:"name"`
+	PublicKey sql.NullString `json:"publicKey"`
 }
 
 func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error) {
