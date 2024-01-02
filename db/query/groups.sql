@@ -12,7 +12,7 @@ VALUES ($1, $2, $3);
 
 
 -- name: GetGroupMembers :many
-SELECT users.id, users.name, users.username, users.rsa_public_key as "publicKey"
+SELECT users.id, users.name, users.username, users.rsa_pub_key as "publicKey"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1;

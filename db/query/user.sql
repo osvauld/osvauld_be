@@ -5,14 +5,14 @@ RETURNING id;
 
 
 -- name: GetUserByUsername :one
-SELECT id,name,username, rsa_public_key as "publicKey"
+SELECT id,name,username, rsa_pub_key as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1;
 
 
 -- name: GetAllUsers :many
-SELECT id,name,username, rsa_public_key AS "publicKey" FROM users;
+SELECT id,name,username, rsa_pub_key AS "publicKey" FROM users;
 
 -- name: GetUserByPublicKey :one
 SELECT id
@@ -33,3 +33,12 @@ RETURNING *;
 
 -- name: FetchChallenge :one
 SELECT challenge FROM session_table WHERE user_id = $1;
+
+-- name: CheckTempPassword :one
+SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2;
+
+
+-- name: UpdateKeys :exec
+UPDATE users
+SET rsa_pub_key = $1, ecc_pub_key = $2, signed_up = TRUE
+WHERE username = $3;
