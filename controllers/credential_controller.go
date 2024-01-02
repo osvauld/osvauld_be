@@ -76,7 +76,7 @@ func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.ShareCredentialsWithUsersPayload
+	var req dto.ShareMultipleCredentialsWithMultipleUsersPayload
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
