@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type Querier interface {
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMemberRecord(ctx context.Context, arg AddGroupMemberRecordParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
+	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
 	// sql/create_credential.sql
@@ -44,13 +46,14 @@ type Querier interface {
 	GetEncryptedDataByCredentialIds(ctx context.Context, arg GetEncryptedDataByCredentialIdsParams) ([]GetEncryptedDataByCredentialIdsRow, error)
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
 	GetSharedUsers(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersRow, error)
-	GetUserByPublicKey(ctx context.Context, eccPubKey string) (uuid.UUID, error)
+	GetUserByPublicKey(ctx context.Context, eccPubKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
 	ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error
+	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 }
 
 var _ Querier = (*Queries)(nil)

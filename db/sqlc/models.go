@@ -96,13 +96,13 @@ type UnencryptedDatum struct {
 }
 
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Username     string    `json:"username"`
-	Name         string    `json:"name"`
-	PublicKey    string    `json:"public_key"`
-	EccPubKey    string    `json:"ecc_pub_key"`
-	TempPassword string    `json:"temp_password"`
-	SignedUp     bool      `json:"signed_up"`
+	ID           uuid.UUID      `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	Username     string         `json:"username"`
+	Name         string         `json:"name"`
+	RsaPubKey    sql.NullString `json:"rsa_pub_key"`
+	EccPubKey    sql.NullString `json:"ecc_pub_key"`
+	TempPassword string         `json:"temp_password"`
+	SignedUp     bool           `json:"signed_up"`
 }

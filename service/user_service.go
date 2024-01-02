@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"errors"
 	"osvauld/auth"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
@@ -28,20 +28,21 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	}
 	return users, nil
 }
-func Login(ctx *gin.Context, userData dto.Login) (dto.LoginReturn, error) {
-	user, _ := repository.GetUser(ctx, userData)
-	// if err != nil {
-	// 	return dto.LoginReturn{}, err
-	// }
-	token, _ := auth.GenerateToken(user.Username, user.ID)
-	fmt.Println(token)
-	loginReturn := dto.LoginReturn{
-		User:  user.ID.String(),
-		Token: token,
-	}
 
-	return loginReturn, nil
-}
+// func Login(ctx *gin.Context, userData dto.Login) (dto.LoginReturn, error) {
+// 	user, _ := repository.GetUser(ctx, userData)
+// 	// if err != nil {
+// 	// 	return dto.LoginReturn{}, err
+// 	// }
+// 	token, _ := auth.GenerateToken(user.Username, user.ID)
+// 	fmt.Println(token)
+// 	loginReturn := dto.LoginReturn{
+// 		User:  user.ID.String(),
+// 		Token: token,
+// 	}
+
+// 	return loginReturn, nil
+// }
 
 func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error) {
 	challengeStr := utils.CreateRandomString(12)
@@ -73,5 +74,25 @@ func VerifyChallenge(ctx *gin.Context, challenge dto.VerifyChallenge) (string, e
 		return "", err
 	}
 	return resp, nil
+
+}
+
+func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
+	pass, err := repository.CheckTempPassword(ctx, registerData.Password, registerData.UserName)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return false, err
+	}
+	if !pass {
+		logger.Errorf("password not matched")
+		return false, errors.New("password not matched")
+	}
+
+	err = repository.UpdateKeys(ctx, registerData.UserName, registerData.RsaKey, registerData.EccKey)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return false, err
+	}
+	return true, nil
 
 }
