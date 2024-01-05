@@ -64,10 +64,13 @@ func VerifySignature(signatureStr string, publicKeyStr string, challengeStr stri
 	if err != nil {
 		logger.Errorf("Failed to decode base64 signature: %v", err)
 	}
-
+	if len(signatureBytes) != 64 {
+		return "",errors.New("invalid signature length")
+	}
+	r := new(big.Int).SetBytes(signatureBytes[:32])
+	s := new(big.Int).SetBytes(signatureBytes[32:])
 	// Assuming the signature is in ASN.1 DER format
-	r := big.NewInt(0).SetBytes(signatureBytes[:len(signatureBytes)/2])
-	s := big.NewInt(0).SetBytes(signatureBytes[len(signatureBytes)/2:])
+
 
 	// Hash the challenge text
 	hashed := sha256.Sum256([]byte(challengeStr))
