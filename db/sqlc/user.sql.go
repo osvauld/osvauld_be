@@ -7,9 +7,26 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
+
+const checkTempPassword = `-- name: CheckTempPassword :one
+SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2
+`
+
+type CheckTempPasswordParams struct {
+	Username     string `json:"username"`
+	TempPassword string `json:"temp_password"`
+}
+
+func (q *Queries) CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, checkTempPassword, arg.Username, arg.TempPassword)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const createChallenge = `-- name: CreateChallenge :one
 INSERT INTO session_table (user_id, public_key, challenge)
@@ -43,19 +60,19 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, name, public_key)
+INSERT INTO users (username, name, temp_password)
 VALUES ($1, $2, $3)
 RETURNING id
 `
 
 type CreateUserParams struct {
-	Username  string `json:"username"`
-	Name      string `json:"name"`
-	PublicKey string `json:"public_key"`
+	Username     string `json:"username"`
+	Name         string `json:"name"`
+	TempPassword string `json:"temp_password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Name, arg.PublicKey)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Name, arg.TempPassword)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -73,14 +90,14 @@ func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string,
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id,name,username, public_key AS "publicKey" FROM users
+SELECT id,name,username, rsa_pub_key AS "publicKey" FROM users
 `
 
 type GetAllUsersRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Username  string    `json:"username"`
-	PublicKey string    `json:"publicKey"`
+	ID        uuid.UUID      `json:"id"`
+	Name      string         `json:"name"`
+	Username  string         `json:"username"`
+	PublicKey sql.NullString `json:"publicKey"`
 }
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
@@ -118,7 +135,7 @@ WHERE ecc_pub_key = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey string) (uuid.UUID, error) {
+func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey sql.NullString) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, getUserByPublicKey, eccPubKey)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -126,17 +143,17 @@ func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey string) (uui
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id,name,username, public_key as "publicKey"
+SELECT id,name,username, rsa_pub_key as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1
 `
 
 type GetUserByUsernameRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Username  string    `json:"username"`
-	PublicKey string    `json:"publicKey"`
+	ID        uuid.UUID      `json:"id"`
+	Name      string         `json:"name"`
+	Username  string         `json:"username"`
+	PublicKey sql.NullString `json:"publicKey"`
 }
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
@@ -149,4 +166,21 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 		&i.PublicKey,
 	)
 	return i, err
+}
+
+const updateKeys = `-- name: UpdateKeys :exec
+UPDATE users
+SET rsa_pub_key = $1, ecc_pub_key = $2, signed_up = TRUE
+WHERE username = $3
+`
+
+type UpdateKeysParams struct {
+	RsaPubKey sql.NullString `json:"rsa_pub_key"`
+	EccPubKey sql.NullString `json:"ecc_pub_key"`
+	Username  string         `json:"username"`
+}
+
+func (q *Queries) UpdateKeys(ctx context.Context, arg UpdateKeysParams) error {
+	_, err := q.db.ExecContext(ctx, updateKeys, arg.RsaPubKey, arg.EccPubKey, arg.Username)
+	return err
 }

@@ -1,13 +1,16 @@
 package dto
 
 type CreateUser struct {
-	UserName  string `json:"username"`
-	Name      string `json:"name"`
-	PublicKey string `json:"publicKey"`
+	UserName     string `json:"username"`
+	Name         string `json:"name"`
+	TempPassword string `json:"tempPassword"` // hashed password from fe
 }
 
-type Login struct {
+type Register struct {
 	UserName string `json:"username"`
+	Password string `json:"password"`
+	EccKey   string `json:"eccKey"`
+	RsaKey   string `json:"rsaKey"`
 }
 
 type LoginReturn struct {

@@ -73,7 +73,6 @@ type Grouping struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	CreatedBy uuid.UUID `json:"created_by"`
-
 }
 
 type SessionTable struct {
@@ -85,7 +84,6 @@ type SessionTable struct {
 	SessionID sql.NullString `json:"session_id"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 	UpdatedAt sql.NullTime   `json:"updated_at"`
-
 }
 
 type UnencryptedDatum struct {
@@ -98,11 +96,13 @@ type UnencryptedDatum struct {
 }
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Username  string    `json:"username"`
-	Name      string    `json:"name"`
-	PublicKey string    `json:"public_key"`
-	EccPubKey string    `json:"ecc_pub_key"`
+	ID           uuid.UUID      `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	Username     string         `json:"username"`
+	Name         string         `json:"name"`
+	RsaPubKey    sql.NullString `json:"rsa_pub_key"`
+	EccPubKey    sql.NullString `json:"ecc_pub_key"`
+	TempPassword string         `json:"temp_password"`
+	SignedUp     bool           `json:"signed_up"`
 }
