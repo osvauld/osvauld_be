@@ -13,6 +13,7 @@ type Store interface {
 	ShareCredentialWithUserTransaction(context.Context, ShareCredentialWithUserParams) error
 	CreateGroupAndAddManager(context.Context, CreateGroupParams) (uuid.UUID, error)
 	AddMemberToGroupTransaction(context.Context, AddMemberToGroupTransactionParams) error
+	ShareCredentialWithGroupTransaction(context.Context, ShareCredentialWithGroupParams) error
 }
 
 type SQLStore struct {

@@ -21,6 +21,11 @@ type UserEncryptedData struct {
 	EncryptedFields []Field       `json:"encryptedFields"`
 }
 
+type UserEncryptedFields struct {
+	UserID          uuid.UUID `json:"userId"`
+	EncryptedFields []Field   `json:"encryptedFields"`
+}
+
 type CredentialDetails struct {
 	CredentialID      uuid.UUID `json:"credentialId"`
 	Name              string    `json:"name"`
@@ -56,10 +61,25 @@ type ShareCredentialWithUsers struct {
 	UserEncryptedData []UserEncryptedData `json:"userEncryptedData"`
 }
 
+type ShareCredentialWithGroups struct {
+	CredentialID uuid.UUID                `json:"credentialId"`
+	GroupData    []CredentialDataForGroup `json:"groupData"`
+}
+
 type ShareMultipleCredentialsWithMultipleUsersPayload struct {
 	Credentials []ShareCredentialWithUsers `json:"credentials"`
 }
 
+type ShareMultipleCredentialsWithMultipleGroupsPayload struct {
+	Credentials []ShareCredentialWithGroups `json:"credentials"`
+}
+
 type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
+}
+
+type CredentialDataForGroup struct {
+	GroupID             uuid.UUID             `json:"groupId"`
+	UserEncryptedFields []UserEncryptedFields `json:"userEncryptedFields"`
+	AccessType          string                `json:"accessType"`
 }
