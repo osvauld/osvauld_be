@@ -90,6 +90,27 @@ func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
 	SendResponse(ctx, 200, response, "Success", nil)
 }
 
+func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	var req dto.ShareMultipleCredentialsWithMultipleGroupsPayload
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	response, err := service.ShareMultipleCredentialsWithMulitpleGroups(ctx, req.Credentials, caller)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
+		return
+	}
+	SendResponse(ctx, 200, response, "Success", nil)
+}
 
 func GetAllEncryptedCredentailsForFolderID(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
