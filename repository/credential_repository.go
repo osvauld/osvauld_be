@@ -78,18 +78,16 @@ func ShareCredentialWithUser(ctx *gin.Context, credentialID uuid.UUID, payload d
 	return nil
 }
 
-func ShareCredentialWithGroup(ctx *gin.Context, credentialID uuid.UUID, payload dto.UserEncryptedData) error {
+func ShareCredentialWithGroup(ctx *gin.Context, credentialID uuid.UUID, payload dto.CredentialDataForGroup) error {
 
 	args := db.ShareCredentialWithGroupParams{
-		CredentialID:    credentialID,
-		GroupID: 	   payload.GroupID,
-		UserID:          payload.UserID,
-		EncryptedFields: payload.EncryptedFields,
-		GroupID:         payload.GroupID,
-		AccessType:      payload.AccessType,
+		CredentialID:        credentialID,
+		GroupID:             payload.GroupID,
+		UserEncryptedFields: payload.UserEncryptedFields,
+		AccessType:          payload.AccessType,
 	}
 
-	err := database.Store.ShareCredentialWithUserTransaction(ctx, args)
+	err := database.Store.ShareCredentialWithGroupTransaction(ctx, args)
 	if err != nil {
 		return err
 	}

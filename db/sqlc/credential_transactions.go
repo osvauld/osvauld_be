@@ -124,10 +124,10 @@ func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, a
 }
 
 type ShareCredentialWithGroupParams struct {
-	CredentialID        uuid.UUID               `json:"credentialId"`
-	GroupID             uuid.UUID               `json:"groupId"`
-	UserEncryptedFields []dto.UserEncryptedData `json:"userEncryptedFields"`
-	AccessType          string                  `json:"accessType"`
+	CredentialID        uuid.UUID                 `json:"credentialId"`
+	GroupID             uuid.UUID                 `json:"groupId"`
+	UserEncryptedFields []dto.UserEncryptedFields `json:"userEncryptedFields"`
+	AccessType          string                    `json:"accessType"`
 }
 
 func (store *SQLStore) ShareCredentialWithGroupTransaction(ctx context.Context, args ShareCredentialWithGroupParams) error {
