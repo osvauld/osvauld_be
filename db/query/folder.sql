@@ -40,7 +40,7 @@ SELECT $1, unnest($2::uuid[]), unnest($3::text[]);
 
 
 -- name: GetSharedUsers :many
-SELECT users.id, users.name, users.username, users.rsa_pub_key as "publicKey", folder_access.access_type as "accessType"
+SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key,'') as "publicKey", folder_access.access_type as "accessType"
 FROM folder_access
 JOIN users ON folder_access.user_id = users.id
 WHERE folder_access.folder_id = $1;
