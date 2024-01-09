@@ -12,7 +12,7 @@ WHERE user_id = $1 AND credential_id = $2;
 
 
 -- name: GetUsersByFolder :many
-SELECT DISTINCT u.id, u.username, u.name, u.rsa_pub_key as "publicKey"
+SELECT DISTINCT u.id, u.username, u.name, COALESCE(u.rsa_pub_key, '') as "publicKey"
 FROM users u
 JOIN access_list al ON u.id = al.user_id
 JOIN credentials c ON al.credential_id = c.id
