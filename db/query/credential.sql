@@ -45,7 +45,7 @@ SELECT
             'fieldValue',
             u.field_value -- Assuming actual column name is in snake_case
         )
-    ) AS "unencryptedData"
+    ) AS "unencryptedFields"
 FROM
     credentials C
     JOIN access_list A ON C .id = A .credential_id

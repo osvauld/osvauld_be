@@ -142,7 +142,7 @@ SELECT
             'fieldValue',
             u.field_value -- Assuming actual column name is in snake_case
         )
-    ) AS "unencryptedData"
+    ) AS "unencryptedFields"
 FROM
     credentials C
     JOIN access_list A ON C .id = A .credential_id
@@ -160,10 +160,10 @@ type FetchCredentialsByUserAndFolderParams struct {
 }
 
 type FetchCredentialsByUserAndFolderRow struct {
-	ID              uuid.UUID       `json:"id"`
-	Name            string          `json:"name"`
-	Description     string          `json:"description"`
-	UnencryptedData json.RawMessage `json:"unencryptedData"`
+	ID                uuid.UUID       `json:"id"`
+	Name              string          `json:"name"`
+	Description       string          `json:"description"`
+	UnencryptedFields json.RawMessage `json:"unencryptedFields"`
 }
 
 func (q *Queries) FetchCredentialsByUserAndFolder(ctx context.Context, arg FetchCredentialsByUserAndFolderParams) ([]FetchCredentialsByUserAndFolderRow, error) {
@@ -179,7 +179,7 @@ func (q *Queries) FetchCredentialsByUserAndFolder(ctx context.Context, arg Fetch
 			&i.ID,
 			&i.Name,
 			&i.Description,
-			&i.UnencryptedData,
+			&i.UnencryptedFields,
 		); err != nil {
 			return nil, err
 		}

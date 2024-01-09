@@ -158,7 +158,7 @@ func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UU
 }
 
 const getUsersByFolder = `-- name: GetUsersByFolder :many
-SELECT DISTINCT u.id, u.username, u.name, u.rsa_pub_key as "publicKey"
+SELECT DISTINCT u.id, u.username, u.name, COALESCE(u.rsa_pub_key, '') as "publicKey"
 FROM users u
 JOIN access_list al ON u.id = al.user_id
 JOIN credentials c ON al.credential_id = c.id
@@ -166,10 +166,10 @@ WHERE c.folder_id = $1
 `
 
 type GetUsersByFolderRow struct {
-	ID        uuid.UUID      `json:"id"`
-	Username  string         `json:"username"`
-	Name      string         `json:"name"`
-	PublicKey sql.NullString `json:"publicKey"`
+	ID        uuid.UUID `json:"id"`
+	Username  string    `json:"username"`
+	Name      string    `json:"name"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error) {
