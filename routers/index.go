@@ -14,7 +14,7 @@ func RegisterRoutes(route *gin.Engine) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Route Not Found"})
 	})
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
-	// route.POST("/login", controllers.Login)
+	route.POST("/testLogin", controllers.TestLoginController)
 	route.POST("/user/", controllers.CreateUser)
 	route.POST("/user/register", controllers.Register)
 	route.POST("/user/challenge", controllers.GetChallenge)
@@ -28,6 +28,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/folders/", middleware.JWTAuthMiddleware(), controllers.GetAccessibleFolders)
 
 	route.POST("/shareCredential/Users", middleware.JWTAuthMiddleware(), controllers.ShareMultipleCredentialsWithMulitpleUsers)
+	route.POST("/shareCredential/Groups", middleware.JWTAuthMiddleware(), controllers.ShareMultipleCredentialsWithMulitpleGroups)
 
 	// Credential Routes
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)
@@ -42,7 +43,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetAllEncryptedCredentailsForFolderID)
 	route.POST("/credentials/encrypted/", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentailsByIds)
 
-	route.GET("/group/:groupId/encrypted/", middleware.JWTAuthMiddleware(), controllers.FetchEncryptedValuesWithGroupAccess)
+	route.GET("/group/:groupId/encrypted/", middleware.JWTAuthMiddleware(), controllers.FetchEncryptedValuesByGroupID)
 
 	//Add All route
 	//TestRoutes(route)

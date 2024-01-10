@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	dto "osvauld/dtos"
 
 	"github.com/google/uuid"
 )
@@ -10,9 +11,12 @@ import (
 type Store interface {
 	Querier
 	AddCredentialTransaction(context.Context, AddCredentialTransactionParams) (uuid.UUID, error)
-	ShareCredentialWithUserTransaction(context.Context, ShareCredentialWithUserParams) error
 	CreateGroupAndAddManager(context.Context, CreateGroupParams) (uuid.UUID, error)
 	AddMemberToGroupTransaction(context.Context, AddMemberToGroupTransactionParams) error
+	ShareCredentialWithUserTransaction(context.Context, dto.CredentialEncryptedFieldsForUserDto) error
+	ShareCredentialWithGroupTransaction(context.Context, dto.CredentialEncryptedFieldsForGroupDto) error
+	ShareMultipleCredentialsWithMultipleUsersTransaction(context.Context, []dto.CredentialEncryptedFieldsForUserDto) error
+	ShareMultipleCredentialsWithMultipleGroupsTransaction(context.Context, []dto.CredentialEncryptedFieldsForGroupDto) error
 }
 
 type SQLStore struct {

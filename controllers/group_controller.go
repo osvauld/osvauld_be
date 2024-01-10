@@ -69,7 +69,7 @@ func GetGroupMembers(ctx *gin.Context) {
 	SendResponse(ctx, 200, groups, "Fetched group memebers", nil)
 }
 
-func FetchEncryptedValuesWithGroupAccess(ctx *gin.Context) {
+func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
 
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
