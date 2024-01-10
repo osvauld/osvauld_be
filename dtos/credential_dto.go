@@ -21,11 +21,6 @@ type UserEncryptedData struct {
 	EncryptedFields []Field       `json:"encryptedFields"`
 }
 
-type UserEncryptedFields struct {
-	UserID          uuid.UUID `json:"userId"`
-	EncryptedFields []Field   `json:"encryptedFields"`
-}
-
 type CredentialDetails struct {
 	CredentialID      uuid.UUID `json:"credentialId"`
 	Name              string    `json:"name"`
@@ -78,8 +73,14 @@ type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }
 
+type CredentialsForUser struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+}
+
+
+
 type CredentialDataForGroup struct {
-	GroupID             uuid.UUID             `json:"groupId"`
-	UserEncryptedFields []UserEncryptedFields `json:"userEncryptedFields"`
-	AccessType          string                `json:"accessType"`
+	GroupID             uuid.UUID                `json:"groupId"`
+	UserEncryptedFields []UserEncryptedFieldsDto `json:"userEncryptedFields"`
+	AccessType          string                   `json:"accessType"`
 }

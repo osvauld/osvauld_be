@@ -1,107 +1,142 @@
 package service
 
 import (
+	"fmt"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/repository"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func ShareCredentialWithUser(ctx *gin.Context, credentialID uuid.UUID, payload dto.UserEncryptedData, caller uuid.UUID) error {
+// This is the service layer function used when multiple credentials are shared with multiple users
+// We will try to insert all the credentials for a single user in a single transaction
+// so that we can rollback all the credentials if one of them fails to be shared
+// The response contains success or failure for each user
+func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.MulitpleCredentialsForUserPayload, caller uuid.UUID) ([]map[string]interface{}, error) {
 
-	hasAccess, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
-	if err != nil {
-		return err
+	uniqueCredentialIDs := []uuid.UUID{}
+	userCredentials := map[uuid.UUID][]dto.CredentialEncryptedFieldsForUserDto{}
+
+	// the following loop is for grouping the credentials shared for a sigle user
+	// so that we can share all the credentials for a single user in a single transaction
+	for _, userData := range payload {
+
+		for _, credential := range userData.CredentialData {
+			// if the credential id does not exist in the uniqueCredentialIDs slice add it
+			if !utils.Contains(uniqueCredentialIDs, credential.CredentialID) {
+				uniqueCredentialIDs = append(uniqueCredentialIDs, credential.CredentialID)
+			}
+
+			credentialDataParams := dto.CredentialEncryptedFieldsForUserDto{
+				CredentialID:    credential.CredentialID,
+				UserID:          userData.UserID,
+				AccessType:      userData.AccessType,
+				EncryptedFields: credential.EncryptedData,
+			}
+
+			userCredentials[userData.UserID] = append(userCredentials[userData.UserID], credentialDataParams)
+		}
 	}
 
-	if !hasAccess {
-		return &customerrors.UserNotAuthenticatedError{Message: "user does not have share access to the credential"}
+	// check the service calls has access to the credentials being shared
+	for _, credentialID := range uniqueCredentialIDs {
+		hasAccess, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
+		if err != nil {
+			return nil, err
+		}
+
+		if !hasAccess {
+			return nil, &customerrors.UserNotAuthenticatedError{Message: fmt.Sprintf("user does not have share access to the credential: %s", credentialID)}
+
+		}
 	}
 
-	return repository.ShareCredentialWithUser(ctx, credentialID, payload)
-}
+	// TODO: Check the number of encrypted fields and field names for each encrypted value match with the original
 
-func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.ShareCredentialWithUsers, caller uuid.UUID) ([]map[string]interface{}, error) {
 
 	responses := make([]map[string]interface{}, 0)
-	for _, credentialData := range payload {
+	for userID, credentials := range userCredentials {
 
-		credentialShareResponse := make(map[string]interface{})
-		credentialShareResponse["credentialId"] = credentialData.CredentialID
-		credentialShareResponse["users"] = make([]map[string]interface{}, 0)
+		userShareResponse := make(map[string]interface{})
+		userShareResponse["userId"] = userID
 
-		for _, userData := range credentialData.UserEncryptedData {
-
-			userSharedResponse := make(map[string]interface{})
-			err := ShareCredentialWithUser(ctx, credentialData.CredentialID, userData, caller)
-
-			if err != nil {
-				userSharedResponse["userId"] = userData.UserID
-				userSharedResponse["status"] = "failed"
-				userSharedResponse["message"] = err.Error()
-				users := credentialShareResponse["users"].([]map[string]interface{})
-				credentialShareResponse["users"] = append(users, userSharedResponse)
-
-			} else {
-				userSharedResponse["userId"] = userData.UserID
-				userSharedResponse["status"] = "success"
-				userSharedResponse["message"] = "shared successfully"
-				users := credentialShareResponse["users"].([]map[string]interface{})
-				credentialShareResponse["users"] = append(users, userSharedResponse)
-			}
+		// Share all the credentials for a user in a single transaction
+		err := repository.ShareMultipleCredentialsWithMultipleUsers(ctx, credentials)
+		if err != nil {
+			userShareResponse["status"] = "failed"
+			userShareResponse["message"] = err.Error()
+		} else {
+			userShareResponse["status"] = "success"
+			userShareResponse["message"] = "shared successfully"
 		}
-		responses = append(responses, credentialShareResponse)
+		responses = append(responses, userShareResponse)
 	}
 
 	return responses, nil
 }
 
-func ShareCredentialWithGroup(ctx *gin.Context, credentialID uuid.UUID, payload dto.CredentialDataForGroup, caller uuid.UUID) error {
+// This is the service layer function used when multiple credentials are shared with multiple groups
+// We will try to insert all the credentials for a single group in a single transaction
+// so that we can rollback all the credentials if one of them fails to be shared
+// The response contains success or failure for each user
+func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.MulitpleCredentialsForGroupPayload, caller uuid.UUID) ([]map[string]interface{}, error) {
 
-	hasAccess, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
-	if err != nil {
-		return err
+	uniqueCredentialIDs := []uuid.UUID{}
+	groupCredentials := map[uuid.UUID][]dto.CredentialEncryptedFieldsForGroupDto{}
+
+	// the following loop is for grouping the credentials shared for a sigle user
+	// so that we can share all the credentials for a single user in a single transaction
+	for _, groupData := range payload {
+
+		for _, credential := range groupData.CredentialData {
+			// if the credential id does not exist in the uniqueCredentialIDs slice add it
+			if !utils.Contains(uniqueCredentialIDs, credential.CredentialID) {
+				uniqueCredentialIDs = append(uniqueCredentialIDs, credential.CredentialID)
+			}
+
+			credentialDataParams := dto.CredentialEncryptedFieldsForGroupDto{
+				CredentialID:        credential.CredentialID,
+				GroupID:             groupData.GroupID,
+				AccessType:          groupData.AccessType,
+				UserEncryptedFields: credential.EncryptedData,
+			}
+
+			groupCredentials[groupData.GroupID] = append(groupCredentials[groupData.GroupID], credentialDataParams)
+		}
 	}
 
-	if !hasAccess {
-		return &customerrors.UserNotAuthenticatedError{Message: "user does not have share access to the credential"}
+	for _, credentialID := range uniqueCredentialIDs {
+		hasAccess, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
+		if err != nil {
+			return nil, err
+		}
+
+		if !hasAccess {
+			return nil, &customerrors.UserNotAuthenticatedError{Message: fmt.Sprintf("user does not have share access to the credential: %s", credentialID)}
+
+		}
 	}
-
-	return repository.ShareCredentialWithGroup(ctx, credentialID, payload)
-}
-
-func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.ShareCredentialWithGroups, caller uuid.UUID) ([]map[string]interface{}, error) {
 
 	responses := make([]map[string]interface{}, 0)
-	for _, credentialData := range payload {
+	for groupID, credentials := range groupCredentials {
 
-		credentialShareResponse := make(map[string]interface{})
-		credentialShareResponse["credentialId"] = credentialData.CredentialID
-		credentialShareResponse["groups"] = make([]map[string]interface{}, 0)
+		groupShareResponse := make(map[string]interface{})
+		groupShareResponse["groupId"] = groupID
 
-		for _, groupData := range credentialData.GroupData {
-
-			groupSharedResponse := make(map[string]interface{})
-			err := ShareCredentialWithGroup(ctx, credentialData.CredentialID, groupData, caller)
-
-			if err != nil {
-				groupSharedResponse["groupId"] = groupData.GroupID
-				groupSharedResponse["status"] = "failed"
-				groupSharedResponse["message"] = err.Error()
-				groups := credentialShareResponse["groups"].([]map[string]interface{})
-				credentialShareResponse["groups"] = append(groups, groupSharedResponse)
-
-			} else {
-				groupSharedResponse["groupId"] = groupData.GroupID
-				groupSharedResponse["status"] = "success"
-				groupSharedResponse["message"] = "shared successfully"
-				groups := credentialShareResponse["groups"].([]map[string]interface{})
-				credentialShareResponse["groups"] = append(groups, groupSharedResponse)
-			}
+		// Share all the credentials for a group in a single transaction
+		err := repository.ShareMultipleCredentialsWithMultipleGroups(ctx, credentials)
+		if err != nil {
+			groupShareResponse["status"] = "failed"
+			groupShareResponse["message"] = err.Error()
+		} else {
+			groupShareResponse["status"] = "success"
+			groupShareResponse["message"] = "shared successfully"
 		}
-		responses = append(responses, credentialShareResponse)
+
+		responses = append(responses, groupShareResponse)
 	}
 
 	return responses, nil

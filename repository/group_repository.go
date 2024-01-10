@@ -94,10 +94,10 @@ func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID) ([]u
 }
 
 type AddGroupMemberRepositoryParams struct {
-	GroupID           uuid.UUID                          `json:"groupId"`
-	MemberID          uuid.UUID                          `json:"memberId"`
-	MemberRole        string                             `json:"memberRole"`
-	UserEncryptedData []dto.CredentialEncryptedFieldsDto `json:"encryptedFields"`
+	GroupID           uuid.UUID                                 `json:"groupId"`
+	MemberID          uuid.UUID                                 `json:"memberId"`
+	MemberRole        string                                    `json:"memberRole"`
+	UserEncryptedData []dto.CredentialEncryptedFieldsForUserDto `json:"encryptedFields"`
 }
 
 func AddGroupMember(ctx *gin.Context, payload AddGroupMemberRepositoryParams) error {
@@ -131,5 +131,3 @@ func FetchCredentialAccessTypeForGroupMember(ctx *gin.Context, credentialID uuid
 
 	return accessType, nil
 }
-
-

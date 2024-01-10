@@ -29,3 +29,12 @@ func CreateRandomString(length int) string {
 	}
 	return string(bytes)
 }
+
+func Contains(slice []uuid.UUID, item uuid.UUID) bool {
+	for _, sliceItem := range slice {
+		if sliceItem == item {
+			return true
+		}
+	}
+	return false
+}
