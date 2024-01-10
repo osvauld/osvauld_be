@@ -39,8 +39,8 @@ type ShareMultipleCredentialsWithMultipleUserRequest struct {
 }
 
 type GroupCredentialPayload struct {
-	CredentialID  uuid.UUID                `json:"credentialId" binding:"required"`
-	EncryptedData []UserEncryptedFieldsDto `json:"userEncryptedData" binding:"required"`
+	CredentialID uuid.UUID                `json:"credentialId" binding:"required"`
+	UserData     []UserEncryptedFieldsDto `json:"userData" binding:"required"`
 }
 
 type MulitpleCredentialsForGroupPayload struct {

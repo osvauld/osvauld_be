@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	dto "osvauld/dtos"
 
 	"github.com/google/uuid"
@@ -117,6 +118,7 @@ func (store *SQLStore) ShareCredentialWithGroupTransaction(ctx context.Context, 
 
 func (store *SQLStore) ShareMultipleCredentialsWithMultipleGroupsTransaction(ctx context.Context, args []dto.CredentialEncryptedFieldsForGroupDto) error {
 
+	fmt.Println("started transaction")
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		for _, credentialData := range args {
@@ -149,6 +151,8 @@ func (store *SQLStore) ShareMultipleCredentialsWithMultipleGroupsTransaction(ctx
 
 		return nil
 	})
+
+	fmt.Println("ended transaction")
 
 	return err
 }

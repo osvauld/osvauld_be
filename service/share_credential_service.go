@@ -56,7 +56,6 @@ func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.M
 
 	// TODO: Check the number of encrypted fields and field names for each encrypted value match with the original
 
-
 	responses := make([]map[string]interface{}, 0)
 	for userID, credentials := range userCredentials {
 
@@ -101,7 +100,7 @@ func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.
 				CredentialID:        credential.CredentialID,
 				GroupID:             groupData.GroupID,
 				AccessType:          groupData.AccessType,
-				UserEncryptedFields: credential.EncryptedData,
+				UserEncryptedFields: credential.UserData,
 			}
 
 			groupCredentials[groupData.GroupID] = append(groupCredentials[groupData.GroupID], credentialDataParams)
@@ -119,6 +118,9 @@ func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.
 
 		}
 	}
+
+	// TODO: Check the member data passed are part of the group
+	// TODO: Check the number of encrypted fields and field names for each encrypted value match with the original
 
 	responses := make([]map[string]interface{}, 0)
 	for groupID, credentials := range groupCredentials {
