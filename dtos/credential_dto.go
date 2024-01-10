@@ -51,36 +51,10 @@ type Credential struct {
 	Users        []User    `json:"users"`
 }
 
-type ShareCredentialWithUsers struct {
-	CredentialID      uuid.UUID           `json:"credentialId"`
-	UserEncryptedData []UserEncryptedData `json:"userEncryptedData"`
-}
-
-type ShareCredentialWithGroups struct {
-	CredentialID uuid.UUID                `json:"credentialId"`
-	GroupData    []CredentialDataForGroup `json:"groupData"`
-}
-
-type ShareMultipleCredentialsWithMultipleUsersPayload struct {
-	Credentials []ShareCredentialWithUsers `json:"credentials"`
-}
-
-type ShareMultipleCredentialsWithMultipleGroupsPayload struct {
-	Credentials []ShareCredentialWithGroups `json:"credentials"`
-}
-
 type GetEncryptedCredentialsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }
 
 type CredentialsForUser struct {
 	CredentialID uuid.UUID `json:"credentialId"`
-}
-
-
-
-type CredentialDataForGroup struct {
-	GroupID             uuid.UUID                `json:"groupId"`
-	UserEncryptedFields []UserEncryptedFieldsDto `json:"userEncryptedFields"`
-	AccessType          string                   `json:"accessType"`
 }
