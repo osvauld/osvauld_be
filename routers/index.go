@@ -14,7 +14,7 @@ func RegisterRoutes(route *gin.Engine) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Route Not Found"})
 	})
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
-	// route.POST("/login", controllers.Login)
+	route.POST("/testLogin", controllers.TestLoginController)
 	route.POST("/user/", controllers.CreateUser)
 	route.POST("/user/register", controllers.Register)
 	route.POST("/user/challenge", controllers.GetChallenge)
