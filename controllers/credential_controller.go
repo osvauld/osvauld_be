@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/service"
 	"osvauld/utils"
 
@@ -30,6 +31,12 @@ func AddCredential(ctx *gin.Context) {
 
 	credentialID, err := service.AddCredential(ctx, req)
 	if err != nil {
+		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
+			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+			return
+		}
+
+		logger.Errorf(err.Error())
 		SendResponse(ctx, 500, nil, "Failed to add credential", errors.New("failed to add credential"))
 		return
 	}

@@ -13,7 +13,15 @@ import (
 
 func AddCredential(ctx *gin.Context, args dto.AddCredentialDto) (uuid.UUID, error) {
 
-	// TODO: add check to see if user is an owner of the folder
+	isOwner, err := CheckFolderOwner(ctx, args.FolderID, args.CreatedBy)
+
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	if !isOwner {
+		return uuid.UUID{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have owner access to the folder"}
+	}
 
 	credentialID, err := repository.AddCredential(ctx, args)
 	if err != nil {
