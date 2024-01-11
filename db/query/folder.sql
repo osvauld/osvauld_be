@@ -44,3 +44,15 @@ SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key,'') as "
 FROM folder_access
 JOIN users ON folder_access.user_id = users.id
 WHERE folder_access.folder_id = $1;
+
+
+-- name: GetFolderAccessForUser :many
+SELECT access_type FROM folder_access
+WHERE folder_id = $1 AND user_id = $2;
+
+
+
+-- name: GetAccessTypeAndUserByFolder :many
+SELECT user_id, access_type
+FROM folder_access
+WHERE folder_id = $1;

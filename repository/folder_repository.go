@@ -87,3 +87,26 @@ func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRo
 	}
 	return users, nil
 }
+
+func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]string, error) {
+
+	params := db.GetFolderAccessForUserParams{
+		FolderID: folderID,
+		UserID:   userID,
+	}
+	accessRows, err := database.Store.GetFolderAccessForUser(ctx, params)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return []string{}, err
+	}
+	return accessRows, nil
+}
+
+func GetFolderAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetAccessTypeAndUserByFolderRow, error) {
+	access, err := database.Store.GetAccessTypeAndUserByFolder(ctx, folderId)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return access, err
+	}
+	return access, nil
+}

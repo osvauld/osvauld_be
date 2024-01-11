@@ -104,6 +104,73 @@ func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, cr
 	return items, nil
 }
 
+const getAccessTypeAndUserByFolder = `-- name: GetAccessTypeAndUserByFolder :many
+SELECT user_id, access_type
+FROM folder_access
+WHERE folder_id = $1
+`
+
+type GetAccessTypeAndUserByFolderRow struct {
+	UserID     uuid.UUID `json:"user_id"`
+	AccessType string    `json:"access_type"`
+}
+
+func (q *Queries) GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAccessTypeAndUserByFolder, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAccessTypeAndUserByFolderRow{}
+	for rows.Next() {
+		var i GetAccessTypeAndUserByFolderRow
+		if err := rows.Scan(&i.UserID, &i.AccessType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFolderAccessForUser = `-- name: GetFolderAccessForUser :many
+SELECT access_type FROM folder_access
+WHERE folder_id = $1 AND user_id = $2
+`
+
+type GetFolderAccessForUserParams struct {
+	FolderID uuid.UUID `json:"folder_id"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getFolderAccessForUser, arg.FolderID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var access_type string
+		if err := rows.Scan(&access_type); err != nil {
+			return nil, err
+		}
+		items = append(items, access_type)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSharedUsers = `-- name: GetSharedUsers :many
 SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key,'') as "publicKey", folder_access.access_type as "accessType"
 FROM folder_access

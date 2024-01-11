@@ -11,6 +11,56 @@ import (
 	"github.com/google/uuid"
 )
 
+func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) error {
+
+	// Retrieve access types for the folder
+	accessList, err := repository.GetFolderAccess(ctx, request.FolderID)
+	if err != nil {
+		return err
+	}
+
+	payload := dto.AddCredentialDto{
+		AddCredentialRequest: request,
+	}
+	accessTypeMap := make(map[uuid.UUID]string)
+
+	for _, access := range accessList {
+		if access.UserID != caller {
+			accessTypeMap[access.UserID] = access.AccessType
+
+		} else {
+			//caller should be owner
+			accessTypeMap[access.UserID] = "owner"
+		}
+	}
+
+	/* Convert UserEncryptedFields to UserEncryptedFieldsWithAccess
+	 * access type is derived from folder ownership
+	 */
+	var extendedFields []dto.EncryptedFieldWithAccess
+	for _, field := range request.UserEncryptedFields {
+		accessType, exists := accessTypeMap[field.UserID]
+		if !exists {
+			continue
+		}
+		extendedField := dto.EncryptedFieldWithAccess{
+			AddCredentialEncryptedField: field,
+			AccessType:                  accessType,
+		}
+		extendedFields = append(extendedFields, extendedField)
+	}
+	payload.UserEncryptedFieldsWithAccess = extendedFields
+
+	if err != nil {
+		return err
+	}
+	_, err = repository.AddCredential(ctx, payload, caller)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {
 
 	// Check if caller has access

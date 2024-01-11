@@ -31,6 +31,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/shareCredential/Groups", middleware.JWTAuthMiddleware(), controllers.ShareMultipleCredentialsWithMulitpleGroups)
 
 	// Credential Routes
+	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)
 	route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.FetchCredentialByID)
 
 	// route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialByID)
