@@ -10,22 +10,21 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 const addFolderAccess = `-- name: AddFolderAccess :exec
 INSERT INTO folder_access (folder_id, user_id, access_type)
-SELECT $1, unnest($2::uuid[]), unnest($3::text[])
+VALUES ($1, $2, $3)
 `
 
 type AddFolderAccessParams struct {
-	FolderID uuid.UUID   `json:"folder_id"`
-	Column2  []uuid.UUID `json:"column_2"`
-	Column3  []string    `json:"column_3"`
+	FolderID   uuid.UUID `json:"folder_id"`
+	UserID     uuid.UUID `json:"user_id"`
+	AccessType string    `json:"access_type"`
 }
 
 func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
-	_, err := q.db.ExecContext(ctx, addFolderAccess, arg.FolderID, pq.Array(arg.Column2), pq.Array(arg.Column3))
+	_, err := q.db.ExecContext(ctx, addFolderAccess, arg.FolderID, arg.UserID, arg.AccessType)
 	return err
 }
 
@@ -162,6 +161,25 @@ type IsFolderOwnerParams struct {
 
 func (q *Queries) IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, isFolderOwner, arg.FolderID, arg.UserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const isUserManagerOrOwner = `-- name: IsUserManagerOrOwner :one
+SELECT EXISTS (
+  SELECT 1 FROM folder_access
+  WHERE folder_id = $1 AND user_id = $2 AND access_type IN ('owner', 'manager')
+)
+`
+
+type IsUserManagerOrOwnerParams struct {
+	FolderID uuid.UUID `json:"folder_id"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, isUserManagerOrOwner, arg.FolderID, arg.UserID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

@@ -21,14 +21,14 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/user/verify", controllers.VerifyChallenge)
 	route.GET("/users", middleware.JWTAuthMiddleware(), controllers.GetAllUsers)
 	route.POST("/folder/", middleware.JWTAuthMiddleware(), controllers.CreateFolder)
-	route.PUT("/folder", middleware.JWTAuthMiddleware(), controllers.ShareFolder)
 	route.GET("/folder/:id", middleware.JWTAuthMiddleware(), controllers.GetUsersByFolder)
 	route.GET("/folder/:id/users", middleware.JWTAuthMiddleware(), controllers.GetSharedUsers)
 	route.GET("/folder/:id/credential", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByFolder)
 	route.GET("/folders/", middleware.JWTAuthMiddleware(), controllers.GetAccessibleFolders)
 
-	route.POST("/shareCredential/Users", middleware.JWTAuthMiddleware(), controllers.ShareMultipleCredentialsWithMulitpleUsers)
-	route.POST("/shareCredential/Groups", middleware.JWTAuthMiddleware(), controllers.ShareMultipleCredentialsWithMulitpleGroups)
+	route.POST("/share-credential/users", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithUsers)
+	route.POST("/share-credential/groups", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithGroups)
+	route.POST("share-folder/users", middleware.JWTAuthMiddleware(), controllers.ShareFolderWithUsers)
 
 	// Credential Routes
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)

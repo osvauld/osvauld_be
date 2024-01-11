@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
+func ShareCredentialsWithUsers(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
@@ -18,13 +18,13 @@ func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.ShareMultipleCredentialsWithMultipleUserRequest
+	var req dto.ShareCredentialsWithUsersRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	response, err := service.ShareMultipleCredentialsWithMultipleUsers(ctx, req.UserData, caller)
+	response, err := service.ShareCredentialsWithUsers(ctx, req.UserData, caller)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
 		return
@@ -32,7 +32,7 @@ func ShareMultipleCredentialsWithMulitpleUsers(ctx *gin.Context) {
 	SendResponse(ctx, 200, response, "Success", nil)
 }
 
-func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context) {
+func ShareCredentialsWithGroups(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
@@ -40,16 +40,45 @@ func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.ShareMultipleCredentialsWithMultipleGroupRequest
+	var req dto.ShareCredentialsWithGroupsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	response, err := service.ShareMultipleCredentialsWithMulitpleGroups(ctx, req.GroupData, caller)
+	response, err := service.ShareCredentialsWithGroups(ctx, req.GroupData, caller)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
 		return
 	}
 	SendResponse(ctx, 200, response, "Success", nil)
+}
+
+func ShareFolderWithUsers(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	var req dto.ShareFolderWithUsersRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// check if caller has access to the folder
+	access, err := service.CheckOwnerOrManagerAccessForFolder(ctx, req.FolderID, caller)
+	if err != nil || !access {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	err = service.ShareFolderWithUsers(ctx, req.FolderID, req.UserData)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "Failed to share folder with users", errors.New("Failed to share"))
+		return
+	}
+	SendResponse(ctx, 200, nil, "Success", nil)
 }

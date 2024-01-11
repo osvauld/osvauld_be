@@ -23,19 +23,19 @@ type CredentialEncryptedFieldsForGroupDto struct {
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-type UserCredentialPayload struct {
-	CredentialID  uuid.UUID `json:"credentialId" binding:"required"`
-	EncryptedData []Field   `json:"encryptedData" binding:"required"`
+type EncryptedCredentialPayload struct {
+	CredentialID    uuid.UUID `json:"credentialId" binding:"required"`
+	EncryptedFields []Field   `json:"encryptedData" binding:"required"`
 }
 
-type MulitpleCredentialsForUserPayload struct {
-	UserID         uuid.UUID               `json:"userId" binding:"required"`
-	CredentialData []UserCredentialPayload `json:"credentials" binding:"required"`
-	AccessType     string                  `json:"accessType" binding:"required"`
+type CredentialsForUsersPayload struct {
+	UserID         uuid.UUID                    `json:"userId" binding:"required"`
+	CredentialData []EncryptedCredentialPayload `json:"credentials" binding:"required"`
+	AccessType     string                       `json:"accessType" binding:"required"`
 }
 
-type ShareMultipleCredentialsWithMultipleUserRequest struct {
-	UserData []MulitpleCredentialsForUserPayload `json:"userData" binding:"required"`
+type ShareCredentialsWithUsersRequest struct {
+	UserData []CredentialsForUsersPayload `json:"userData" binding:"required"`
 }
 
 type GroupCredentialPayload struct {
@@ -43,12 +43,17 @@ type GroupCredentialPayload struct {
 	UserData     []UserEncryptedFieldsDto `json:"userData" binding:"required"`
 }
 
-type MulitpleCredentialsForGroupPayload struct {
+type CredentialsForGroupsPayload struct {
 	GroupID        uuid.UUID                `json:"groupId" binding:"required"`
 	CredentialData []GroupCredentialPayload `json:"credentials" binding:"required"`
 	AccessType     string                   `json:"accessType" binding:"required"`
 }
 
-type ShareMultipleCredentialsWithMultipleGroupRequest struct {
-	GroupData []MulitpleCredentialsForGroupPayload `json:"groupData" binding:"required"`
+type ShareCredentialsWithGroupsRequest struct {
+	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
+}
+
+type ShareFolderWithUsersRequest struct {
+	FolderID uuid.UUID                    `json:"folderId" binding:"required"`
+	UserData []CredentialsForUsersPayload `json:"userData" binding:"required"`
 }

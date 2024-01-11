@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -36,6 +35,26 @@ func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const checkAccessListEntryExists = `-- name: CheckAccessListEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM access_list
+    WHERE user_id = $1 AND credential_id = $2
+)
+`
+
+type CheckAccessListEntryExistsParams struct {
+	UserID       uuid.UUID `json:"user_id"`
+	CredentialID uuid.UUID `json:"credential_id"`
+}
+
+func (q *Queries) CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkAccessListEntryExists, arg.UserID, arg.CredentialID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const getCredentialAccessForUser = `-- name: GetCredentialAccessForUser :many
@@ -114,18 +133,18 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 }
 
 const getUsersByCredential = `-- name: GetUsersByCredential :many
-SELECT users.id, users.username, users.name, users.rsa_pub_key as "publicKey", access_list.access_type as "accessType"
+SELECT users.id, users.username, users.name, COALESCE(users.rsa_pub_key, '') as "publicKey", access_list.access_type as "accessType"
 FROM access_list
 JOIN users ON access_list.user_id = users.id
 WHERE access_list.credential_id = $1
 `
 
 type GetUsersByCredentialRow struct {
-	ID         uuid.UUID      `json:"id"`
-	Username   string         `json:"username"`
-	Name       string         `json:"name"`
-	PublicKey  sql.NullString `json:"publicKey"`
-	AccessType string         `json:"accessType"`
+	ID         uuid.UUID `json:"id"`
+	Username   string    `json:"username"`
+	Name       string    `json:"name"`
+	PublicKey  string    `json:"publicKey"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error) {
