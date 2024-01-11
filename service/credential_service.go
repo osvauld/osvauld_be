@@ -11,9 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
-
 func AddCredential(ctx *gin.Context, args dto.AddCredentialDto) (uuid.UUID, error) {
-	
+
+	// TODO: add check to see if user is an owner of the folder
+
 	credentialID, err := repository.AddCredential(ctx, args)
 	if err != nil {
 		return uuid.UUID{}, err
