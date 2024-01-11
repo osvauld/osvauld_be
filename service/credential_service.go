@@ -11,20 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddCredential(ctx *gin.Context, data dto.AddCredentailRequest, createdBy uuid.UUID) (uuid.UUID, error) {
-
-	// add access type for users
-	for _, user := range data.UserAccessDetails {
-		if user.UserID == createdBy {
-			user.AccessType = "owner"
-		} else {
-			user.AccessType = "read"
-		}
-	}
-
-	return repository.AddCredential(ctx, data, createdBy)
-}
-
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {
 
 	// Check if caller has access

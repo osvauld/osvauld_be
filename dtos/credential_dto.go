@@ -6,14 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AddCredentailRequest struct {
-	Name              string              `json:"name"`
-	Description       string              `json:"description"`
-	FolderID          uuid.UUID           `json:"folderId"`
-	UnencryptedFields []Field             `json:"unencryptedFields"`
-	UserAccessDetails []UserEncryptedData `json:"userAccessDetails"`
-}
-
 type UserEncryptedData struct {
 	UserID          uuid.UUID     `json:"userId"`
 	AccessType      string        `json:"accessType"`
