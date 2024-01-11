@@ -11,6 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
+
+func AddCredential(ctx *gin.Context, args dto.AddCredentialDto) (uuid.UUID, error) {
+	
+	credentialID, err := repository.AddCredential(ctx, args)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return credentialID, nil
+}
+
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {
 
 	// Check if caller has access

@@ -6,10 +6,35 @@ import (
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+func AddCredential(ctx *gin.Context) {
+
+	var req dto.AddCredentialDto
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	req.CreatedBy = caller
+
+	credentialID, err := service.AddCredential(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to add credential", errors.New("failed to add credential"))
+		return
+	}
+	SendResponse(ctx, 200, credentialID, "Added credential", nil)
+}
 
 func FetchCredentialByID(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")

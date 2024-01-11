@@ -50,3 +50,12 @@ type GetEncryptedCredentialsByIdsRequest struct {
 type CredentialsForUser struct {
 	CredentialID uuid.UUID `json:"credentialId"`
 }
+
+type AddCredentialDto struct {
+	Name              string    `json:"name"`
+	Description       string    `json:"description"`
+	FolderID          uuid.UUID `json:"folderId"`
+	UnencryptedFields []Field   `json:"unencryptedFields"`
+	EncryptedFields   []Field   `json:"encryptedFields"`
+	CreatedBy         uuid.UUID `json:"createdBy"`
+}
