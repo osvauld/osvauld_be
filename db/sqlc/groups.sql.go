@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -172,17 +171,17 @@ func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]Fetc
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT users.id, users.name, users.username, users.rsa_pub_key as "publicKey"
+SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key, '') as "publicKey"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1
 `
 
 type GetGroupMembersRow struct {
-	ID        uuid.UUID      `json:"id"`
-	Name      string         `json:"name"`
-	Username  string         `json:"username"`
-	PublicKey sql.NullString `json:"publicKey"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Username  string    `json:"username"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error) {

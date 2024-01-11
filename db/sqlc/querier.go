@@ -17,6 +17,7 @@ type Querier interface {
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMemberRecord(ctx context.Context, arg AddGroupMemberRecordParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
+	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
 	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
@@ -54,6 +55,7 @@ type Querier interface {
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
+	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 }
