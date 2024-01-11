@@ -3,11 +3,13 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"osvauld/auth"
 	dto "osvauld/dtos"
 	service "osvauld/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 )
 
 // // Initialize the validator once for your application
@@ -99,4 +101,26 @@ func Register(ctx *gin.Context) {
 	}
 
 	SendResponse(ctx, 200, user, "registration successfull", nil)
+}
+
+type TestLogin struct {
+	UserName string    `json:"username" binding:"required"`
+	UserID   uuid.UUID `json:"userId" binding:"required"`
+}
+
+func TestLoginController(ctx *gin.Context) {
+	var req TestLogin
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, _ := auth.GenerateToken(req.UserName, req.UserID)
+
+	type TokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	SendResponse(ctx, 200, TokenResponse{Token: token}, "Login successfull", nil)
 }

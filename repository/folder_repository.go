@@ -57,28 +57,6 @@ func CheckFolderAccess(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (
 	return access, nil
 }
 
-func ShareFolder(ctx *gin.Context, folder dto.ShareFolder) error {
-
-	var users []uuid.UUID
-	var accessTypes []string
-
-	for _, userAccess := range folder.Users {
-		users = append(users, userAccess.UserID)
-		accessTypes = append(accessTypes, userAccess.AccessType)
-	}
-	arg := db.AddFolderAccessParams{
-		FolderID: folder.FolderID,
-		Column2:  users,
-		Column3:  accessTypes,
-	}
-	err := database.Store.AddFolderAccess(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return err
-	}
-	return nil
-}
-
 func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRow, error) {
 	users, err := database.Store.GetSharedUsers(ctx, folderID)
 	if err != nil {
@@ -86,4 +64,17 @@ func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRo
 		return users, err
 	}
 	return users, nil
+}
+
+func CheckOwnerOrManagerAccessForFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
+	arg := db.IsUserManagerOrOwnerParams{
+		UserID:   userID,
+		FolderID: folderID,
+	}
+	access, err := database.Store.IsUserManagerOrOwner(ctx, arg)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return false, err
+	}
+	return access, nil
 }

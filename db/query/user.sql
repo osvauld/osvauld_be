@@ -5,14 +5,14 @@ RETURNING id;
 
 
 -- name: GetUserByUsername :one
-SELECT id,name,username, rsa_pub_key as "publicKey"
+SELECT id,name,username, COALESCE(rsa_pub_key,'') as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1;
 
 
 -- name: GetAllUsers :many
-SELECT id,name,username, rsa_pub_key AS "publicKey" FROM users;
+SELECT id,name,username, COALESCE(rsa_pub_key, '') AS "publicKey" FROM users;
 
 -- name: GetUserByPublicKey :one
 SELECT id

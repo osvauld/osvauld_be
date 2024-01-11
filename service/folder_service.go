@@ -1,10 +1,8 @@
 package service
 
 import (
-	"errors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
-	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -32,19 +30,11 @@ func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([
 	return users, err
 }
 
-func ShareFolder(ctx *gin.Context, folder dto.ShareFolder, userID uuid.UUID) error {
-
-	isAccessible, _ := repository.CheckFolderAccess(ctx, folder.FolderID, userID)
-	if !isAccessible {
-		logger.Errorf("user does not have access to this folder")
-		return errors.New("user does not have access to this folder")
-	}
-	err := repository.ShareFolder(ctx, folder)
-	return err
-
-}
-
 func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRow, error) {
 	users, err := repository.GetSharedUsers(ctx, folderID)
 	return users, err
+}
+
+func CheckOwnerOrManagerAccessForFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
+	return repository.CheckOwnerOrManagerAccessForFolder(ctx, folderID, userID)
 }

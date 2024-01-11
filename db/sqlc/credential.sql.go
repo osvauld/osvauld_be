@@ -258,7 +258,7 @@ func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID
 
 const getEncryptedCredentialsByFolder = `-- name: GetEncryptedCredentialsByFolder :many
 SELECT
-    C .id,
+    C .id as "credentialId",
     json_agg(
         json_build_object(
             'fieldName',
@@ -285,7 +285,7 @@ type GetEncryptedCredentialsByFolderParams struct {
 }
 
 type GetEncryptedCredentialsByFolderRow struct {
-	ID              uuid.UUID       `json:"id"`
+	CredentialId    uuid.UUID       `json:"credentialId"`
 	EncryptedFields json.RawMessage `json:"encryptedFields"`
 }
 
@@ -298,7 +298,7 @@ func (q *Queries) GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEn
 	items := []GetEncryptedCredentialsByFolderRow{}
 	for rows.Next() {
 		var i GetEncryptedCredentialsByFolderRow
-		if err := rows.Scan(&i.ID, &i.EncryptedFields); err != nil {
+		if err := rows.Scan(&i.CredentialId, &i.EncryptedFields); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -314,7 +314,7 @@ func (q *Queries) GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEn
 
 const getEncryptedDataByCredentialIds = `-- name: GetEncryptedDataByCredentialIds :many
 SELECT
-    e.credential_id AS id,
+    e.credential_id AS "credentialId",
     json_agg(
         json_build_object(
             'fieldName',
@@ -340,7 +340,7 @@ type GetEncryptedDataByCredentialIdsParams struct {
 }
 
 type GetEncryptedDataByCredentialIdsRow struct {
-	ID              uuid.UUID       `json:"id"`
+	CredentialId    uuid.UUID       `json:"credentialId"`
 	EncryptedFields json.RawMessage `json:"encryptedFields"`
 }
 
@@ -353,7 +353,7 @@ func (q *Queries) GetEncryptedDataByCredentialIds(ctx context.Context, arg GetEn
 	items := []GetEncryptedDataByCredentialIdsRow{}
 	for rows.Next() {
 		var i GetEncryptedDataByCredentialIdsRow
-		if err := rows.Scan(&i.ID, &i.EncryptedFields); err != nil {
+		if err := rows.Scan(&i.CredentialId, &i.EncryptedFields); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

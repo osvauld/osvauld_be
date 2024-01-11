@@ -60,23 +60,6 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return data, nil
 }
 
-func ShareCredentialWithUser(ctx *gin.Context, credentialID uuid.UUID, payload dto.UserEncryptedData) error {
-
-	args := db.ShareCredentialWithUserParams{
-		CredentialID:    credentialID,
-		UserID:          payload.UserID,
-		EncryptedFields: payload.EncryptedFields,
-		GroupID:         payload.GroupID,
-		AccessType:      payload.AccessType,
-	}
-
-	err := database.Store.ShareCredentialWithUserTransaction(ctx, args)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
 
