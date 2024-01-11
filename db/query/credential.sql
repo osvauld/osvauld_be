@@ -95,7 +95,7 @@ SELECT
 
 -- name: GetEncryptedCredentialsByFolder :many
 SELECT
-    C .id,
+    C .id as "credentialId",
     json_agg(
         json_build_object(
             'fieldName',
@@ -117,7 +117,7 @@ ORDER BY
 
 -- name: GetEncryptedDataByCredentialIds :many
 SELECT
-    e.credential_id AS id,
+    e.credential_id AS "credentialId",
     json_agg(
         json_build_object(
             'fieldName',

@@ -15,7 +15,7 @@ import (
 // We will try to insert all the credentials for a single user in a single transaction
 // so that we can rollback all the credentials if one of them fails to be shared
 // The response contains success or failure for each user
-func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.MulitpleCredentialsForUserPayload, caller uuid.UUID) ([]map[string]interface{}, error) {
+func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.CredentialsForUsersPayload, caller uuid.UUID) ([]map[string]interface{}, error) {
 
 	uniqueCredentialIDs := []uuid.UUID{}
 	userCredentials := map[uuid.UUID][]dto.CredentialEncryptedFieldsForUserDto{}
@@ -34,7 +34,7 @@ func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.M
 				CredentialID:    credential.CredentialID,
 				UserID:          userData.UserID,
 				AccessType:      userData.AccessType,
-				EncryptedFields: credential.EncryptedData,
+				EncryptedFields: credential.EncryptedFields,
 			}
 
 			userCredentials[userData.UserID] = append(userCredentials[userData.UserID], credentialDataParams)
@@ -43,6 +43,7 @@ func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.M
 
 	// check the service calls has access to the credentials being shared
 	for _, credentialID := range uniqueCredentialIDs {
+		// do we need to check this if we are already checking the folder ownership.
 		hasAccess, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
 		if err != nil {
 			return nil, err
@@ -63,7 +64,7 @@ func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.M
 		userShareResponse["userId"] = userID
 
 		// Share all the credentials for a user in a single transaction
-		err := repository.ShareMultipleCredentialsWithMultipleUsers(ctx, credentials)
+		err := repository.ShareCredentialsWithUsers(ctx, credentials)
 		if err != nil {
 			userShareResponse["status"] = "failed"
 			userShareResponse["message"] = err.Error()
@@ -81,7 +82,7 @@ func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.M
 // We will try to insert all the credentials for a single group in a single transaction
 // so that we can rollback all the credentials if one of them fails to be shared
 // The response contains success or failure for each user
-func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.MulitpleCredentialsForGroupPayload, caller uuid.UUID) ([]map[string]interface{}, error) {
+func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGroupsPayload, caller uuid.UUID) ([]map[string]interface{}, error) {
 
 	uniqueCredentialIDs := []uuid.UUID{}
 	groupCredentials := map[uuid.UUID][]dto.CredentialEncryptedFieldsForGroupDto{}
@@ -129,7 +130,7 @@ func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.
 		groupShareResponse["groupId"] = groupID
 
 		// Share all the credentials for a group in a single transaction
-		err := repository.ShareMultipleCredentialsWithMultipleGroups(ctx, credentials)
+		err := repository.ShareCredentialsWithGroups(ctx, credentials)
 		if err != nil {
 			groupShareResponse["status"] = "failed"
 			groupShareResponse["message"] = err.Error()
@@ -142,4 +143,14 @@ func ShareMultipleCredentialsWithMulitpleGroups(ctx *gin.Context, payload []dto.
 	}
 
 	return responses, nil
+}
+
+func ShareFolderWithUsers(ctx *gin.Context, folderId uuid.UUID, credentials []dto.CredentialsForUsersPayload) error {
+
+	err := repository.ShareFolderWithUsers(ctx, folderId, credentials)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }

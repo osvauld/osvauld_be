@@ -5,6 +5,7 @@ import (
 	"osvauld/infra/database"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func ShareCredentialWithUser(ctx *gin.Context, payload dto.CredentialEncryptedFieldsForUserDto) error {
@@ -27,7 +28,7 @@ func ShareCredentialWithGroup(ctx *gin.Context, payload dto.CredentialEncryptedF
 	return nil
 }
 
-func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.CredentialEncryptedFieldsForUserDto) error {
+func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.CredentialEncryptedFieldsForUserDto) error {
 
 	err := database.Store.ShareMultipleCredentialsWithMultipleUsersTransaction(ctx, payload)
 	if err != nil {
@@ -37,12 +38,20 @@ func ShareMultipleCredentialsWithMultipleUsers(ctx *gin.Context, payload []dto.C
 	return nil
 }
 
-func ShareMultipleCredentialsWithMultipleGroups(ctx *gin.Context, payload []dto.CredentialEncryptedFieldsForGroupDto) error {
+func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialEncryptedFieldsForGroupDto) error {
 
 	err := database.Store.ShareMultipleCredentialsWithMultipleGroupsTransaction(ctx, payload)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func ShareFolderWithUsers(ctx *gin.Context, folderId uuid.UUID, payload []dto.CredentialsForUsersPayload) error {
+	err := database.Store.ShareFolderWithUsersTransaction(ctx, folderId, payload)
+	if err != nil {
+		return err
+	}
 	return nil
 }

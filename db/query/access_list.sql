@@ -19,7 +19,7 @@ JOIN credentials c ON al.credential_id = c.id
 WHERE c.folder_id = $1;
 
 -- name: GetUsersByCredential :many
-SELECT users.id, users.username, users.name, users.rsa_pub_key as "publicKey", access_list.access_type as "accessType"
+SELECT users.id, users.username, users.name, COALESCE(users.rsa_pub_key, '') as "publicKey", access_list.access_type as "accessType"
 FROM access_list
 JOIN users ON access_list.user_id = users.id
 WHERE access_list.credential_id = $1;
@@ -27,3 +27,10 @@ WHERE access_list.credential_id = $1;
 
 -- name: GetCredentialIDsByUserID :many
 SELECT credential_id FROM access_list WHERE user_id = $1;
+
+-- name: CheckAccessListEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM access_list
+    WHERE user_id = $1 AND credential_id = $2
+);

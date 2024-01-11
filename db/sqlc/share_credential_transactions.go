@@ -156,3 +156,55 @@ func (store *SQLStore) ShareMultipleCredentialsWithMultipleGroupsTransaction(ctx
 
 	return err
 }
+
+func (store *SQLStore) ShareFolderWithUsersTransaction(ctx context.Context, folderId uuid.UUID, credentialPayloads []dto.CredentialsForUsersPayload) error {
+
+	err := store.execTx(ctx, func(q *Queries) error {
+
+		for _, credentialPayload := range credentialPayloads {
+			userId := credentialPayload.UserID
+			accessType := credentialPayload.AccessType
+			// Create encrypted data records
+			for _, credential := range credentialPayload.CredentialData {
+				exists, err := q.CheckAccessListEntryExists(ctx, CheckAccessListEntryExistsParams{
+					CredentialID: credential.CredentialID,
+					UserID:       userId,
+				})
+				if err != nil {
+					return err
+				}
+				if !exists {
+					for _, field := range credential.EncryptedFields {
+						_, err = q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+							FieldName:    field.FieldName,
+							FieldValue:   field.FieldValue,
+							CredentialID: credential.CredentialID,
+							UserID:       userId,
+						})
+						if err != nil {
+							return err
+						}
+					}
+				}
+				_, err = q.AddToAccessList(ctx, AddToAccessListParams{
+					CredentialID: credential.CredentialID,
+					UserID:       userId,
+					AccessType:   accessType,
+				})
+				if err != nil {
+					return err
+				}
+			}
+			q.AddFolderAccess(ctx, AddFolderAccessParams{
+				FolderID:   folderId,
+				UserID:     userId,
+				AccessType: accessType,
+			})
+
+		}
+
+		return nil
+	})
+
+	return err
+}

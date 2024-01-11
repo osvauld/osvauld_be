@@ -90,14 +90,14 @@ func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string,
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id,name,username, rsa_pub_key AS "publicKey" FROM users
+SELECT id,name,username, COALESCE(rsa_pub_key, '') AS "publicKey" FROM users
 `
 
 type GetAllUsersRow struct {
-	ID        uuid.UUID      `json:"id"`
-	Name      string         `json:"name"`
-	Username  string         `json:"username"`
-	PublicKey sql.NullString `json:"publicKey"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Username  string    `json:"username"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
@@ -143,17 +143,17 @@ func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey sql.NullStri
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id,name,username, rsa_pub_key as "publicKey"
+SELECT id,name,username, COALESCE(rsa_pub_key,'') as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1
 `
 
 type GetUserByUsernameRow struct {
-	ID        uuid.UUID      `json:"id"`
-	Name      string         `json:"name"`
-	Username  string         `json:"username"`
-	PublicKey sql.NullString `json:"publicKey"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Username  string    `json:"username"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
