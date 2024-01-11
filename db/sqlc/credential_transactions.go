@@ -3,22 +3,12 @@ package db
 import (
 	"context"
 	"database/sql"
-
 	dto "osvauld/dtos"
 
 	"github.com/google/uuid"
 )
 
-type AddCredentialTransactionParams struct {
-	Name              string                  `json:"name"`
-	Description       string                  `json:"description"`
-	FolderID          uuid.UUID               `json:"folderId"`
-	UnencryptedFields []dto.Field             `json:"unencryptedFields"`
-	UserAccessDetails []dto.UserEncryptedData `json:"userAccessDetails"`
-	CreatedBy         uuid.UUID               `json:"createdBy"`
-}
-
-func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCredentialTransactionParams) (uuid.UUID, error) {
+func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.AddCredentialDto, caller uuid.UUID) (uuid.UUID, error) {
 
 	var credentialID uuid.UUID
 
@@ -30,7 +20,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 			Name:        args.Name,
 			Description: sql.NullString{String: args.Description, Valid: true},
 			FolderID:    args.FolderID,
-			CreatedBy:   args.CreatedBy,
+			CreatedBy:   caller,
 		}
 		credentialID, err = q.CreateCredential(ctx, CreateCredentialParams)
 		if err != nil {
@@ -50,33 +40,31 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 		}
 
 		// Create encrypted data records
-		for _, userDetails := range args.UserAccessDetails {
-			for _, field := range userDetails.EncryptedFields {
+		for _, userEncryptedFields := range args.UserEncryptedFieldsWithAccess {
+			for _, field := range userEncryptedFields.EncryptedFields {
 				_, err = q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
 					CredentialID: credentialID,
-					UserID:       userDetails.UserID,
+					UserID:       userEncryptedFields.UserID,
 				})
 				if err != nil {
 					return err
 				}
 			}
-		}
 
-		// Add rows in access list
-		for _, user := range args.UserAccessDetails {
 			accessListParams := AddToAccessListParams{
 				CredentialID: credentialID,
-				UserID:       user.UserID,
-				AccessType:   user.AccessType,
+				UserID:       userEncryptedFields.UserID,
+				AccessType:   userEncryptedFields.AccessType,
 			}
 			q.AddToAccessList(ctx, accessListParams)
 		}
+
+		// Add rows in access list
 
 		return nil
 	})
 
 	return credentialID, err
 }
-

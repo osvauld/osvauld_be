@@ -7,27 +7,44 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func AddCredential(ctx *gin.Context) {
-	var req dto.AddCredentailRequest
+
+	var req dto.AddCredentialRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	createdUserIDInterface, _ := ctx.Get("userId")
-	createdUserID, _ := createdUserIDInterface.(uuid.UUID)
-	credentialId, err := service.AddCredential(ctx, req, createdUserID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	isOwner, err := service.CheckFolderOwner(ctx, req.FolderID, caller)
+	if err != nil || !isOwner {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	err = service.AddCredential(ctx, req, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
+			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+			return
+		}
+
 		logger.Errorf(err.Error())
 		SendResponse(ctx, 500, nil, "Failed to add credential", errors.New("failed to add credential"))
 		return
 	}
-	SendResponse(ctx, 201, credentialId, "Added Credential", nil)
+	SendResponse(ctx, 200, nil, "Added credential", nil)
 }
 
 func FetchCredentialByID(ctx *gin.Context) {
