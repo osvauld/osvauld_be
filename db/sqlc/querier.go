@@ -37,6 +37,7 @@ type Querier interface {
 	FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error)
 	FetchUnencryptedFieldsByCredentialID(ctx context.Context, credentialID uuid.UUID) ([]FetchUnencryptedFieldsByCredentialIDRow, error)
 	FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error)
+	GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)

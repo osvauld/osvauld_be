@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddCredential(ctx *gin.Context, args dto.AddCredentialDto) (uuid.UUID, error) {
+func AddCredential(ctx *gin.Context, args dto.AddCredentialDto, caller uuid.UUID) (uuid.UUID, error) {
 
-	credentialID, err := database.Store.AddCredentialTransaction(ctx, args)
+	credentialID, err := database.Store.AddCredentialTransaction(ctx, args, caller)
 	if err != nil {
 		return uuid.UUID{}, err
 	}

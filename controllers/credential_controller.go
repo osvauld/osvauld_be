@@ -15,7 +15,7 @@ import (
 
 func AddCredential(ctx *gin.Context) {
 
-	var req dto.AddCredentialDto
+	var req dto.AddCredentialRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -27,9 +27,13 @@ func AddCredential(ctx *gin.Context) {
 		return
 	}
 
-	req.CreatedBy = caller
+	isOwner, err := service.CheckFolderOwner(ctx, req.FolderID, caller)
+	if err != nil || !isOwner {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
 
-	credentialID, err := service.AddCredential(ctx, req)
+	err = service.AddCredential(ctx, req, caller)
 	if err != nil {
 		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
 			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
@@ -40,7 +44,7 @@ func AddCredential(ctx *gin.Context) {
 		SendResponse(ctx, 500, nil, "Failed to add credential", errors.New("failed to add credential"))
 		return
 	}
-	SendResponse(ctx, 200, credentialID, "Added credential", nil)
+	SendResponse(ctx, 200, nil, "Added credential", nil)
 }
 
 func FetchCredentialByID(ctx *gin.Context) {

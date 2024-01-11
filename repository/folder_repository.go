@@ -101,3 +101,12 @@ func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	}
 	return accessRows, nil
 }
+
+func GetFolderAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetAccessTypeAndUserByFolderRow, error) {
+	access, err := database.Store.GetAccessTypeAndUserByFolder(ctx, folderId)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return access, err
+	}
+	return access, nil
+}
