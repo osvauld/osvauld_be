@@ -10,18 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddCredential(ctx *gin.Context, data dto.AddCredentailRequest, createdBy uuid.UUID) (uuid.UUID, error) {
-	addCredentialTransactionParams := db.AddCredentialTransactionParams{
-		Name:              data.Name,
-		Description:       data.Description,
-		FolderID:          data.FolderID,
-		UnencryptedFields: data.UnencryptedFields,
-		UserAccessDetails: data.UserAccessDetails,
-		CreatedBy:         createdBy,
-	}
+func AddCredential(ctx *gin.Context, args dto.AddCredentialDto, caller uuid.UUID) (uuid.UUID, error) {
 
-	id, err := database.Store.AddCredentialTransaction(ctx, addCredentialTransactionParams)
-	return id, err
+	credentialID, err := database.Store.AddCredentialTransaction(ctx, args, caller)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return credentialID, nil
 }
 
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (dto.CredentialDetails, error) {
@@ -59,7 +54,6 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	}
 	return data, nil
 }
-
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
 
