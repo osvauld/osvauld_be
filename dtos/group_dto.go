@@ -23,3 +23,7 @@ type AddMemberToGroupRequest struct {
 	MemberRole    string                                `json:"memberRole"`
 	EncryptedData []CredentialEncryptedFieldsForUserDto `json:"encryptedData"`
 }
+
+type GetUsersOfGroupsRequest struct {
+	GroupIDs []uuid.UUID `json:"groupIds"`
+}

@@ -122,3 +122,8 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 
 	return nil
 }
+
+func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
+	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
+	return users, err
+}

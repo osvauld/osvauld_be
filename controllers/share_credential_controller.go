@@ -46,7 +46,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context) {
 		return
 	}
 
-	response, err := service.ShareCredentialsWithGroups(ctx, req.GroupData, caller)
+	response := service.ShareCredentialsWithGroups(ctx, req.GroupData, caller)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
 		return

@@ -136,3 +136,26 @@ func AddMemberToGroup(ctx *gin.Context) {
 		return
 	}
 }
+
+func GetUsersOfGroups(ctx *gin.Context) {
+	_, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	// TODO: Check if user is authorized to see members of the group
+	var req dto.GetUsersOfGroupsRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	groupUsers, err := service.GetUsersOfGroups(ctx, req.GroupIDs)
+
+	if err != nil {
+		SendResponse(ctx, 500, nil, "failed to fetch group members", nil)
+		return
+	}
+	SendResponse(ctx, 200, groupUsers, "Fetched group users", nil)
+}

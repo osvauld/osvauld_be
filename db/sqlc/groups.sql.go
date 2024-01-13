@@ -7,9 +7,11 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const addGroupMemberRecord = `-- name: AddGroupMemberRecord :exec
@@ -157,6 +159,50 @@ func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]Fetc
 			&i.CreatedBy,
 			&i.CreatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fetchUsersByGroupIds = `-- name: FetchUsersByGroupIds :many
+SELECT 
+    g.id AS "groupId",
+    json_agg(json_build_object('id', gl.user_id, 'publicKey', u.rsa_pub_key)) AS "userDetails"
+FROM 
+    group_list gl
+JOIN 
+    groupings g ON gl.grouping_id = g.id
+JOIN 
+    users u ON gl.user_id = u.id
+WHERE 
+    g.id = ANY($1::UUID[])
+GROUP BY 
+    g.id
+`
+
+type FetchUsersByGroupIdsRow struct {
+	GroupId     uuid.UUID       `json:"groupId"`
+	UserDetails json.RawMessage `json:"userDetails"`
+}
+
+func (q *Queries) FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID) ([]FetchUsersByGroupIdsRow, error) {
+	rows, err := q.db.QueryContext(ctx, fetchUsersByGroupIds, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FetchUsersByGroupIdsRow{}
+	for rows.Next() {
+		var i FetchUsersByGroupIdsRow
+		if err := rows.Scan(&i.GroupId, &i.UserDetails); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

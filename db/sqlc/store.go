@@ -14,7 +14,7 @@ type Store interface {
 	CreateGroupAndAddManager(context.Context, CreateGroupParams) (uuid.UUID, error)
 	AddMemberToGroupTransaction(context.Context, AddMemberToGroupTransactionParams) error
 	ShareCredentialWithUserTransaction(context.Context, dto.CredentialEncryptedFieldsForUserDto) error
-	ShareCredentialWithGroupTransaction(context.Context, dto.CredentialEncryptedFieldsForGroupDto) error
+	ShareCredentialWithGroupTransaction(context.Context, uuid.UUID, string, []dto.GroupCredentialPayload) error
 	ShareMultipleCredentialsWithMultipleUsersTransaction(context.Context, []dto.CredentialEncryptedFieldsForUserDto) error
 	ShareMultipleCredentialsWithMultipleGroupsTransaction(context.Context, []dto.CredentialEncryptedFieldsForGroupDto) error
 	ShareFolderWithUsersTransaction(context.Context, uuid.UUID, []dto.CredentialsForUsersPayload) error
