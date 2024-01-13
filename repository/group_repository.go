@@ -131,3 +131,11 @@ func FetchCredentialAccessTypeForGroupMember(ctx *gin.Context, credentialID uuid
 
 	return accessType, nil
 }
+
+func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
+	users, err := database.Store.FetchUsersByGroupIds(ctx, groupIDs)
+	if err != nil {
+		return []db.FetchUsersByGroupIdsRow{}, err
+	}
+	return users, nil
+}

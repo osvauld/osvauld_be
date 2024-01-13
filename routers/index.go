@@ -26,8 +26,8 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/folder/:id/credential", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByFolder)
 	route.GET("/folders/", middleware.JWTAuthMiddleware(), controllers.GetAccessibleFolders)
 
-	route.POST("/share-credential/users", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithUsers)
-	route.POST("/share-credential/groups", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithGroups)
+	route.POST("/share-credentials/users", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithUsers)
+	route.POST("/share-credentials/groups", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithGroups)
 	route.POST("share-folder/users", middleware.JWTAuthMiddleware(), controllers.ShareFolderWithUsers)
 
 	// Credential Routes
@@ -39,6 +39,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.GetGroupMembers)
 	route.GET("/groups", middleware.JWTAuthMiddleware(), controllers.GetUserGroups)
 	route.POST("/group/members", middleware.JWTAuthMiddleware(), controllers.AddMemberToGroup)
+	route.POST("/groups/members", middleware.JWTAuthMiddleware(), controllers.GetUsersOfGroups)
 
 	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetAllEncryptedCredentailsForFolderID)
 	route.POST("/credentials/encrypted/", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentailsByIds)

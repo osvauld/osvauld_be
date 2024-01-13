@@ -18,9 +18,9 @@ func ShareCredentialWithUser(ctx *gin.Context, payload dto.CredentialEncryptedFi
 	return nil
 }
 
-func ShareCredentialWithGroup(ctx *gin.Context, payload dto.CredentialEncryptedFieldsForGroupDto) error {
+func ShareCredentialWithGroup(ctx *gin.Context, groupId uuid.UUID, accessType string, encryptedUserData []dto.GroupCredentialPayload) error {
 
-	err := database.Store.ShareCredentialWithGroupTransaction(ctx, payload)
+	err := database.Store.ShareCredentialWithGroupTransaction(ctx, groupId, accessType, encryptedUserData)
 	if err != nil {
 		return err
 	}
