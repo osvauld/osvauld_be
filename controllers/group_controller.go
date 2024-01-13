@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	service "osvauld/service"
 	"osvauld/utils"
 
@@ -118,6 +119,7 @@ func AddMemberToGroup(ctx *gin.Context) {
 
 	err = service.AddMemberToGroup(ctx, req, userID)
 	if err != nil {
+		logger.Errorf(err.Error())
 		if _, ok := err.(*customerrors.UserAlreadyMemberOfGroupError); ok {
 			SendResponse(ctx, 409, nil, err.Error(), nil)
 			return
