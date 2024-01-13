@@ -39,14 +39,14 @@ type ShareCredentialsWithUsersRequest struct {
 }
 
 type GroupCredentialPayload struct {
-	CredentialID uuid.UUID                `json:"credentialId" binding:"required"`
-	UserData     []UserEncryptedFieldsDto `json:"userData" binding:"required"`
+	UserID      uuid.UUID                    `json:"userId" binding:"required"`
+	Credentials []EncryptedCredentialPayload `json:"credentials" binding:"required"`
 }
 
 type CredentialsForGroupsPayload struct {
-	GroupID        uuid.UUID                `json:"groupId" binding:"required"`
-	CredentialData []GroupCredentialPayload `json:"credentials" binding:"required"`
-	AccessType     string                   `json:"accessType" binding:"required"`
+	GroupID           uuid.UUID                `json:"groupId" binding:"required"`
+	EncryptedUserData []GroupCredentialPayload `json:"encryptedUserData" binding:"required"`
+	AccessType        string                   `json:"accessType" binding:"required"`
 }
 
 type ShareCredentialsWithGroupsRequest struct {

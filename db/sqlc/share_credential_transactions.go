@@ -80,33 +80,48 @@ func (store *SQLStore) ShareMultipleCredentialsWithMultipleUsersTransaction(ctx 
 	return err
 }
 
-func (store *SQLStore) ShareCredentialWithGroupTransaction(ctx context.Context, args dto.CredentialEncryptedFieldsForGroupDto) error {
-
+/*
+* for each user iterate through all the credentials,
+* check if a copy of encrypted fields exists for the user
+* if not create a copy of encrypted fields for the user
+* else just add the user to the access list
+ */
+func (store *SQLStore) ShareCredentialWithGroupTransaction(ctx context.Context, groupID uuid.UUID, accessType string, groupPaylod []dto.GroupCredentialPayload) error {
+	//TODO: change the payload to be of two types one which just updates the access list and another to add credential and update the access list
 	err := store.execTx(ctx, func(q *Queries) error {
 
-		// Create encrypted data records
-		for _, userData := range args.UserEncryptedFields {
-			for _, field := range userData.EncryptedFields {
-				_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					CredentialID: args.CredentialID,
+		for _, userData := range groupPaylod {
+			for _, credential := range userData.Credentials {
+				accessLists, err := q.GetCredentialAccessForUser(ctx, GetCredentialAccessForUserParams{
 					UserID:       userData.UserID,
+					CredentialID: credential.CredentialID,
 				})
 				if err != nil {
 					return err
 				}
-			}
+				if len(accessLists) == 0 {
+					for _, field := range credential.EncryptedFields {
+						_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+							FieldName:    field.FieldName,
+							FieldValue:   field.FieldValue,
+							CredentialID: credential.CredentialID,
+							UserID:       userData.UserID,
+						})
+						if err != nil {
+							return err
+						}
+					}
+				}
+				_, err = q.AddToAccessList(ctx, AddToAccessListParams{
+					CredentialID: credential.CredentialID,
+					UserID:       userData.UserID,
+					GroupID:      uuid.NullUUID{UUID: groupID, Valid: true},
+					AccessType:   accessType,
+				})
+				if err != nil {
+					return err
+				}
 
-			accessListParams := AddToAccessListParams{
-				CredentialID: args.CredentialID,
-				UserID:       userData.UserID,
-				AccessType:   args.AccessType,
-				GroupID:      uuid.NullUUID{Valid: true, UUID: args.GroupID},
-			}
-			_, err := q.AddToAccessList(ctx, accessListParams)
-			if err != nil {
-				return err
 			}
 		}
 

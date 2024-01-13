@@ -42,3 +42,20 @@ WHERE group_id = $1;
 -- name: FetchCredentialAccessTypeForGroupMember :one
 SELECT access_type FROM access_list
 WHERE group_id = $1 AND credential_id = $2 AND user_id = $3;
+
+
+
+-- name: FetchUsersByGroupIds :many
+SELECT 
+    g.id AS "groupId",
+    json_agg(json_build_object('id', gl.user_id, 'publicKey', u.rsa_pub_key)) AS "userDetails"
+FROM 
+    group_list gl
+JOIN 
+    groupings g ON gl.grouping_id = g.id
+JOIN 
+    users u ON gl.user_id = u.id
+WHERE 
+    g.id = ANY($1::UUID[])
+GROUP BY 
+    g.id;
