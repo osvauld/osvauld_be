@@ -75,3 +75,8 @@ func CheckOwnerOrManagerAccessForFolder(ctx *gin.Context, folderID uuid.UUID, us
 	return repository.CheckOwnerOrManagerAccessForFolder(ctx, folderID, userID)
 
 }
+
+func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
+	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
+	return groups, err
+}

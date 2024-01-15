@@ -59,3 +59,12 @@ WHERE
     g.id = ANY($1::UUID[])
 GROUP BY 
     g.id;
+
+-- name: GetGroupsWithoutAccess :many
+SELECT id as "groupId", name 
+FROM groupings
+WHERE id NOT IN (
+    SELECT group_id
+    FROM folder_access
+    WHERE folder_id = $1 AND group_id IS NOT NULL
+);
