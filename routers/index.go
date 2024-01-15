@@ -29,6 +29,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/share-credentials/users", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithUsers)
 	route.POST("/share-credentials/groups", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithGroups)
 	route.POST("share-folder/users", middleware.JWTAuthMiddleware(), controllers.ShareFolderWithUsers)
+	route.POST("share-folder/groups", middleware.JWTAuthMiddleware(), controllers.ShareFolderWithGroups)
 
 	// Credential Routes
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)

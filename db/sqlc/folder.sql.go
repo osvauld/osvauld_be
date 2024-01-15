@@ -28,6 +28,28 @@ func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams
 	return err
 }
 
+const addFolderAccessWithGroup = `-- name: AddFolderAccessWithGroup :exec
+INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
+VALUES ($1, $2, $3, $4)
+`
+
+type AddFolderAccessWithGroupParams struct {
+	FolderID   uuid.UUID     `json:"folder_id"`
+	UserID     uuid.UUID     `json:"user_id"`
+	AccessType string        `json:"access_type"`
+	GroupID    uuid.NullUUID `json:"group_id"`
+}
+
+func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAccessWithGroupParams) error {
+	_, err := q.db.ExecContext(ctx, addFolderAccessWithGroup,
+		arg.FolderID,
+		arg.UserID,
+		arg.AccessType,
+		arg.GroupID,
+	)
+	return err
+}
+
 const createFolder = `-- name: CreateFolder :one
 WITH new_folder AS (
   INSERT INTO folders (name, description, created_by)

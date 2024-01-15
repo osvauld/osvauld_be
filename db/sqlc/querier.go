@@ -15,6 +15,7 @@ import (
 type Querier interface {
 	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
+	AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAccessWithGroupParams) error
 	AddGroupMemberRecord(ctx context.Context, arg AddGroupMemberRecordParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
 	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
@@ -57,7 +58,6 @@ type Querier interface {
 	GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
-	ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 }
 
