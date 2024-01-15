@@ -17,7 +17,8 @@ type Store interface {
 	ShareCredentialWithGroupTransaction(context.Context, uuid.UUID, string, []dto.GroupCredentialPayload) error
 	ShareMultipleCredentialsWithMultipleUsersTransaction(context.Context, []dto.CredentialEncryptedFieldsForUserDto) error
 	ShareMultipleCredentialsWithMultipleGroupsTransaction(context.Context, []dto.CredentialEncryptedFieldsForGroupDto) error
-	ShareFolderWithUsersTransaction(context.Context, uuid.UUID, []dto.CredentialsForUsersPayload) error
+	ShareFolderWithUserTransaction(context.Context, uuid.UUID, dto.CredentialsForUsersPayload) error
+	ShareFolderWithGroupTransaction(context.Context, uuid.UUID, dto.CredentialsForGroupsPayload) error
 }
 
 type SQLStore struct {

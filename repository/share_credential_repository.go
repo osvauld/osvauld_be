@@ -48,8 +48,17 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialEncryp
 	return nil
 }
 
-func ShareFolderWithUsers(ctx *gin.Context, folderId uuid.UUID, payload []dto.CredentialsForUsersPayload) error {
-	err := database.Store.ShareFolderWithUsersTransaction(ctx, folderId, payload)
+func ShareFolderWithUsers(ctx *gin.Context, folderId uuid.UUID, payload dto.CredentialsForUsersPayload) error {
+	err := database.Store.ShareFolderWithUserTransaction(ctx, folderId, payload)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ShareFolderWithGroup(ctx *gin.Context, folderId uuid.UUID, payload dto.CredentialsForGroupsPayload) error {
+
+	err := database.Store.ShareFolderWithGroupTransaction(ctx, folderId, payload)
 	if err != nil {
 		return err
 	}

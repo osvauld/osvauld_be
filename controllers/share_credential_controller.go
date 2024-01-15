@@ -82,3 +82,32 @@ func ShareFolderWithUsers(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, nil, "Success", nil)
 }
+
+func ShareFolderWithGroups(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	var req dto.ShareFolderWithGroupsRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// check if caller has access to the folder
+	access, err := service.CheckOwnerOrManagerAccessForFolder(ctx, req.FolderID, caller)
+	if err != nil || !access {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	err = service.ShareFolderWithGroups(ctx, req.FolderID, req.GroupData)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "Failed to share folder with groups", errors.New("Failed to share"))
+		return
+	}
+	SendResponse(ctx, 200, nil, "Success", nil)
+}

@@ -60,4 +60,6 @@ SELECT EXISTS (
   SELECT 1 FROM folder_access
   WHERE folder_id = $1 AND user_id = $2 AND access_type IN ('owner', 'manager')
 );
-
+-- name: AddFolderAccessWithGroup :exec
+INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
+VALUES ($1, $2, $3, $4);

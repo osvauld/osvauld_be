@@ -130,28 +130,35 @@ func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (Cr
 }
 
 const fetchCredentialsByUserAndFolder = `-- name: FetchCredentialsByUserAndFolder :many
+
+
+WITH CredentialWithUnencrypted AS (
+    SELECT
+        C.id AS "id",
+        C.name AS "name",
+        COALESCE(C.description, '') AS "description",
+        json_agg(
+            json_build_object(
+                'fieldName', u.field_name,
+                'fieldValue', u.field_value
+            )
+        ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
+    FROM
+        credentials C
+        LEFT JOIN unencrypted_data u ON C.id = u.credential_id
+    WHERE
+        C.folder_id = $2
+    GROUP BY
+        C.id
+)
 SELECT
-    C .id AS "id",
-    C .name AS "name",
-    COALESCE(C .description, '') AS "description",
-    json_agg(
-        json_build_object(
-            'fieldName',
-            u.field_name,
-            -- Assuming actual column name is in snake_case
-            'fieldValue',
-            u.field_value -- Assuming actual column name is in snake_case
-        )
-    ) AS "unencryptedFields"
+    cwu.id, cwu.name, cwu.description, cwu."unencryptedFields"
 FROM
-    credentials C
-    JOIN access_list A ON C .id = A .credential_id
-    LEFT JOIN unencrypted_data u ON C .id = u.credential_id
+    CredentialWithUnencrypted cwu
+JOIN
+    access_list A ON cwu.id = A.credential_id
 WHERE
-    A .user_id = $1
-    AND C .folder_id = $2
-GROUP BY
-    C .id
+    A.user_id = $1
 `
 
 type FetchCredentialsByUserAndFolderParams struct {
@@ -409,14 +416,4 @@ func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncrypted
 		return nil, err
 	}
 	return items, nil
-}
-
-const shareSecret = `-- name: ShareSecret :exec
-SELECT
-    share_secret($1 :: jsonb)
-`
-
-func (q *Queries) ShareSecret(ctx context.Context, dollar_1 json.RawMessage) error {
-	_, err := q.db.ExecContext(ctx, shareSecret, dollar_1)
-	return err
 }

@@ -33,32 +33,35 @@ WHERE
     id = $1;
 
 -- name: FetchCredentialsByUserAndFolder :many
-SELECT
-    C .id AS "id",
-    C .name AS "name",
-    COALESCE(C .description, '') AS "description",
-    json_agg(
-        json_build_object(
-            'fieldName',
-            u.field_name,
-            -- Assuming actual column name is in snake_case
-            'fieldValue',
-            u.field_value -- Assuming actual column name is in snake_case
-        )
-    ) AS "unencryptedFields"
-FROM
-    credentials C
-    JOIN access_list A ON C .id = A .credential_id
-    LEFT JOIN unencrypted_data u ON C .id = u.credential_id
-WHERE
-    A .user_id = $1
-    AND C .folder_id = $2
-GROUP BY
-    C .id;
 
--- name: ShareSecret :exec
+
+WITH CredentialWithUnencrypted AS (
+    SELECT
+        C.id AS "id",
+        C.name AS "name",
+        COALESCE(C.description, '') AS "description",
+        json_agg(
+            json_build_object(
+                'fieldName', u.field_name,
+                'fieldValue', u.field_value
+            )
+        ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
+    FROM
+        credentials C
+        LEFT JOIN unencrypted_data u ON C.id = u.credential_id
+    WHERE
+        C.folder_id = $2
+    GROUP BY
+        C.id
+)
 SELECT
-    share_secret($1 :: jsonb);
+    cwu.*
+FROM
+    CredentialWithUnencrypted cwu
+JOIN
+    access_list A ON cwu.id = A.credential_id
+WHERE
+    A.user_id = $1;
 
 -- name: GetCredentialDetails :one
 SELECT
