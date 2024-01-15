@@ -101,3 +101,12 @@ func GetFolderAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetAccessTypeAn
 	}
 	return access, nil
 }
+
+func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
+	groups, err := database.Store.GetGroupsWithoutAccess(ctx, folderId)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return groups, err
+	}
+	return groups, nil
+}

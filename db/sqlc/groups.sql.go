@@ -257,3 +257,41 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]
 	}
 	return items, nil
 }
+
+const getGroupsWithoutAccess = `-- name: GetGroupsWithoutAccess :many
+SELECT id as "groupId", name 
+FROM groupings
+WHERE id NOT IN (
+    SELECT group_id
+    FROM folder_access
+    WHERE folder_id = $1 AND group_id IS NOT NULL
+)
+`
+
+type GetGroupsWithoutAccessRow struct {
+	GroupId uuid.UUID `json:"groupId"`
+	Name    string    `json:"name"`
+}
+
+func (q *Queries) GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID) ([]GetGroupsWithoutAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupsWithoutAccess, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetGroupsWithoutAccessRow{}
+	for rows.Next() {
+		var i GetGroupsWithoutAccessRow
+		if err := rows.Scan(&i.GroupId, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
