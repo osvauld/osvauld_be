@@ -70,3 +70,15 @@ func GetSharedUsers(ctx *gin.Context) {
 
 	SendResponse(ctx, 200, users, "Fetched users", nil)
 }
+
+func GetGroupsWithoutAccess(ctx *gin.Context) {
+	folderIDStr := ctx.Param("folderId")
+	folderID, _ := uuid.Parse(folderIDStr)
+	groups, err := service.GetGroupsWithoutAccess(ctx, folderID)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to get groups", errors.New("failed to fetch required groups"))
+		return
+	}
+
+	SendResponse(ctx, 200, groups, "Fetched groups", nil)
+}
