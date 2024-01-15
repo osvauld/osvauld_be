@@ -25,7 +25,7 @@ type CredentialEncryptedFieldsForGroupDto struct {
 
 type EncryptedCredentialPayload struct {
 	CredentialID    uuid.UUID `json:"credentialId" binding:"required"`
-	EncryptedFields []Field   `json:"encryptedData" binding:"required"`
+	EncryptedFields []Field   `json:"encryptedFields" binding:"required"`
 }
 
 type CredentialsForUsersPayload struct {
@@ -56,4 +56,9 @@ type ShareCredentialsWithGroupsRequest struct {
 type ShareFolderWithUsersRequest struct {
 	FolderID uuid.UUID                    `json:"folderId" binding:"required"`
 	UserData []CredentialsForUsersPayload `json:"userData" binding:"required"`
+}
+
+type ShareFolderWithGroupsRequest struct {
+	FolderID  uuid.UUID                     `json:"folderId" binding:"required"`
+	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
 }

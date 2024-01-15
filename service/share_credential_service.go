@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 	"osvauld/utils"
 
@@ -104,11 +105,30 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 	return responses
 }
 
-func ShareFolderWithUsers(ctx *gin.Context, folderId uuid.UUID, credentials []dto.CredentialsForUsersPayload) error {
+func ShareFolderWithUsers(ctx *gin.Context, folderId uuid.UUID, encryptedPayload []dto.CredentialsForUsersPayload) error {
+	//TODO: modify the payload to add only to access list or add to encrypted table and access list
+	// TODO: make this idempotent
+	for _, credentials := range encryptedPayload {
+		err := repository.ShareFolderWithUsers(ctx, folderId, credentials)
+		if err != nil {
+			logger.Debugf("error sharing folder with user: %s", err.Error())
+			return err
+		}
+	}
+	return nil
 
-	err := repository.ShareFolderWithUsers(ctx, folderId, credentials)
-	if err != nil {
-		return err
+}
+
+func ShareFolderWithGroups(ctx *gin.Context, folderId uuid.UUID, encryptedPayload []dto.CredentialsForGroupsPayload) error {
+
+	//TODO: modify the payload to add only to access list or add to encrypted table and access list
+	// TODO: make this idempotent
+	for _, groupData := range encryptedPayload {
+		// TODO: response object with success true or false
+		err := repository.ShareFolderWithGroup(ctx, folderId, groupData)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 
