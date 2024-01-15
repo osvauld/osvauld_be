@@ -12,7 +12,7 @@ LIMIT 1;
 
 
 -- name: GetAllUsers :many
-SELECT id,name,username, COALESCE(rsa_pub_key, '') AS "publicKey" FROM users;
+SELECT id,name,username, COALESCE(rsa_pub_key, '') AS "publicKey" FROM users where signed_up = true;
 
 -- name: GetUserByPublicKey :one
 SELECT id
