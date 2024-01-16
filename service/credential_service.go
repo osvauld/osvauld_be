@@ -6,6 +6,7 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/repository"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,7 +21,9 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	}
 
 	payload := dto.AddCredentialDto{
-		AddCredentialRequest: request,
+		Name:        request.Name,
+		Description: request.Description,
+		FolderID:    request.FolderID,
 	}
 	accessTypeMap := make(map[uuid.UUID]string)
 
@@ -33,7 +36,20 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 			accessTypeMap[access.UserID] = "owner"
 		}
 	}
-
+	var unencryptedFields []dto.FieldWithURL
+	for _, field := range request.UnencryptedFields {
+		var unencryptedField dto.FieldWithURL
+		isUrl, url := utils.ExtractDomainAndSubdomain(field.FieldValue)
+		logger.Debugf("\nurl for field %s is %s", field.FieldName, url)
+		unencryptedField = dto.FieldWithURL{
+			FieldName:  field.FieldName,
+			FieldValue: field.FieldValue,
+			IsUrl:      isUrl,
+			URL:        url,
+		}
+		unencryptedFields = append(unencryptedFields, unencryptedField)
+	}
+	payload.UnencryptedFields = unencryptedFields
 	/* Convert UserEncryptedFields to UserEncryptedFieldsWithAccess
 	 * access type is derived from folder ownership
 	 */

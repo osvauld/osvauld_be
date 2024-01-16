@@ -70,6 +70,16 @@ type EncryptedFieldWithAccess struct {
 }
 
 type AddCredentialDto struct {
-	AddCredentialRequest
+	Name                          string                     `json:"name"`
+	Description                   string                     `json:"description"`
+	FolderID                      uuid.UUID                  `json:"folderId"`
+	UnencryptedFields             []FieldWithURL             `json:"unencryptedFields"`
 	UserEncryptedFieldsWithAccess []EncryptedFieldWithAccess `json:"userEncryptedFieldsWithAccess"`
+}
+
+type FieldWithURL struct {
+	FieldName  string `json:"fieldName"`
+	FieldValue string `json:"fieldValue"`
+	URL        string `json:"url"`
+	IsUrl      bool   `json:"isUrl"`
 }
