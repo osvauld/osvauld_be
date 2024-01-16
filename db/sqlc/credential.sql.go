@@ -79,26 +79,6 @@ func (q *Queries) CreateEncryptedData(ctx context.Context, arg CreateEncryptedDa
 	return id, err
 }
 
-const createUnencryptedData = `-- name: CreateUnencryptedData :one
-INSERT INTO
-    unencrypted_data (field_name, credential_id, field_value)
-VALUES
-    ($1, $2, $3) RETURNING id
-`
-
-type CreateUnencryptedDataParams struct {
-	FieldName    string    `json:"field_name"`
-	CredentialID uuid.UUID `json:"credential_id"`
-	FieldValue   string    `json:"field_value"`
-}
-
-func (q *Queries) CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createUnencryptedData, arg.FieldName, arg.CredentialID, arg.FieldValue)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
 const fetchCredentialDataByID = `-- name: FetchCredentialDataByID :one
 SELECT
     id,

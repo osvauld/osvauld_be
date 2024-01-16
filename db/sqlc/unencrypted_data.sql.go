@@ -7,9 +7,38 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
+
+const createUnencryptedData = `-- name: CreateUnencryptedData :one
+INSERT INTO
+    unencrypted_data (field_name, credential_id, field_value, is_url, url)
+VALUES
+    ($1, $2, $3, $4, $5) RETURNING id
+`
+
+type CreateUnencryptedDataParams struct {
+	FieldName    string         `json:"field_name"`
+	CredentialID uuid.UUID      `json:"credential_id"`
+	FieldValue   string         `json:"field_value"`
+	IsUrl        bool           `json:"is_url"`
+	Url          sql.NullString `json:"url"`
+}
+
+func (q *Queries) CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, createUnencryptedData,
+		arg.FieldName,
+		arg.CredentialID,
+		arg.FieldValue,
+		arg.IsUrl,
+		arg.Url,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
 
 const fetchUnencryptedFieldsByCredentialID = `-- name: FetchUnencryptedFieldsByCredentialID :many
 SELECT
