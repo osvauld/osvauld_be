@@ -66,6 +66,8 @@ CREATE TABLE unencrypted_data (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     field_name VARCHAR(255) NOT NULL,
     credential_id UUID NOT NULL REFERENCES credentials(id),
+    is_url BOOLEAN NOT NULL DEFAULT FALSE,
+    url VARCHAR(255),
     field_value VARCHAR(255) NOT NULL
 );
 

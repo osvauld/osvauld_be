@@ -11,11 +11,6 @@ INSERT INTO
 VALUES
     ($1, $2, $3, $4) RETURNING id;
 
--- name: CreateUnencryptedData :one
-INSERT INTO
-    unencrypted_data (field_name, credential_id, field_value)
-VALUES
-    ($1, $2, $3) RETURNING id;
 
 
 -- name: FetchCredentialDataByID :one

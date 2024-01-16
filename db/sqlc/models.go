@@ -88,12 +88,14 @@ type SessionTable struct {
 }
 
 type UnencryptedDatum struct {
-	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	FieldName    string    `json:"field_name"`
-	CredentialID uuid.UUID `json:"credential_id"`
-	FieldValue   string    `json:"field_value"`
+	ID           uuid.UUID      `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	FieldName    string         `json:"field_name"`
+	CredentialID uuid.UUID      `json:"credential_id"`
+	IsUrl        bool           `json:"is_url"`
+	Url          sql.NullString `json:"url"`
+	FieldValue   string         `json:"field_value"`
 }
 
 type User struct {

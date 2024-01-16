@@ -33,6 +33,8 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 				FieldName:    field.FieldName,
 				FieldValue:   field.FieldValue,
 				CredentialID: credentialID,
+				Url:          sql.NullString{String: field.URL, Valid: true},
+				IsUrl:        field.IsUrl,
 			})
 			if err != nil {
 				return err

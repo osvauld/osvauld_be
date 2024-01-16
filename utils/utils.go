@@ -5,6 +5,9 @@ import (
 
 	"crypto/rand"
 
+	"net/url"
+	"regexp"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -37,4 +40,28 @@ func Contains(slice []uuid.UUID, item uuid.UUID) bool {
 		}
 	}
 	return false
+}
+
+func ExtractDomainAndSubdomain(urlString string) (bool, string) {
+
+	urlPattern := regexp.MustCompile(`(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s` + "`" + `!()[\]{};:'".,<>?«»“”‘’]))`)
+
+	if urlPattern.MatchString(urlString) {
+		parsedURL, err := url.Parse(urlString)
+		if err != nil {
+			return false, ""
+		}
+
+		if parsedURL.Host == "" {
+			// The regex matches, but URL parsing failed to identify a host. Try with "https://".
+			parsedURL, err = url.Parse("https://" + urlString)
+			if err != nil {
+				return false, ""
+			}
+		}
+
+		host := parsedURL.Hostname()
+		return true, host
+	}
+	return false, ""
 }
