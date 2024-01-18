@@ -135,3 +135,19 @@ func GetEncryptedCredentialsByIds(ctx *gin.Context, credentialIds []uuid.UUID, u
 	}
 	return credentials, nil
 }
+
+func GetCredentialsByUrl(ctx *gin.Context, url string, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
+	credentials, err := repository.GetCredentialsByUrl(ctx, url, userID)
+	if err != nil {
+		return nil, err
+	}
+	return credentials, nil
+}
+
+func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
+	urls, err := repository.GetAllUrlsForUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return urls, nil
+}

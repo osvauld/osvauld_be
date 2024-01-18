@@ -41,10 +41,46 @@ type Querier interface {
 	FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error)
 	FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID) ([]FetchUsersByGroupIdsRow, error)
 	GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error)
+	// -- name: GetCredentialsByUrl :many
+	// WITH CredentialWithUnencrypted AS (
+	//     SELECT
+	//         C.id AS "id",
+	//         C.name AS "name",
+	//         COALESCE(C.description, '') AS "description",
+	//         json_agg(
+	//             json_build_object(
+	//                 'fieldName', u.field_name,
+	//                 'fieldValue', u.field_value,
+	//                 'isUrl', u.is_url,
+	//                 'url', u.url
+	//             )
+	//         ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
+	//     FROM
+	//         credentials C
+	//         LEFT JOIN unencrypted_data u ON C.id = u.credential_id
+	//     WHERE
+	//         C.id IN (SELECT credential_id FROM unencrypted_data as und WHERE und.url = $1)
+	//     GROUP BY
+	//         C.id
+	// ),
+	// DistinctAccess AS (
+	//     SELECT DISTINCT credential_id
+	//     FROM access_list
+	//     WHERE user_id = $2
+	// )
+	// SELECT
+	//     cwu.*
+	// FROM
+	//     CredentialWithUnencrypted cwu
+	// JOIN
+	//     DistinctAccess DA ON cwu.id = DA.credential_id;
+	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]string, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
+	GetCredentialDetailsByIds(ctx context.Context, arg GetCredentialDetailsByIdsParams) ([]GetCredentialDetailsByIdsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetCredentialIdsByUrl(ctx context.Context, arg GetCredentialIdsByUrlParams) ([]uuid.UUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error)
 	GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEncryptedCredentialsByFolderParams) ([]GetEncryptedCredentialsByFolderRow, error)
 	GetEncryptedDataByCredentialIds(ctx context.Context, arg GetEncryptedDataByCredentialIdsParams) ([]GetEncryptedDataByCredentialIdsRow, error)

@@ -45,6 +45,8 @@ func RegisterRoutes(route *gin.Engine) {
 
 	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetAllEncryptedCredentailsForFolderID)
 	route.POST("/credentials/encrypted/", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentailsByIds)
+	route.GET("/credentials/url/:url", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByUrl)
+	route.GET("/urls", middleware.JWTAuthMiddleware(), controllers.GetAllUrlsForUser)
 
 	route.GET("/group/:groupId/encrypted/", middleware.JWTAuthMiddleware(), controllers.FetchEncryptedValuesByGroupID)
 
