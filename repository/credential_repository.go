@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -89,4 +90,33 @@ func GetEncryptedCredentailsByIds(ctx *gin.Context, credentialIds []uuid.UUID, u
 		return nil, err
 	}
 	return encryptedData, err
+}
+
+func GetCredentialsByUrl(ctx *gin.Context, url string, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
+	arg := db.GetCredentialIdsByUrlParams{
+		Url:    sql.NullString{String: url, Valid: true},
+		UserID: userID,
+	}
+	credentialIds, err := database.Store.GetCredentialIdsByUrl(ctx, arg)
+	if err != nil {
+		return []db.GetCredentialDetailsByIdsRow{}, err
+	}
+	credentials, err := database.Store.GetCredentialDetailsByIds(ctx, db.GetCredentialDetailsByIdsParams{
+		UserID:  userID,
+		Column1: credentialIds,
+	})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return credentials, err
+}
+
+func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
+	urls, err := database.Store.GetAllUrlsForUser(ctx, userID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return urls, err
 }

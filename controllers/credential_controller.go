@@ -112,3 +112,27 @@ func GetEncryptedCredentailsByIds(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
 }
+
+func GetCredentialsByUrl(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	url := ctx.Param("url")
+	credentials, err := service.GetCredentialsByUrl(ctx, url, userID)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
+}
+
+func GetAllUrlsForUser(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	urls, err := service.GetAllUrlsForUser(ctx, userID)
+	logger.Debugf("\n\nurls: %v", urls)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch urls", errors.New("failed to fetch urls"))
+		return
+	}
+	SendResponse(ctx, 200, urls, "Fetched urls", nil)
+}
