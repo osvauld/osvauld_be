@@ -608,6 +608,51 @@ func (q *Queries) GetEncryptedDataByCredentialIds(ctx context.Context, arg GetEn
 	return items, nil
 }
 
+const getSensitiveFields = `-- name: GetSensitiveFields :many
+SELECT 
+    field_name as "fieldName", 
+    field_value as "fieldValue", 
+    credential_id as "credentialId"
+FROM 
+    encrypted_data
+WHERE 
+    user_id = $1 AND credential_id = $2 AND field_type = 'sensitive'
+`
+
+type GetSensitiveFieldsParams struct {
+	UserID       uuid.UUID `json:"user_id"`
+	CredentialID uuid.UUID `json:"credential_id"`
+}
+
+type GetSensitiveFieldsRow struct {
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	CredentialId uuid.UUID `json:"credentialId"`
+}
+
+func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSensitiveFields, arg.UserID, arg.CredentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetSensitiveFieldsRow{}
+	for rows.Next() {
+		var i GetSensitiveFieldsRow
+		if err := rows.Scan(&i.FieldName, &i.FieldValue, &i.CredentialId); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserEncryptedData = `-- name: GetUserEncryptedData :many
 SELECT
     field_name AS "fieldName",

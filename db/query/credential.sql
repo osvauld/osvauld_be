@@ -224,3 +224,13 @@ LEFT JOIN unencrypted_data UD ON C.id = UD.credential_id
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id;
+
+-- name: GetSensitiveFields :many
+SELECT 
+    field_name as "fieldName", 
+    field_value as "fieldValue", 
+    credential_id as "credentialId"
+FROM 
+    encrypted_data
+WHERE 
+    user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';

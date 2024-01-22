@@ -131,3 +131,16 @@ func GetAllUrlsForUser(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, urls, "Fetched urls", nil)
 }
+
+func GetSensitiveFieldsCredentialByID(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	credentialIDStr := ctx.Param("id")
+	credentailaID, _ := uuid.Parse(credentialIDStr)
+	credential, err := service.GetSensitiveFieldsCredentialByID(ctx, credentailaID, userID)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credential, "Fetched credential", nil)
+}

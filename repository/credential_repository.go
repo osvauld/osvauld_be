@@ -176,3 +176,13 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
 	}
 	return urls, err
 }
+
+func GetSensitiveFieldsById(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetSensitiveFieldsRow, error) {
+	// Check if caller has access
+	sensitiveFields, err := database.Store.GetSensitiveFields(ctx, db.GetSensitiveFieldsParams{
+		CredentialID: credentialID,
+		UserID:       caller,
+	})
+
+	return sensitiveFields, err
+}
