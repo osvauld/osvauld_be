@@ -29,6 +29,18 @@ type UserEncryptedData struct {
 	EncryptedFields []Field       `json:"encryptedFields"`
 }
 
+type CredentialForUser struct {
+	CredentialID   uuid.UUID `json:"credentialId"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	FolderID       uuid.UUID `json:"folderId"`
+	CredentialType string    `json:"credentialType"`
+	Fields         []Field   `json:"fields"`
+	CreatedBy      uuid.UUID `json:"createdBy"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
 type CredentialDetails struct {
 	CredentialID      uuid.UUID `json:"credentialId"`
 	Name              string    `json:"name"`

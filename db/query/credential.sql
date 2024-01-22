@@ -27,36 +27,38 @@ FROM
 WHERE
     id = $1;
 
--- name: FetchCredentialsByUserAndFolder :many
-
-
-WITH CredentialWithUnencrypted AS (
-    SELECT
-        C.id AS "id",
-        C.name AS "name",
-        COALESCE(C.description, '') AS "description",
-        json_agg(
-            json_build_object(
-                'fieldName', u.field_name,
-                'fieldValue', u.field_value
-            )
-        ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
-    FROM
-        credentials C
-        LEFT JOIN unencrypted_data u ON C.id = u.credential_id
-    WHERE
-        C.folder_id = $2
-    GROUP BY
-        C.id
-)
+-- name: FetchCredentialFieldsForUserByCredentialIds :many
 SELECT
-    cwu.*
+    credential_id AS "credentialID",
+    id AS "fieldID",
+    field_name as "fieldName",
+    field_value as "fieldValue",
+    field_type as "fieldType"
 FROM
-    CredentialWithUnencrypted cwu
-JOIN
-    access_list A ON cwu.id = A.credential_id
+    encrypted_data
 WHERE
-    A.user_id = $1;
+    field_type != 'sensitive'
+    AND credential_id = ANY($1::UUID[])
+    AND user_id = $2;
+
+
+-- name: FetchCredentialIdsForUserByFolderId :many
+SELECT
+    C.id AS "credentialID",
+    C.name,
+    COALESCE(C.description, '') AS "description",
+    C.credential_type AS "credentialType",
+    C.created_at AS "createdAt",
+    C.updated_at AS "updatedAt",
+    C.created_by AS "createdBy"
+FROM
+    credentials AS C,
+    access_list AS A
+WHERE
+    C.id = A .credential_id
+    AND C.folder_id = $1
+    AND A.user_id = $2;
+
 
 -- name: GetCredentialDetails :one
 SELECT

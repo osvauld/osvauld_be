@@ -109,7 +109,7 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.U
 	return credential, err
 }
 
-func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {
+func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
 	credentials, err := repository.GetCredentialsByFolder(ctx, folderID, userID)
 	if err != nil {
 		return nil, err
