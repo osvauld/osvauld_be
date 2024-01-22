@@ -63,6 +63,7 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 		Name:                     request.Name,
 		Description:              request.Description,
 		FolderID:                 request.FolderID,
+		CredentialType:           request.CredentialType,
 		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
 	}
 

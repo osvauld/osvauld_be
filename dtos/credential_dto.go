@@ -7,11 +7,11 @@ import (
 )
 
 type AddCredentialRequest struct {
-	Name        string       `json:"name"`
-	Description string       `json:"description"`
-	FolderID    uuid.UUID    `json:"folderId"`
-	Type        string       `json:"type"`
-	UserFields  []UserFields `json:"userFields"`
+	Name           string       `json:"name"`
+	Description    string       `json:"description"`
+	FolderID       uuid.UUID    `json:"folderId"`
+	CredentialType string       `json:"credentialType"`
+	UserFields     []UserFields `json:"userFields"`
 }
 
 type AddCredentialDto struct {
