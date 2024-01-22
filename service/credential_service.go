@@ -148,3 +148,21 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
 	}
 	return urls, nil
 }
+
+func GetSensitiveFieldsCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetSensitiveFieldsRow, error) {
+	// Check if caller has access
+	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
+	var sensitiveFields []db.GetSensitiveFieldsRow
+	if err != nil {
+		return sensitiveFields, err
+	}
+
+	if !hasAccess {
+		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
+		return sensitiveFields, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
+	}
+
+	sensitiveFields, err = repository.GetSensitiveFieldsById(ctx, credentialID, caller)
+
+	return sensitiveFields, err
+}
