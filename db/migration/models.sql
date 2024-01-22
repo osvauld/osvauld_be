@@ -31,6 +31,7 @@ CREATE TABLE credentials (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
     description VARCHAR(255),
+    credential_type VARCHAR(255) NOT NULL,
     folder_id UUID NOT NULL REFERENCES folders(id),
     created_by UUID NOT NULL REFERENCES users(id)
 );
@@ -56,7 +57,8 @@ CREATE TABLE encrypted_data (
     field_name VARCHAR(255) NOT NULL,
     credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value TEXT NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id)
+    user_id UUID NOT NULL REFERENCES users(id),
+    field_type VARCHAR(255) NOT NULL
 );
 
 -- SQL Definition for UnencryptedData

@@ -24,7 +24,7 @@ type Querier interface {
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
 	// sql/create_credential.sql
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
-	CreateEncryptedData(ctx context.Context, arg CreateEncryptedDataParams) (uuid.UUID, error)
+	CreateFieldData(ctx context.Context, arg CreateFieldDataParams) (uuid.UUID, error)
 	CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.UUID, error)
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
@@ -32,7 +32,7 @@ type Querier interface {
 	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroupMember(ctx context.Context, arg FetchCredentialAccessTypeForGroupMemberParams) (string, error)
-	FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (Credential, error)
+	FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error)
 	FetchCredentialIDsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]uuid.UUID, error)
 	FetchCredentialsByUserAndFolder(ctx context.Context, arg FetchCredentialsByUserAndFolderParams) ([]FetchCredentialsByUserAndFolderRow, error)
 	FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error)

@@ -2,9 +2,22 @@ package dto
 
 import "github.com/google/uuid"
 
-type UserEncryptedFieldsDto struct {
-	UserID          uuid.UUID `json:"userId"`
-	EncryptedFields []Field   `json:"encryptedFields"`
+type UserFields struct {
+	UserID uuid.UUID `json:"userId"`
+	Fields []Field   `json:"fields"`
+}
+
+type UserFieldsWithAccessType struct {
+	UserID     uuid.UUID `json:"userId"`
+	Fields     []Field   `json:"fields"`
+	AccessType string    `json:"accessType"`
+}
+
+type Field struct {
+	ID         uuid.UUID `json:"id"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
 }
 
 type CredentialEncryptedFieldsForUserDto struct {
@@ -15,10 +28,10 @@ type CredentialEncryptedFieldsForUserDto struct {
 }
 
 type CredentialEncryptedFieldsForGroupDto struct {
-	CredentialID        uuid.UUID                `json:"credentialId"`
-	GroupID             uuid.UUID                `json:"groupId"`
-	UserEncryptedFields []UserEncryptedFieldsDto `json:"userEncryptedFields"`
-	AccessType          string                   `json:"accessType"`
+	CredentialID        uuid.UUID    `json:"credentialId"`
+	GroupID             uuid.UUID    `json:"groupId"`
+	UserEncryptedFields []UserFields `json:"userEncryptedFields"`
+	AccessType          string       `json:"accessType"`
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

@@ -15,7 +15,7 @@ func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, a
 
 		// Create encrypted data records
 		for _, field := range args.EncryptedFields {
-			_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+			_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 				FieldName:    field.FieldName,
 				FieldValue:   field.FieldValue,
 				CredentialID: args.CredentialID,
@@ -51,7 +51,7 @@ func (store *SQLStore) ShareMultipleCredentialsWithMultipleUsersTransaction(ctx 
 
 			// Create encrypted data records
 			for _, field := range credentialData.EncryptedFields {
-				_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+				_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
 					CredentialID: credentialData.CredentialID,
@@ -102,7 +102,7 @@ func (store *SQLStore) ShareCredentialWithGroupTransaction(ctx context.Context, 
 				}
 				if len(accessLists) == 0 {
 					for _, field := range credential.EncryptedFields {
-						_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+						_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 							FieldName:    field.FieldName,
 							FieldValue:   field.FieldValue,
 							CredentialID: credential.CredentialID,
@@ -140,8 +140,8 @@ func (store *SQLStore) ShareMultipleCredentialsWithMultipleGroupsTransaction(ctx
 		for _, credentialData := range args {
 			// Create encrypted data records
 			for _, userData := range credentialData.UserEncryptedFields {
-				for _, field := range userData.EncryptedFields {
-					_, err := q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+				for _, field := range userData.Fields {
+					_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 						FieldName:    field.FieldName,
 						FieldValue:   field.FieldValue,
 						CredentialID: credentialData.CredentialID,
@@ -190,7 +190,7 @@ func (store *SQLStore) ShareFolderWithUserTransaction(ctx context.Context, folde
 			}
 			if !exists {
 				for _, field := range credential.EncryptedFields {
-					_, err = q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+					_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
 						FieldName:    field.FieldName,
 						FieldValue:   field.FieldValue,
 						CredentialID: credential.CredentialID,
@@ -240,7 +240,7 @@ func (store *SQLStore) ShareFolderWithGroupTransaction(ctx context.Context, fold
 				}
 				if !exists {
 					for _, field := range credentialData.EncryptedFields {
-						_, err = q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+						_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
 							FieldName:    field.FieldName,
 							FieldValue:   field.FieldValue,
 							CredentialID: credentialData.CredentialID,

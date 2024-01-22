@@ -57,7 +57,7 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 		for _, credential := range args.UserEncryptedData {
 			for _, field := range credential.EncryptedFields {
 
-				_, err = q.CreateEncryptedData(ctx, CreateEncryptedDataParams{
+				_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
 					CredentialID: credential.CredentialID,

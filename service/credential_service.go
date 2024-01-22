@@ -6,75 +6,71 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/repository"
-	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) error {
+func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) (uuid.UUID, error) {
+
+	isOwner, err := CheckFolderOwner(ctx, request.FolderID, caller)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	if !isOwner {
+		return uuid.UUID{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have owner access to the folder"}
+	}
 
 	// Retrieve access types for the folder
 	accessList, err := repository.GetFolderAccess(ctx, request.FolderID)
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
-	payload := dto.AddCredentialDto{
-		Name:        request.Name,
-		Description: request.Description,
-		FolderID:    request.FolderID,
-	}
 	accessTypeMap := make(map[uuid.UUID]string)
 
 	for _, access := range accessList {
 		if access.UserID != caller {
 			accessTypeMap[access.UserID] = access.AccessType
 
+			// TODO: this check is redundant since only owner can add credentials
 		} else {
 			//caller should be owner
 			accessTypeMap[access.UserID] = "owner"
 		}
 	}
-	var unencryptedFields []dto.FieldWithURL
-	for _, field := range request.UnencryptedFields {
-		var unencryptedField dto.FieldWithURL
-		isUrl, url := utils.ExtractDomainAndSubdomain(field.FieldValue)
-		logger.Debugf("\nurl for field %s is %s", field.FieldName, url)
-		unencryptedField = dto.FieldWithURL{
-			FieldName:  field.FieldName,
-			FieldValue: field.FieldValue,
-			IsUrl:      isUrl,
-			URL:        url,
-		}
-		unencryptedFields = append(unencryptedFields, unencryptedField)
-	}
-	payload.UnencryptedFields = unencryptedFields
-	/* Convert UserEncryptedFields to UserEncryptedFieldsWithAccess
-	 * access type is derived from folder ownership
+
+	/* Convert UserFields to UserFieldsWithAccessType
+	 * access type is derived from the users forlder access
 	 */
-	var extendedFields []dto.EncryptedFieldWithAccess
-	for _, field := range request.UserEncryptedFields {
-		accessType, exists := accessTypeMap[field.UserID]
+	var UserFieldsWithAccessTypeSlice []dto.UserFieldsWithAccessType
+	for _, userFields := range request.UserFields {
+		accessType, exists := accessTypeMap[userFields.UserID]
 		if !exists {
+			// TODO: send appropriate error
 			continue
 		}
-		extendedField := dto.EncryptedFieldWithAccess{
-			AddCredentialEncryptedField: field,
-			AccessType:                  accessType,
+		userFieldsWithAccessType := dto.UserFieldsWithAccessType{
+			UserID:     userFields.UserID,
+			Fields:     userFields.Fields,
+			AccessType: accessType,
 		}
-		extendedFields = append(extendedFields, extendedField)
-	}
-	payload.UserEncryptedFieldsWithAccess = extendedFields
 
-	if err != nil {
-		return err
+		UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
 	}
-	_, err = repository.AddCredential(ctx, payload, caller)
-	if err != nil {
-		return err
+
+	payload := dto.AddCredentialDto{
+		Name:                     request.Name,
+		Description:              request.Description,
+		FolderID:                 request.FolderID,
+		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
 	}
-	return nil
+
+	credentialID, err := repository.AddCredential(ctx, payload, caller)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return credentialID, nil
 }
 
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {

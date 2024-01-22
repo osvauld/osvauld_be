@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -28,16 +29,17 @@ func (q *Queries) AddCredential(ctx context.Context, dollar_1 json.RawMessage) (
 
 const createCredential = `-- name: CreateCredential :one
 INSERT INTO
-    credentials (NAME, description, folder_id, created_by)
+    credentials (NAME, description, credential_type, folder_id, created_by)
 VALUES
-    ($1, $2, $3, $4) RETURNING id
+    ($1, $2, $3, $4, $5) RETURNING id
 `
 
 type CreateCredentialParams struct {
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	FolderID    uuid.UUID      `json:"folder_id"`
-	CreatedBy   uuid.UUID      `json:"created_by"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	CredentialType string         `json:"credential_type"`
+	FolderID       uuid.UUID      `json:"folder_id"`
+	CreatedBy      uuid.UUID      `json:"created_by"`
 }
 
 // sql/create_credential.sql
@@ -45,6 +47,7 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 	row := q.db.QueryRowContext(ctx, createCredential,
 		arg.Name,
 		arg.Description,
+		arg.CredentialType,
 		arg.FolderID,
 		arg.CreatedBy,
 	)
@@ -53,25 +56,27 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 	return id, err
 }
 
-const createEncryptedData = `-- name: CreateEncryptedData :one
+const createFieldData = `-- name: CreateFieldData :one
 INSERT INTO
-    encrypted_data (field_name, credential_id, field_value, user_id)
+    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
 VALUES
-    ($1, $2, $3, $4) RETURNING id
+    ($1, $2, $3, $4, $5) RETURNING id
 `
 
-type CreateEncryptedDataParams struct {
+type CreateFieldDataParams struct {
 	FieldName    string    `json:"field_name"`
-	CredentialID uuid.UUID `json:"credential_id"`
 	FieldValue   string    `json:"field_value"`
+	CredentialID uuid.UUID `json:"credential_id"`
+	FieldType    string    `json:"field_type"`
 	UserID       uuid.UUID `json:"user_id"`
 }
 
-func (q *Queries) CreateEncryptedData(ctx context.Context, arg CreateEncryptedDataParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createEncryptedData,
+func (q *Queries) CreateFieldData(ctx context.Context, arg CreateFieldDataParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, createFieldData,
 		arg.FieldName,
-		arg.CredentialID,
 		arg.FieldValue,
+		arg.CredentialID,
+		arg.FieldType,
 		arg.UserID,
 	)
 	var id uuid.UUID
@@ -94,9 +99,19 @@ WHERE
     id = $1
 `
 
-func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (Credential, error) {
+type FetchCredentialDataByIDRow struct {
+	ID          uuid.UUID      `json:"id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	FolderID    uuid.UUID      `json:"folder_id"`
+	CreatedBy   uuid.UUID      `json:"created_by"`
+}
+
+func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, fetchCredentialDataByID, id)
-	var i Credential
+	var i FetchCredentialDataByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,

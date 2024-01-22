@@ -1,15 +1,15 @@
 -- sql/create_credential.sql
 -- name: CreateCredential :one
 INSERT INTO
-    credentials (NAME, description, folder_id, created_by)
+    credentials (NAME, description, credential_type, folder_id, created_by)
 VALUES
-    ($1, $2, $3, $4) RETURNING id;
+    ($1, $2, $3, $4, $5) RETURNING id;
 
--- name: CreateEncryptedData :one
+-- name: CreateFieldData :one
 INSERT INTO
-    encrypted_data (field_name, credential_id, field_value, user_id)
+    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
 VALUES
-    ($1, $2, $3, $4) RETURNING id;
+    ($1, $2, $3, $4, $5) RETURNING id;
 
 
 
