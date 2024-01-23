@@ -234,3 +234,14 @@ FROM
     encrypted_data
 WHERE 
     user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';
+
+-- name: GetCredentialIdsByFolder :many
+SELECT 
+    c.id AS "credentialId"
+FROM 
+    credentials c
+JOIN 
+    access_list a ON c.id = a.credential_id
+WHERE 
+    a.user_id = $1
+    AND c.folder_id = $2;
