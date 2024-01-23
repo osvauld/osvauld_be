@@ -115,17 +115,17 @@ GROUP BY
 ORDER BY
     C .id;
 
--- name: GetEncryptedDataByCredentialIds :many
+-- name: GetCredentialsFieldsByIds :many
 SELECT
     e.credential_id AS "credentialId",
     json_agg(
         json_build_object(
-            'fieldName',
-            e.field_name,
+            'fieldId',
+            e.id,
             'fieldValue',
             e.field_value
         )
-    ) AS "encryptedFields"
+    ) AS "fields"
 FROM
     encrypted_data e
 WHERE
@@ -234,3 +234,14 @@ FROM
     encrypted_data
 WHERE 
     user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';
+
+-- name: GetCredentialIdsByFolder :many
+SELECT 
+    c.id AS "credentialId"
+FROM 
+    credentials c
+JOIN 
+    access_list a ON c.id = a.credential_id
+WHERE 
+    a.user_id = $1
+    AND c.folder_id = $2;

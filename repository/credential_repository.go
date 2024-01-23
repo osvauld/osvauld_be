@@ -122,25 +122,12 @@ func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCre
 	return encryptedData, err
 }
 
-func GetEncryptedCredentails(ctx *gin.Context, folderId uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
-	arg := db.GetEncryptedCredentialsByFolderParams{
-		FolderID: folderId,
-		UserID:   userID,
-	}
-	encryptedData, err := database.Store.GetEncryptedCredentialsByFolder(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return encryptedData, err
-}
-
-func GetEncryptedCredentailsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedDataByCredentialIdsRow, error) {
-	arg := db.GetEncryptedDataByCredentialIdsParams{
+func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+	arg := db.GetCredentialsFieldsByIdsParams{
 		Column1: credentialIds,
 		UserID:  userID,
 	}
-	encryptedData, err := database.Store.GetEncryptedDataByCredentialIds(ctx, arg)
+	encryptedData, err := database.Store.GetCredentialsFieldsByIds(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
@@ -185,4 +172,16 @@ func GetSensitiveFieldsById(ctx *gin.Context, credentialID uuid.UUID, caller uui
 	})
 
 	return sensitiveFields, err
+}
+
+func GetCredentialIdsByFolderAndUserId(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]uuid.UUID, error) {
+	credentialIds, err := database.Store.GetCredentialIdsByFolder(ctx, db.GetCredentialIdsByFolderParams{
+		FolderID: folderID,
+		UserID:   userID,
+	})
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	return credentialIds, err
 }

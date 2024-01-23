@@ -117,16 +117,17 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return credentials, nil
 }
 
-func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
-	credentials, err := repository.GetEncryptedCredentails(ctx, folderID, userID)
+func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+	credentialsIds, err := repository.GetCredentialIdsByFolderAndUserId(ctx, folderID, userID)
 	if err != nil {
 		return nil, err
 	}
+	credentials, _ := repository.GetCredentialsFieldsByIds(ctx, credentialsIds, userID)
 	return credentials, nil
 }
 
-func GetEncryptedCredentialsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedDataByCredentialIdsRow, error) {
-	credentials, err := repository.GetEncryptedCredentailsByIds(ctx, credentialIds, userID)
+func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+	credentials, err := repository.GetCredentialsFieldsByIds(ctx, credentialIds, userID)
 	if err != nil {
 		return nil, err
 	}
