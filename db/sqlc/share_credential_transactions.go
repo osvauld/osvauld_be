@@ -9,15 +9,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, args dto.CredentialEncryptedFieldsForUserDto) error {
+func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, args dto.CredentialFieldsForUserDto) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		// Create encrypted data records
-		for _, field := range args.EncryptedFields {
+		for _, field := range args.Fields {
 			_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 				FieldName:    field.FieldName,
 				FieldValue:   field.FieldValue,
+				FieldType:    field.FieldType,
 				CredentialID: args.CredentialID,
 				UserID:       args.UserID,
 			})
@@ -43,14 +44,14 @@ func (store *SQLStore) ShareCredentialWithUserTransaction(ctx context.Context, a
 	return err
 }
 
-func (store *SQLStore) ShareMultipleCredentialsWithMultipleUsersTransaction(ctx context.Context, args []dto.CredentialEncryptedFieldsForUserDto) error {
+func (store *SQLStore) ShareMultipleCredentialsWithMultipleUsersTransaction(ctx context.Context, args []dto.CredentialFieldsForUserDto) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		for _, credentialData := range args {
 
 			// Create encrypted data records
-			for _, field := range credentialData.EncryptedFields {
+			for _, field := range credentialData.Fields {
 				_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,

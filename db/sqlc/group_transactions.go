@@ -34,10 +34,10 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, args Create
 }
 
 type AddMemberToGroupTransactionParams struct {
-	GroupID           uuid.UUID                                 `json:"groupId"`
-	UserID            uuid.UUID                                 `json:"userId"`
-	MemberRole        string                                    `json:"memberRole"`
-	UserEncryptedData []dto.CredentialEncryptedFieldsForUserDto `json:"encryptedFields"`
+	GroupID           uuid.UUID                        `json:"groupId"`
+	UserID            uuid.UUID                        `json:"userId"`
+	MemberRole        string                           `json:"memberRole"`
+	UserEncryptedData []dto.CredentialFieldsForUserDto `json:"encryptedFields"`
 }
 
 func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args AddMemberToGroupTransactionParams) error {
@@ -55,7 +55,7 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 
 		// Add Values to encrypted fields
 		for _, credential := range args.UserEncryptedData {
-			for _, field := range credential.EncryptedFields {
+			for _, field := range credential.Fields {
 
 				_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
 					FieldName:    field.FieldName,

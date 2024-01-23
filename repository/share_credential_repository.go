@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func ShareCredentialWithUser(ctx *gin.Context, payload dto.CredentialEncryptedFieldsForUserDto) error {
+func ShareCredentialWithUser(ctx *gin.Context, payload dto.CredentialFieldsForUserDto) error {
 
 	err := database.Store.ShareCredentialWithUserTransaction(ctx, payload)
 	if err != nil {
@@ -28,7 +28,7 @@ func ShareCredentialWithGroup(ctx *gin.Context, groupId uuid.UUID, accessType st
 	return nil
 }
 
-func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.CredentialEncryptedFieldsForUserDto) error {
+func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.CredentialFieldsForUserDto) error {
 
 	err := database.Store.ShareMultipleCredentialsWithMultipleUsersTransaction(ctx, payload)
 	if err != nil {

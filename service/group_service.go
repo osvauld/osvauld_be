@@ -37,32 +37,32 @@ func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, group
 	return credentialIDs, err
 }
 
-func FetchEncryptedDataWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]dto.CredentialEncryptedFieldsForUserDto, error) {
+func FetchEncryptedDataWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]dto.CredentialFieldsForUserDto, error) {
 
 	isMember, err := repository.CheckUserMemberOfGroup(ctx, caller, groupID)
 	if !isMember {
-		return []dto.CredentialEncryptedFieldsForUserDto{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the group"}
+		return []dto.CredentialFieldsForUserDto{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the group"}
 	}
 	if err != nil {
-		return []dto.CredentialEncryptedFieldsForUserDto{}, err
+		return []dto.CredentialFieldsForUserDto{}, err
 	}
 
 	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID)
 	if err != nil {
-		return []dto.CredentialEncryptedFieldsForUserDto{}, err
+		return []dto.CredentialFieldsForUserDto{}, err
 	}
 
-	allCredentialEncryptedFields := []dto.CredentialEncryptedFieldsForUserDto{}
+	allCredentialEncryptedFields := []dto.CredentialFieldsForUserDto{}
 	for _, credentialID := range credentialIDs {
 
 		credentialEncryptedFields, err := repository.FetchEncryptedFieldsByCredentialIDByAndUserID(ctx, credentialID, caller)
 		if err != nil {
-			return []dto.CredentialEncryptedFieldsForUserDto{}, err
+			return []dto.CredentialFieldsForUserDto{}, err
 		}
 
-		dtoObject := dto.CredentialEncryptedFieldsForUserDto{
-			CredentialID:    credentialID,
-			EncryptedFields: credentialEncryptedFields,
+		dtoObject := dto.CredentialFieldsForUserDto{
+			CredentialID: credentialID,
+			Fields:       credentialEncryptedFields,
 		}
 
 		allCredentialEncryptedFields = append(allCredentialEncryptedFields, dtoObject)
@@ -89,7 +89,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	userEncryptedDataWithAccessType := []dto.CredentialEncryptedFieldsForUserDto{}
+	userEncryptedDataWithAccessType := []dto.CredentialFieldsForUserDto{}
 
 	for _, credential := range payload.EncryptedData {
 
@@ -98,10 +98,10 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 			return err
 		}
 		// find out the current group access of each credential
-		encryptedDataWithAccessType := dto.CredentialEncryptedFieldsForUserDto{
-			CredentialID:    credential.CredentialID,
-			AccessType:      credentialAccessTypeForGroup,
-			EncryptedFields: credential.EncryptedFields,
+		encryptedDataWithAccessType := dto.CredentialFieldsForUserDto{
+			CredentialID: credential.CredentialID,
+			AccessType:   credentialAccessTypeForGroup,
+			Fields:       credential.Fields,
 		}
 
 		userEncryptedDataWithAccessType = append(userEncryptedDataWithAccessType, encryptedDataWithAccessType)

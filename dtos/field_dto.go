@@ -20,11 +20,31 @@ type Field struct {
 	FieldType  string    `json:"fieldType"`
 }
 
-type CredentialEncryptedFieldsForUserDto struct {
-	CredentialID    uuid.UUID `json:"credentialId"`
-	UserID          uuid.UUID `json:"userId"`
-	EncryptedFields []Field   `json:"encryptedFields"`
-	AccessType      string    `json:"accessType"`
+type ShareField struct {
+	ID         uuid.UUID `json:"fieldId"`
+	FieldValue string    `json:"fieldValue"`
+}
+
+type ShareCredentialPayload struct {
+	CredentialID uuid.UUID    `json:"credentialId" binding:"required"`
+	Fields       []ShareField `json:"fields" binding:"required"`
+}
+
+type ShareCredentialsForUserPayload struct {
+	UserID         uuid.UUID                `json:"userId" binding:"required"`
+	AccessType     string                   `json:"accessType" binding:"required"`
+	CredentialData []ShareCredentialPayload `json:"credentials" binding:"required"`
+}
+
+type ShareCredentialsWithUsersRequest struct {
+	UserData []ShareCredentialsForUserPayload `json:"userData" binding:"required"`
+}
+
+type CredentialFieldsForUserDto struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+	Fields       []Field   `json:"Fields"`
+	AccessType   string    `json:"accessType"`
 }
 
 type CredentialEncryptedFieldsForGroupDto struct {
@@ -45,10 +65,6 @@ type CredentialsForUsersPayload struct {
 	UserID         uuid.UUID                    `json:"userId" binding:"required"`
 	CredentialData []EncryptedCredentialPayload `json:"credentials" binding:"required"`
 	AccessType     string                       `json:"accessType" binding:"required"`
-}
-
-type ShareCredentialsWithUsersRequest struct {
-	UserData []CredentialsForUsersPayload `json:"userData" binding:"required"`
 }
 
 type GroupCredentialPayload struct {

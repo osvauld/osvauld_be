@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/service"
 	"osvauld/utils"
 
@@ -26,6 +27,7 @@ func ShareCredentialsWithUsers(ctx *gin.Context) {
 
 	response, err := service.ShareCredentialsWithUsers(ctx, req.UserData, caller)
 	if err != nil {
+		logger.Errorf(err.Error())
 		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
 		return
 	}
