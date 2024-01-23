@@ -135,12 +135,12 @@ func GetEncryptedCredentails(ctx *gin.Context, folderId uuid.UUID, userID uuid.U
 	return encryptedData, err
 }
 
-func GetEncryptedCredentailsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedDataByCredentialIdsRow, error) {
-	arg := db.GetEncryptedDataByCredentialIdsParams{
+func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+	arg := db.GetCredentialsFieldsByIdsParams{
 		Column1: credentialIds,
 		UserID:  userID,
 	}
-	encryptedData, err := database.Store.GetEncryptedDataByCredentialIds(ctx, arg)
+	encryptedData, err := database.Store.GetCredentialsFieldsByIds(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return nil, err
