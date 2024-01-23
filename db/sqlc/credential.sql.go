@@ -420,6 +420,46 @@ func (q *Queries) GetCredentialDetailsByIds(ctx context.Context, arg GetCredenti
 	return items, nil
 }
 
+const getCredentialIdsByFolder = `-- name: GetCredentialIdsByFolder :many
+SELECT 
+    c.id AS "credentialId"
+FROM 
+    credentials c
+JOIN 
+    access_list a ON c.id = a.credential_id
+WHERE 
+    a.user_id = $1
+    AND c.folder_id = $2
+`
+
+type GetCredentialIdsByFolderParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folder_id"`
+}
+
+func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialIdsByFolder, arg.UserID, arg.FolderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var credentialId uuid.UUID
+		if err := rows.Scan(&credentialId); err != nil {
+			return nil, err
+		}
+		items = append(items, credentialId)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCredentialIdsByUrl = `-- name: GetCredentialIdsByUrl :many
 SELECT credential_id 
 FROM unencrypted_data 

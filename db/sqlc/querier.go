@@ -81,6 +81,7 @@ type Querier interface {
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialDetailsByIds(ctx context.Context, arg GetCredentialDetailsByIdsParams) ([]GetCredentialDetailsByIdsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error)
 	GetCredentialIdsByUrl(ctx context.Context, arg GetCredentialIdsByUrlParams) ([]uuid.UUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error)
 	GetCredentialsFieldsByIds(ctx context.Context, arg GetCredentialsFieldsByIdsParams) ([]GetCredentialsFieldsByIdsRow, error)
