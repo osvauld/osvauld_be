@@ -11,22 +11,27 @@ import (
 	"github.com/google/uuid"
 )
 
-const fetchFieldNameAndTypeByFieldID = `-- name: FetchFieldNameAndTypeByFieldID :one
+const fetchFieldNameAndTypeByFieldIDForUser = `-- name: FetchFieldNameAndTypeByFieldIDForUser :one
 SELECT
     encrypted_data.field_name,
     encrypted_data.field_type
 FROM encrypted_data
-WHERE encrypted_data.id = $1
+WHERE encrypted_data.id = $1 AND encrypted_data.user_id = $2
 `
 
-type FetchFieldNameAndTypeByFieldIDRow struct {
+type FetchFieldNameAndTypeByFieldIDForUserParams struct {
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+type FetchFieldNameAndTypeByFieldIDForUserRow struct {
 	FieldName string `json:"field_name"`
 	FieldType string `json:"field_type"`
 }
 
-func (q *Queries) FetchFieldNameAndTypeByFieldID(ctx context.Context, id uuid.UUID) (FetchFieldNameAndTypeByFieldIDRow, error) {
-	row := q.db.QueryRowContext(ctx, fetchFieldNameAndTypeByFieldID, id)
-	var i FetchFieldNameAndTypeByFieldIDRow
+func (q *Queries) FetchFieldNameAndTypeByFieldIDForUser(ctx context.Context, arg FetchFieldNameAndTypeByFieldIDForUserParams) (FetchFieldNameAndTypeByFieldIDForUserRow, error) {
+	row := q.db.QueryRowContext(ctx, fetchFieldNameAndTypeByFieldIDForUser, arg.ID, arg.UserID)
+	var i FetchFieldNameAndTypeByFieldIDForUserRow
 	err := row.Scan(&i.FieldName, &i.FieldType)
 	return i, err
 }

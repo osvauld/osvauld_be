@@ -55,6 +55,7 @@ func (store *SQLStore) ShareMultipleCredentialsWithMultipleUsersTransaction(ctx 
 				_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
+					FieldType:    field.FieldType,
 					CredentialID: credentialData.CredentialID,
 					UserID:       credentialData.UserID,
 				})
