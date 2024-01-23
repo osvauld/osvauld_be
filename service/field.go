@@ -2,14 +2,14 @@ package service
 
 import (
 	dto "osvauld/dtos"
-	"osvauld/infra/database"
+	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func FetchFieldNameAndTypeByFieldID(ctx *gin.Context, fieldID uuid.UUID) (dto.Field, error) {
-	fieldDetails, err := database.Store.FetchFieldNameAndTypeByFieldID(ctx, fieldID)
+func FetchFieldNameAndTypeByFieldIDForUser(ctx *gin.Context, fieldID uuid.UUID, userID uuid.UUID) (dto.Field, error) {
+	fieldDetails, err := repository.FetchFieldDetailsByFieldIDForUser(ctx, fieldID, userID)
 	if err != nil {
 		return dto.Field{}, err
 	}

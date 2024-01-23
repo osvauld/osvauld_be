@@ -54,7 +54,7 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 			credentialFields := []dto.Field{}
 			for _, field := range credential.Fields {
 
-				fieldDetails, err := FetchFieldNameAndTypeByFieldID(ctx, field.ID)
+				fieldDetails, err := FetchFieldNameAndTypeByFieldIDForUser(ctx, field.ID, caller)
 				if err != nil {
 					logger.Errorf("error fetching field details: %s", err.Error())
 					return nil, err
