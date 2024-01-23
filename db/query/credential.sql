@@ -115,17 +115,17 @@ GROUP BY
 ORDER BY
     C .id;
 
--- name: GetEncryptedDataByCredentialIds :many
+-- name: GetCredentialsFieldsByIds :many
 SELECT
     e.credential_id AS "credentialId",
     json_agg(
         json_build_object(
-            'fieldName',
-            e.field_name,
+            'fieldId',
+            e.id,
             'fieldValue',
             e.field_value
         )
-    ) AS "encryptedFields"
+    ) AS "fields"
 FROM
     encrypted_data e
 WHERE
