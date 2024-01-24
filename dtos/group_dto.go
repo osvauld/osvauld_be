@@ -18,10 +18,10 @@ type GroupDetails struct {
 }
 
 type AddMemberToGroupRequest struct {
-	GroupID       uuid.UUID                             `json:"groupId"`
-	MemberID      uuid.UUID                             `json:"memberId"`
-	MemberRole    string                                `json:"memberRole"`
-	EncryptedData []CredentialEncryptedFieldsForUserDto `json:"encryptedData"`
+	GroupID       uuid.UUID                    `json:"groupId"`
+	MemberID      uuid.UUID                    `json:"memberId"`
+	MemberRole    string                       `json:"memberRole"`
+	EncryptedData []CredentialFieldsForUserDto `json:"encryptedData"`
 }
 
 type GetUsersOfGroupsRequest struct {

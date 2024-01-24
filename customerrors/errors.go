@@ -15,3 +15,11 @@ type UserAlreadyMemberOfGroupError struct {
 func (e *UserAlreadyMemberOfGroupError) Error() string {
 	return e.Message
 }
+
+type UserNotAnOwnerOfCredentialError struct {
+	Message string
+}
+
+func (e *UserNotAnOwnerOfCredentialError) Error() string {
+	return e.Message
+}

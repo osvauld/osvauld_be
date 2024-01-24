@@ -22,13 +22,14 @@ type AccessList struct {
 }
 
 type Credential struct {
-	ID          uuid.UUID      `json:"id"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	FolderID    uuid.UUID      `json:"folder_id"`
-	CreatedBy   uuid.UUID      `json:"created_by"`
+	ID             uuid.UUID      `json:"id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	CredentialType string         `json:"credential_type"`
+	FolderID       uuid.UUID      `json:"folder_id"`
+	CreatedBy      uuid.UUID      `json:"created_by"`
 }
 
 type EncryptedDatum struct {
@@ -39,6 +40,7 @@ type EncryptedDatum struct {
 	CredentialID uuid.UUID `json:"credential_id"`
 	FieldValue   string    `json:"field_value"`
 	UserID       uuid.UUID `json:"user_id"`
+	FieldType    string    `json:"field_type"`
 }
 
 type Folder struct {

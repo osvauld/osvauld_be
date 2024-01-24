@@ -1,15 +1,15 @@
 -- sql/create_credential.sql
 -- name: CreateCredential :one
 INSERT INTO
-    credentials (NAME, description, folder_id, created_by)
+    credentials (NAME, description, credential_type, folder_id, created_by)
 VALUES
-    ($1, $2, $3, $4) RETURNING id;
+    ($1, $2, $3, $4, $5) RETURNING id;
 
--- name: CreateEncryptedData :one
+-- name: CreateFieldData :one
 INSERT INTO
-    encrypted_data (field_name, credential_id, field_value, user_id)
+    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
 VALUES
-    ($1, $2, $3, $4) RETURNING id;
+    ($1, $2, $3, $4, $5) RETURNING id;
 
 
 
@@ -27,36 +27,38 @@ FROM
 WHERE
     id = $1;
 
--- name: FetchCredentialsByUserAndFolder :many
-
-
-WITH CredentialWithUnencrypted AS (
-    SELECT
-        C.id AS "id",
-        C.name AS "name",
-        COALESCE(C.description, '') AS "description",
-        json_agg(
-            json_build_object(
-                'fieldName', u.field_name,
-                'fieldValue', u.field_value
-            )
-        ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
-    FROM
-        credentials C
-        LEFT JOIN unencrypted_data u ON C.id = u.credential_id
-    WHERE
-        C.folder_id = $2
-    GROUP BY
-        C.id
-)
+-- name: FetchCredentialFieldsForUserByCredentialIds :many
 SELECT
-    cwu.*
+    credential_id AS "credentialID",
+    id AS "fieldID",
+    field_name as "fieldName",
+    field_value as "fieldValue",
+    field_type as "fieldType"
 FROM
-    CredentialWithUnencrypted cwu
-JOIN
-    access_list A ON cwu.id = A.credential_id
+    encrypted_data
 WHERE
-    A.user_id = $1;
+    field_type != 'sensitive'
+    AND credential_id = ANY($1::UUID[])
+    AND user_id = $2;
+
+
+-- name: FetchCredentialIdsForUserByFolderId :many
+SELECT
+    C.id AS "credentialID",
+    C.name,
+    COALESCE(C.description, '') AS "description",
+    C.credential_type AS "credentialType",
+    C.created_at AS "createdAt",
+    C.updated_at AS "updatedAt",
+    C.created_by AS "createdBy"
+FROM
+    credentials AS C,
+    access_list AS A
+WHERE
+    C.id = A .credential_id
+    AND C.folder_id = $1
+    AND A.user_id = $2;
+
 
 -- name: GetCredentialDetails :one
 SELECT
@@ -113,17 +115,17 @@ GROUP BY
 ORDER BY
     C .id;
 
--- name: GetEncryptedDataByCredentialIds :many
+-- name: GetCredentialsFieldsByIds :many
 SELECT
     e.credential_id AS "credentialId",
     json_agg(
         json_build_object(
-            'fieldName',
-            e.field_name,
+            'fieldId',
+            e.id,
             'fieldValue',
             e.field_value
         )
-    ) AS "encryptedFields"
+    ) AS "fields"
 FROM
     encrypted_data e
 WHERE
@@ -222,3 +224,24 @@ LEFT JOIN unencrypted_data UD ON C.id = UD.credential_id
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id;
+
+-- name: GetSensitiveFields :many
+SELECT 
+    field_name as "fieldName", 
+    field_value as "fieldValue", 
+    credential_id as "credentialId"
+FROM 
+    encrypted_data
+WHERE 
+    user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';
+
+-- name: GetCredentialIdsByFolder :many
+SELECT 
+    c.id AS "credentialId"
+FROM 
+    credentials c
+JOIN 
+    access_list a ON c.id = a.credential_id
+WHERE 
+    a.user_id = $1
+    AND c.folder_id = $2;

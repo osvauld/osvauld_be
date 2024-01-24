@@ -6,11 +6,39 @@ import (
 	"github.com/google/uuid"
 )
 
+type AddCredentialRequest struct {
+	Name           string       `json:"name"`
+	Description    string       `json:"description"`
+	FolderID       uuid.UUID    `json:"folderId"`
+	CredentialType string       `json:"credentialType"`
+	UserFields     []UserFields `json:"userFields"`
+}
+
+type AddCredentialDto struct {
+	Name                     string                     `json:"name"`
+	Description              string                     `json:"description"`
+	FolderID                 uuid.UUID                  `json:"folderId"`
+	CredentialType           string                     `json:"Credentialtype"`
+	UserFieldsWithAccessType []UserFieldsWithAccessType `json:"userFieldsWithAccessType"`
+}
+
 type UserEncryptedData struct {
 	UserID          uuid.UUID     `json:"userId"`
 	AccessType      string        `json:"accessType"`
 	GroupID         uuid.NullUUID `json:"groupId"`
 	EncryptedFields []Field       `json:"encryptedFields"`
+}
+
+type CredentialForUser struct {
+	CredentialID   uuid.UUID `json:"credentialId"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	FolderID       uuid.UUID `json:"folderId"`
+	CredentialType string    `json:"credentialType"`
+	Fields         []Field   `json:"fields"`
+	CreatedBy      uuid.UUID `json:"createdBy"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 type CredentialDetails struct {
@@ -24,12 +52,6 @@ type CredentialDetails struct {
 	CreatedBy         uuid.UUID `json:"createdBy"`
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
-}
-
-type Field struct {
-	ID         uuid.UUID `json:"id"`
-	FieldName  string    `json:"fieldName"`
-	FieldValue string    `json:"fieldValue"`
 }
 
 type User struct {
@@ -51,14 +73,6 @@ type CredentialsForUser struct {
 	CredentialID uuid.UUID `json:"credentialId"`
 }
 
-type AddCredentialRequest struct {
-	Name                string                        `json:"name"`
-	Description         string                        `json:"description"`
-	FolderID            uuid.UUID                     `json:"folderId"`
-	UnencryptedFields   []Field                       `json:"unencryptedFields"`
-	UserEncryptedFields []AddCredentialEncryptedField `json:"userEncryptedFields"`
-}
-
 type AddCredentialEncryptedField struct {
 	UserID          uuid.UUID `json:"userId"`
 	EncryptedFields []Field   `json:"encryptedFields"`
@@ -69,17 +83,14 @@ type EncryptedFieldWithAccess struct {
 	AccessType string `json:"accessType"`
 }
 
-type AddCredentialDto struct {
-	Name                          string                     `json:"name"`
-	Description                   string                     `json:"description"`
-	FolderID                      uuid.UUID                  `json:"folderId"`
-	UnencryptedFields             []FieldWithURL             `json:"unencryptedFields"`
-	UserEncryptedFieldsWithAccess []EncryptedFieldWithAccess `json:"userEncryptedFieldsWithAccess"`
-}
-
 type FieldWithURL struct {
 	FieldName  string `json:"fieldName"`
 	FieldValue string `json:"fieldValue"`
 	URL        string `json:"url"`
 	IsUrl      bool   `json:"isUrl"`
+}
+
+type ShareCredentialTransactionParams struct {
+	CredentialArgs []CredentialFieldsForUserDto
+	FolderAccess   []UserFolderAccessDto
 }
