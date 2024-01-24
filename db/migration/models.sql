@@ -104,8 +104,7 @@ CREATE TABLE folder_access (
     folder_id UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     access_type VARCHAR(255) NOT NULL,
-    group_id UUID REFERENCES groupings(id),
-    UNIQUE(folder_id, user_id)
+    group_id UUID REFERENCES groupings(id)
 );
 
 

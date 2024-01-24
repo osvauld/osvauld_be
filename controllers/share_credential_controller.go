@@ -48,7 +48,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context) {
 		return
 	}
 
-	response := service.ShareCredentialsWithGroups(ctx, req.GroupData, caller)
+	response, err := service.ShareCredentialsWithGroups(ctx, req.GroupData, caller)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
 		return
@@ -70,19 +70,12 @@ func ShareFolderWithUsers(ctx *gin.Context) {
 		return
 	}
 
-	// check if caller has access to the folder
-	access, err := service.CheckOwnerOrManagerAccessForFolder(ctx, req.FolderID, caller)
-	if err != nil || !access {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
-		return
-	}
-
-	err = service.ShareFolderWithUsers(ctx, req.FolderID, req.UserData)
+	responses, err := service.ShareFolderWithUsers(ctx, req, caller)
 	if err != nil {
 		SendResponse(ctx, 400, nil, "Failed to share folder with users", errors.New("Failed to share"))
 		return
 	}
-	SendResponse(ctx, 200, nil, "Success", nil)
+	SendResponse(ctx, 200, responses, "Success", nil)
 }
 
 func ShareFolderWithGroups(ctx *gin.Context) {
@@ -99,17 +92,10 @@ func ShareFolderWithGroups(ctx *gin.Context) {
 		return
 	}
 
-	// check if caller has access to the folder
-	access, err := service.CheckOwnerOrManagerAccessForFolder(ctx, req.FolderID, caller)
-	if err != nil || !access {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
-		return
-	}
-
-	err = service.ShareFolderWithGroups(ctx, req.FolderID, req.GroupData)
+	response, err := service.ShareFolderWithGroups(ctx, req, caller)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "Failed to share folder with groups", errors.New("Failed to share"))
+		SendResponse(ctx, 400, nil, "Failed to share folder with groups", nil)
 		return
 	}
-	SendResponse(ctx, 200, nil, "Success", nil)
+	SendResponse(ctx, 200, response, "Success", nil)
 }
