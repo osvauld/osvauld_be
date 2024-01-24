@@ -89,3 +89,8 @@ type FieldWithURL struct {
 	URL        string `json:"url"`
 	IsUrl      bool   `json:"isUrl"`
 }
+
+type ShareCredentialTransactionParams struct {
+	CredentialArgs []CredentialFieldsForUserDto
+	FolderAccess   []UserFolderAccessDto
+}
