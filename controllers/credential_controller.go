@@ -27,24 +27,19 @@ func AddCredential(ctx *gin.Context) {
 		return
 	}
 
-	isOwner, err := service.CheckFolderOwner(ctx, req.FolderID, caller)
-	if err != nil || !isOwner {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
-		return
-	}
-
-	err = service.AddCredential(ctx, req, caller)
+	credentialID, err := service.AddCredential(ctx, req, caller)
 	if err != nil {
+		logger.Errorf(err.Error())
+
 		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
-
-		logger.Errorf(err.Error())
-		SendResponse(ctx, 500, nil, "Failed to add credential", errors.New("failed to add credential"))
+		SendResponse(ctx, 500, nil, "Failed to add credential", nil)
 		return
 	}
-	SendResponse(ctx, 200, nil, "Added credential", nil)
+
+	SendResponse(ctx, 200, nil, credentialID.String(), nil)
 }
 
 func FetchCredentialByID(ctx *gin.Context) {
@@ -84,12 +79,12 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 
 }
 
-func GetAllEncryptedCredentailsForFolderID(ctx *gin.Context) {
+func GetCredentialsFieldsByFolderID(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 	folderIDStr := ctx.Param("folderId")
 	folderID, _ := uuid.Parse(folderIDStr)
-	credential, err := service.GetEncryptedCredentials(ctx, folderID, userID)
+	credential, err := service.GetCredentialsFieldsByFolderID(ctx, folderID, userID)
 	if err != nil {
 		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
@@ -97,7 +92,7 @@ func GetAllEncryptedCredentailsForFolderID(ctx *gin.Context) {
 	SendResponse(ctx, 200, credential, "Fetched credential", nil)
 }
 
-func GetEncryptedCredentailsByIds(ctx *gin.Context) {
+func GetCredentialsFieldsByIds(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
 	var req dto.GetEncryptedCredentialsByIdsRequest
@@ -105,7 +100,7 @@ func GetEncryptedCredentailsByIds(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	credentials, err := service.GetEncryptedCredentialsByIds(ctx, req.CredentialIds, userID)
+	credentials, err := service.GetCredentialsFieldsByIds(ctx, req.CredentialIds, userID)
 	if err != nil {
 		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
@@ -135,4 +130,17 @@ func GetAllUrlsForUser(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, 200, urls, "Fetched urls", nil)
+}
+
+func GetSensitiveFieldsCredentialByID(ctx *gin.Context) {
+	userIdInterface, _ := ctx.Get("userId")
+	userID, _ := userIdInterface.(uuid.UUID)
+	credentialIDStr := ctx.Param("id")
+	credentailaID, _ := uuid.Parse(credentialIDStr)
+	credential, err := service.GetSensitiveFieldsCredentialByID(ctx, credentailaID, userID)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credential, "Fetched credential", nil)
 }

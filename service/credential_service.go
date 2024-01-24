@@ -6,75 +6,72 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/repository"
-	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) error {
+func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) (uuid.UUID, error) {
+
+	isOwner, err := CheckFolderOwner(ctx, request.FolderID, caller)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	if !isOwner {
+		return uuid.UUID{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have owner access to the folder"}
+	}
 
 	// Retrieve access types for the folder
 	accessList, err := repository.GetFolderAccess(ctx, request.FolderID)
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
-	payload := dto.AddCredentialDto{
-		Name:        request.Name,
-		Description: request.Description,
-		FolderID:    request.FolderID,
-	}
 	accessTypeMap := make(map[uuid.UUID]string)
 
 	for _, access := range accessList {
 		if access.UserID != caller {
 			accessTypeMap[access.UserID] = access.AccessType
 
+			// TODO: this check is redundant since only owner can add credentials
 		} else {
 			//caller should be owner
 			accessTypeMap[access.UserID] = "owner"
 		}
 	}
-	var unencryptedFields []dto.FieldWithURL
-	for _, field := range request.UnencryptedFields {
-		var unencryptedField dto.FieldWithURL
-		isUrl, url := utils.ExtractDomainAndSubdomain(field.FieldValue)
-		logger.Debugf("\nurl for field %s is %s", field.FieldName, url)
-		unencryptedField = dto.FieldWithURL{
-			FieldName:  field.FieldName,
-			FieldValue: field.FieldValue,
-			IsUrl:      isUrl,
-			URL:        url,
-		}
-		unencryptedFields = append(unencryptedFields, unencryptedField)
-	}
-	payload.UnencryptedFields = unencryptedFields
-	/* Convert UserEncryptedFields to UserEncryptedFieldsWithAccess
-	 * access type is derived from folder ownership
+
+	/* Convert UserFields to UserFieldsWithAccessType
+	 * access type is derived from the users forlder access
 	 */
-	var extendedFields []dto.EncryptedFieldWithAccess
-	for _, field := range request.UserEncryptedFields {
-		accessType, exists := accessTypeMap[field.UserID]
+	var UserFieldsWithAccessTypeSlice []dto.UserFieldsWithAccessType
+	for _, userFields := range request.UserFields {
+		accessType, exists := accessTypeMap[userFields.UserID]
 		if !exists {
+			// TODO: send appropriate error
 			continue
 		}
-		extendedField := dto.EncryptedFieldWithAccess{
-			AddCredentialEncryptedField: field,
-			AccessType:                  accessType,
+		userFieldsWithAccessType := dto.UserFieldsWithAccessType{
+			UserID:     userFields.UserID,
+			Fields:     userFields.Fields,
+			AccessType: accessType,
 		}
-		extendedFields = append(extendedFields, extendedField)
-	}
-	payload.UserEncryptedFieldsWithAccess = extendedFields
 
-	if err != nil {
-		return err
+		UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
 	}
-	_, err = repository.AddCredential(ctx, payload, caller)
-	if err != nil {
-		return err
+
+	payload := dto.AddCredentialDto{
+		Name:                     request.Name,
+		Description:              request.Description,
+		FolderID:                 request.FolderID,
+		CredentialType:           request.CredentialType,
+		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
 	}
-	return nil
+
+	credentialID, err := repository.AddCredential(ctx, payload, caller)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return credentialID, nil
 }
 
 func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {
@@ -112,7 +109,7 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.U
 	return credential, err
 }
 
-func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.FetchCredentialsByUserAndFolderRow, error) {
+func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
 	credentials, err := repository.GetCredentialsByFolder(ctx, folderID, userID)
 	if err != nil {
 		return nil, err
@@ -120,16 +117,17 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return credentials, nil
 }
 
-func GetEncryptedCredentials(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedCredentialsByFolderRow, error) {
-	credentials, err := repository.GetEncryptedCredentails(ctx, folderID, userID)
+func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+	credentialsIds, err := repository.GetCredentialIdsByFolderAndUserId(ctx, folderID, userID)
 	if err != nil {
 		return nil, err
 	}
+	credentials, _ := repository.GetCredentialsFieldsByIds(ctx, credentialsIds, userID)
 	return credentials, nil
 }
 
-func GetEncryptedCredentialsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetEncryptedDataByCredentialIdsRow, error) {
-	credentials, err := repository.GetEncryptedCredentailsByIds(ctx, credentialIds, userID)
+func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+	credentials, err := repository.GetCredentialsFieldsByIds(ctx, credentialIds, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -150,4 +148,22 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
 		return nil, err
 	}
 	return urls, nil
+}
+
+func GetSensitiveFieldsCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetSensitiveFieldsRow, error) {
+	// Check if caller has access
+	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
+	var sensitiveFields []db.GetSensitiveFieldsRow
+	if err != nil {
+		return sensitiveFields, err
+	}
+
+	if !hasAccess {
+		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
+		return sensitiveFields, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
+	}
+
+	sensitiveFields, err = repository.GetSensitiveFieldsById(ctx, credentialID, caller)
+
+	return sensitiveFields, err
 }

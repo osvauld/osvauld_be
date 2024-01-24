@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"osvauld/customerrors"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -58,5 +60,24 @@ func HasOwnerAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userI
 		return true, nil
 	}
 	return false, nil
+
+}
+
+func HasOwnerAccessForCredentials(ctx *gin.Context, credentialIDs []uuid.UUID, userID uuid.UUID) (bool, error) {
+
+	// TODO: optimize this
+	for _, credentialID := range credentialIDs {
+
+		isOwner, err := HasOwnerAccessForCredential(ctx, credentialID, userID)
+		if err != nil {
+			return false, err
+		}
+		if !isOwner {
+			errMsg := fmt.Sprintf("user %s does not have owner access for credential %s", userID, credentialID)
+			return false, &customerrors.UserNotAnOwnerOfCredentialError{Message: errMsg}
+		}
+	}
+
+	return true, nil
 
 }

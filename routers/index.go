@@ -34,6 +34,7 @@ func RegisterRoutes(route *gin.Engine) {
 	// Credential Routes
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)
 	route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.FetchCredentialByID)
+	route.GET("/credential/:id/sensitive", middleware.JWTAuthMiddleware(), controllers.GetSensitiveFieldsCredentialByID)
 
 	// route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialByID)
 	route.POST("/group", middleware.JWTAuthMiddleware(), controllers.CreateGroup)
@@ -43,8 +44,8 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/groups/members", middleware.JWTAuthMiddleware(), controllers.GetUsersOfGroups)
 	route.GET("/groups/without-access/:folderId", middleware.JWTAuthMiddleware(), controllers.GetGroupsWithoutAccess)
 
-	route.GET("/credentials/encrypted/:folderId", middleware.JWTAuthMiddleware(), controllers.GetAllEncryptedCredentailsForFolderID)
-	route.POST("/credentials/encrypted/", middleware.JWTAuthMiddleware(), controllers.GetEncryptedCredentailsByIds)
+	route.GET("/credentials/fields/:folderId", middleware.JWTAuthMiddleware(), controllers.GetCredentialsFieldsByFolderID)
+	route.POST("/credentials/fields/", middleware.JWTAuthMiddleware(), controllers.GetCredentialsFieldsByIds)
 	route.GET("/credentials/url/:url", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByUrl)
 	route.GET("/urls", middleware.JWTAuthMiddleware(), controllers.GetAllUrlsForUser)
 

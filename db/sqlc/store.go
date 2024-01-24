@@ -13,12 +13,7 @@ type Store interface {
 	AddCredentialTransaction(context.Context, dto.AddCredentialDto, uuid.UUID) (uuid.UUID, error)
 	CreateGroupAndAddManager(context.Context, CreateGroupParams) (uuid.UUID, error)
 	AddMemberToGroupTransaction(context.Context, AddMemberToGroupTransactionParams) error
-	ShareCredentialWithUserTransaction(context.Context, dto.CredentialEncryptedFieldsForUserDto) error
-	ShareCredentialWithGroupTransaction(context.Context, uuid.UUID, string, []dto.GroupCredentialPayload) error
-	ShareMultipleCredentialsWithMultipleUsersTransaction(context.Context, []dto.CredentialEncryptedFieldsForUserDto) error
-	ShareMultipleCredentialsWithMultipleGroupsTransaction(context.Context, []dto.CredentialEncryptedFieldsForGroupDto) error
-	ShareFolderWithUserTransaction(context.Context, uuid.UUID, dto.CredentialsForUsersPayload) error
-	ShareFolderWithGroupTransaction(context.Context, uuid.UUID, dto.CredentialsForGroupsPayload) error
+	ShareCredentialsTransaction(context.Context, dto.ShareCredentialTransactionParams) error
 }
 
 type SQLStore struct {
