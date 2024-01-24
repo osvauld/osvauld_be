@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"osvauld/auth"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	service "osvauld/service"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,8 @@ func CreateUser(ctx *gin.Context) {
 	}
 	user, err := service.CreateUser(ctx, req)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "failed to create user", errors.New("failed to create user"))
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 400, nil, "failed to create user", nil)
 		return
 	}
 	SendResponse(ctx, 201, user, "created user", nil)
