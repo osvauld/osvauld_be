@@ -57,10 +57,17 @@ func CheckFolderAccess(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (
 	return access, nil
 }
 
-func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRow, error) {
-	users, err := database.Store.GetSharedUsers(ctx, folderID)
+func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
+	users, err := database.Store.GetSharedUsersForFolder(ctx, folderID)
 	if err != nil {
-		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
+}
+
+func GetSharedGroupsForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedGroupsForFolderRow, error) {
+	users, err := database.Store.GetSharedGroupsForFolder(ctx, folderID)
+	if err != nil {
 		return users, err
 	}
 	return users, nil

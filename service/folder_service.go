@@ -35,9 +35,14 @@ func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([
 	return users, err
 }
 
-func GetSharedUsers(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersRow, error) {
-	users, err := repository.GetSharedUsers(ctx, folderID)
+func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
+	users, err := repository.GetSharedUsersForFolder(ctx, folderID)
 	return users, err
+}
+
+func GetSharedGroupsForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedGroupsForFolderRow, error) {
+	groups, err := repository.GetSharedGroupsForFolder(ctx, folderID)
+	return groups, err
 }
 
 func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (string, error) {
