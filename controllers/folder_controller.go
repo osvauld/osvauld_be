@@ -80,7 +80,7 @@ func GetSharedGroupsForFolder(ctx *gin.Context) {
 		return
 	}
 
-	SendResponse(ctx, 200, groups, "Fetched users", nil)
+	SendResponse(ctx, 200, groups, "Fetched Groups", nil)
 }
 
 func GetGroupsWithoutAccess(ctx *gin.Context) {

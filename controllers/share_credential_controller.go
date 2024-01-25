@@ -72,7 +72,7 @@ func ShareFolderWithUsers(ctx *gin.Context) {
 
 	responses, err := service.ShareFolderWithUsers(ctx, req, caller)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "Failed to share folder with users", errors.New("Failed to share"))
+		SendResponse(ctx, 400, nil, "", errors.New("failed to share"))
 		return
 	}
 	SendResponse(ctx, 200, responses, "Success", nil)
