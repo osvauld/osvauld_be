@@ -50,32 +50,6 @@ func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAcc
 	return err
 }
 
-const checkFolderAccessExists = `-- name: CheckFolderAccessExists :one
-SELECT EXISTS (
-  SELECT 1 FROM folder_access
-  WHERE folder_id = $1 AND user_id = $2 AND access_type = $3 AND (group_id = $4 OR $4 IS NULL)
-)
-`
-
-type CheckFolderAccessExistsParams struct {
-	FolderID   uuid.UUID     `json:"folder_id"`
-	UserID     uuid.UUID     `json:"user_id"`
-	AccessType string        `json:"access_type"`
-	GroupID    uuid.NullUUID `json:"group_id"`
-}
-
-func (q *Queries) CheckFolderAccessExists(ctx context.Context, arg CheckFolderAccessExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkFolderAccessExists,
-		arg.FolderID,
-		arg.UserID,
-		arg.AccessType,
-		arg.GroupID,
-	)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
 const createFolder = `-- name: CreateFolder :one
 WITH new_folder AS (
   INSERT INTO folders (name, description, created_by)
@@ -218,14 +192,50 @@ func (q *Queries) GetFolderAccessForUser(ctx context.Context, arg GetFolderAcces
 	return items, nil
 }
 
-const getSharedUsers = `-- name: GetSharedUsers :many
+const getSharedGroupsForFolder = `-- name: GetSharedGroupsForFolder :many
+SELECT g.id, g.name, f.access_type
+FROM folder_access AS f JOIN groupings AS g ON f.group_id = g.id
+WHERE f.folder_id = $1
+group by g.id, g.name, f.access_type
+`
+
+type GetSharedGroupsForFolderRow struct {
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	AccessType string    `json:"access_type"`
+}
+
+func (q *Queries) GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedGroupsForFolderRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSharedGroupsForFolder, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetSharedGroupsForFolderRow{}
+	for rows.Next() {
+		var i GetSharedGroupsForFolderRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.AccessType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSharedUsersForFolder = `-- name: GetSharedUsersForFolder :many
 SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key,'') as "publicKey", folder_access.access_type as "accessType"
 FROM folder_access
 JOIN users ON folder_access.user_id = users.id
 WHERE folder_access.folder_id = $1
 `
 
-type GetSharedUsersRow struct {
+type GetSharedUsersForFolderRow struct {
 	ID         uuid.UUID `json:"id"`
 	Name       string    `json:"name"`
 	Username   string    `json:"username"`
@@ -233,15 +243,15 @@ type GetSharedUsersRow struct {
 	AccessType string    `json:"accessType"`
 }
 
-func (q *Queries) GetSharedUsers(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getSharedUsers, folderID)
+func (q *Queries) GetSharedUsersForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersForFolderRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSharedUsersForFolder, folderID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetSharedUsersRow{}
+	items := []GetSharedUsersForFolderRow{}
 	for rows.Next() {
-		var i GetSharedUsersRow
+		var i GetSharedUsersForFolderRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
