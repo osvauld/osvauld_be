@@ -19,7 +19,6 @@ type Querier interface {
 	AddGroupMemberRecord(ctx context.Context, arg AddGroupMemberRecordParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
 	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
-	CheckFolderAccessExists(ctx context.Context, arg CheckFolderAccessExistsParams) (bool, error)
 	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
@@ -77,14 +76,13 @@ type Querier interface {
 	//     CredentialWithUnencrypted cwu
 	// JOIN
 	//     DistinctAccess DA ON cwu.id = DA.credential_id;
-	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]string, error)
+	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialDetailsByIds(ctx context.Context, arg GetCredentialDetailsByIdsParams) ([]GetCredentialDetailsByIdsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error)
-	GetCredentialIdsByUrl(ctx context.Context, arg GetCredentialIdsByUrlParams) ([]uuid.UUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error)
 	GetCredentialsFieldsByIds(ctx context.Context, arg GetCredentialsFieldsByIdsParams) ([]GetCredentialsFieldsByIdsRow, error)
 	GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEncryptedCredentialsByFolderParams) ([]GetEncryptedCredentialsByFolderRow, error)

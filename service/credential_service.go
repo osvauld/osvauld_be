@@ -134,15 +134,15 @@ func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, user
 	return credentials, nil
 }
 
-func GetCredentialsByUrl(ctx *gin.Context, url string, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
-	credentials, err := repository.GetCredentialsByUrl(ctx, url, userID)
+func GetCredentialsByIDs(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
+	credentials, err := repository.GetCredentialsByIDs(ctx, credentialIds, userID)
 	if err != nil {
 		return nil, err
 	}
 	return credentials, nil
 }
 
-func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
+func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUserRow, error) {
 	urls, err := repository.GetAllUrlsForUser(ctx, userID)
 	if err != nil {
 		return nil, err

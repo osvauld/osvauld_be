@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -135,15 +134,7 @@ func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, user
 	return encryptedData, err
 }
 
-func GetCredentialsByUrl(ctx *gin.Context, url string, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
-	arg := db.GetCredentialIdsByUrlParams{
-		Url:    sql.NullString{String: url, Valid: true},
-		UserID: userID,
-	}
-	credentialIds, err := database.Store.GetCredentialIdsByUrl(ctx, arg)
-	if err != nil {
-		return []db.GetCredentialDetailsByIdsRow{}, err
-	}
+func GetCredentialsByIDs(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
 	credentials, err := database.Store.GetCredentialDetailsByIds(ctx, db.GetCredentialDetailsByIdsParams{
 		UserID:  userID,
 		Column1: credentialIds,
@@ -155,7 +146,7 @@ func GetCredentialsByUrl(ctx *gin.Context, url string, userID uuid.UUID) ([]db.G
 	return credentials, err
 }
 
-func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]string, error) {
+func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUserRow, error) {
 	urls, err := database.Store.GetAllUrlsForUser(ctx, userID)
 	if err != nil {
 		logger.Errorf(err.Error())

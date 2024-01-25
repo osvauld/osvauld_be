@@ -50,32 +50,6 @@ func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAcc
 	return err
 }
 
-const checkFolderAccessExists = `-- name: CheckFolderAccessExists :one
-SELECT EXISTS (
-  SELECT 1 FROM folder_access
-  WHERE folder_id = $1 AND user_id = $2 AND access_type = $3 AND (group_id = $4 OR $4 IS NULL)
-)
-`
-
-type CheckFolderAccessExistsParams struct {
-	FolderID   uuid.UUID     `json:"folder_id"`
-	UserID     uuid.UUID     `json:"user_id"`
-	AccessType string        `json:"access_type"`
-	GroupID    uuid.NullUUID `json:"group_id"`
-}
-
-func (q *Queries) CheckFolderAccessExists(ctx context.Context, arg CheckFolderAccessExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkFolderAccessExists,
-		arg.FolderID,
-		arg.UserID,
-		arg.AccessType,
-		arg.GroupID,
-	)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
 const createFolder = `-- name: CreateFolder :one
 WITH new_folder AS (
   INSERT INTO folders (name, description, created_by)

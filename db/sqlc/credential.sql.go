@@ -250,16 +250,17 @@ const getAllUrlsForUser = `-- name: GetAllUrlsForUser :many
 
 
 SELECT DISTINCT
-    COALESCE(ud.url, '') AS url
+    field_value as value, credential_id as "credentialId"
 FROM 
-    unencrypted_data ud
-JOIN 
-    credentials c ON ud.credential_id = c.id
-JOIN 
-    access_list al ON c.id = al.credential_id
+    encrypted_data
 WHERE 
-    al.user_id = $1 AND ud.is_url = TRUE
+    user_id = $1 AND field_name = 'Domain'
 `
+
+type GetAllUrlsForUserRow struct {
+	Value        string    `json:"value"`
+	CredentialId uuid.UUID `json:"credentialId"`
+}
 
 // -- name: GetCredentialsByUrl :many
 // WITH CredentialWithUnencrypted AS (
@@ -303,19 +304,19 @@ WHERE
 // JOIN
 //
 //	DistinctAccess DA ON cwu.id = DA.credential_id;
-func (q *Queries) GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]string, error) {
+func (q *Queries) GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllUrlsForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []string{}
+	items := []GetAllUrlsForUserRow{}
 	for rows.Next() {
-		var url string
-		if err := rows.Scan(&url); err != nil {
+		var i GetAllUrlsForUserRow
+		if err := rows.Scan(&i.Value, &i.CredentialId); err != nil {
 			return nil, err
 		}
-		items = append(items, url)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -360,19 +361,10 @@ SELECT
             'fieldName', COALESCE(ED.field_name, ''),
             'fieldValue', ED.field_value
         )
-    ) AS "encryptedFields",
-    json_agg(
-        json_build_object(
-            'fieldName', COALESCE(UD.field_name, ''),
-            'fieldValue', UD.field_value,
-            'isUrl', UD.is_url,
-            'url', UD.url
-        )
-    ) AS "unencryptedFields"
+    ) AS "fields"
 FROM
     credentials C
 LEFT JOIN encrypted_data ED ON C.id = ED.credential_id AND ED.user_id = $2
-LEFT JOIN unencrypted_data UD ON C.id = UD.credential_id
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id
@@ -384,11 +376,10 @@ type GetCredentialDetailsByIdsParams struct {
 }
 
 type GetCredentialDetailsByIdsRow struct {
-	CredentialId      uuid.UUID       `json:"credentialId"`
-	Name              string          `json:"name"`
-	Description       string          `json:"description"`
-	EncryptedFields   json.RawMessage `json:"encryptedFields"`
-	UnencryptedFields json.RawMessage `json:"unencryptedFields"`
+	CredentialId uuid.UUID       `json:"credentialId"`
+	Name         string          `json:"name"`
+	Description  string          `json:"description"`
+	Fields       json.RawMessage `json:"fields"`
 }
 
 func (q *Queries) GetCredentialDetailsByIds(ctx context.Context, arg GetCredentialDetailsByIdsParams) ([]GetCredentialDetailsByIdsRow, error) {
@@ -404,8 +395,7 @@ func (q *Queries) GetCredentialDetailsByIds(ctx context.Context, arg GetCredenti
 			&i.CredentialId,
 			&i.Name,
 			&i.Description,
-			&i.EncryptedFields,
-			&i.UnencryptedFields,
+			&i.Fields,
 		); err != nil {
 			return nil, err
 		}
@@ -450,45 +440,6 @@ func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentia
 			return nil, err
 		}
 		items = append(items, credentialId)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getCredentialIdsByUrl = `-- name: GetCredentialIdsByUrl :many
-SELECT credential_id 
-FROM unencrypted_data 
-WHERE url = $1
-AND credential_id IN (
-    SELECT DISTINCT credential_id 
-    FROM access_list 
-    WHERE user_id = $2
-)
-`
-
-type GetCredentialIdsByUrlParams struct {
-	Url    sql.NullString `json:"url"`
-	UserID uuid.UUID      `json:"user_id"`
-}
-
-func (q *Queries) GetCredentialIdsByUrl(ctx context.Context, arg GetCredentialIdsByUrlParams) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, getCredentialIdsByUrl, arg.Url, arg.UserID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []uuid.UUID{}
-	for rows.Next() {
-		var credential_id uuid.UUID
-		if err := rows.Scan(&credential_id); err != nil {
-			return nil, err
-		}
-		items = append(items, credential_id)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
