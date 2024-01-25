@@ -18,7 +18,7 @@ SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2
 
 type CheckTempPasswordParams struct {
 	Username     string `json:"username"`
-	TempPassword string `json:"temp_password"`
+	TempPassword string `json:"tempPassword"`
 }
 
 func (q *Queries) CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error) {
@@ -38,8 +38,8 @@ RETURNING id, user_id, public_key, challenge, device_id, session_id, created_at,
 `
 
 type CreateChallengeParams struct {
-	UserID    uuid.UUID `json:"user_id"`
-	PublicKey string    `json:"public_key"`
+	UserID    uuid.UUID `json:"userId"`
+	PublicKey string    `json:"publicKey"`
 	Challenge string    `json:"challenge"`
 }
 
@@ -68,7 +68,7 @@ RETURNING id
 type CreateUserParams struct {
 	Username     string `json:"username"`
 	Name         string `json:"name"`
-	TempPassword string `json:"temp_password"`
+	TempPassword string `json:"tempPassword"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error) {
@@ -175,8 +175,8 @@ WHERE username = $3
 `
 
 type UpdateKeysParams struct {
-	RsaPubKey sql.NullString `json:"rsa_pub_key"`
-	EccPubKey sql.NullString `json:"ecc_pub_key"`
+	RsaPubKey sql.NullString `json:"rsaPubKey"`
+	EccPubKey sql.NullString `json:"eccPubKey"`
 	Username  string         `json:"username"`
 }
 

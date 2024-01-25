@@ -19,10 +19,10 @@ RETURNING id
 `
 
 type AddToAccessListParams struct {
-	CredentialID uuid.UUID     `json:"credential_id"`
-	UserID       uuid.UUID     `json:"user_id"`
-	AccessType   string        `json:"access_type"`
-	GroupID      uuid.NullUUID `json:"group_id"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
+	AccessType   string        `json:"accessType"`
+	GroupID      uuid.NullUUID `json:"groupId"`
 }
 
 func (q *Queries) AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error) {
@@ -46,8 +46,8 @@ SELECT EXISTS (
 `
 
 type CheckAccessListEntryExistsParams struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CredentialID uuid.UUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"userId"`
+	CredentialID uuid.UUID `json:"credentialId"`
 }
 
 func (q *Queries) CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error) {
@@ -64,16 +64,16 @@ WHERE user_id = $1 AND credential_id = $2
 `
 
 type GetCredentialAccessForUserParams struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CredentialID uuid.UUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"userId"`
+	CredentialID uuid.UUID `json:"credentialId"`
 }
 
 type GetCredentialAccessForUserRow struct {
 	ID           uuid.UUID     `json:"id"`
-	UserID       uuid.UUID     `json:"user_id"`
-	CredentialID uuid.UUID     `json:"credential_id"`
-	GroupID      uuid.NullUUID `json:"group_id"`
-	AccessType   string        `json:"access_type"`
+	UserID       uuid.UUID     `json:"userId"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	GroupID      uuid.NullUUID `json:"groupId"`
+	AccessType   string        `json:"accessType"`
 }
 
 func (q *Queries) GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error) {

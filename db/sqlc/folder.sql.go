@@ -18,9 +18,9 @@ VALUES ($1, $2, $3)
 `
 
 type AddFolderAccessParams struct {
-	FolderID   uuid.UUID `json:"folder_id"`
-	UserID     uuid.UUID `json:"user_id"`
-	AccessType string    `json:"access_type"`
+	FolderID   uuid.UUID `json:"folderId"`
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
@@ -34,10 +34,10 @@ VALUES ($1, $2, $3, $4)
 `
 
 type AddFolderAccessWithGroupParams struct {
-	FolderID   uuid.UUID     `json:"folder_id"`
-	UserID     uuid.UUID     `json:"user_id"`
-	AccessType string        `json:"access_type"`
-	GroupID    uuid.NullUUID `json:"group_id"`
+	FolderID   uuid.UUID     `json:"folderId"`
+	UserID     uuid.UUID     `json:"userId"`
+	AccessType string        `json:"accessType"`
+	GroupID    uuid.NullUUID `json:"groupId"`
 }
 
 func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAccessWithGroupParams) error {
@@ -66,7 +66,7 @@ SELECT id FROM new_folder
 type CreateFolderParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"created_by"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
 }
 
 func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error) {
@@ -132,8 +132,8 @@ WHERE folder_id = $1
 `
 
 type GetAccessTypeAndUserByFolderRow struct {
-	UserID     uuid.UUID `json:"user_id"`
-	AccessType string    `json:"access_type"`
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error) {
@@ -165,8 +165,8 @@ WHERE folder_id = $1 AND user_id = $2
 `
 
 type GetFolderAccessForUserParams struct {
-	FolderID uuid.UUID `json:"folder_id"`
-	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
 }
 
 func (q *Queries) GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error) {
@@ -202,7 +202,7 @@ group by g.id, g.name, f.access_type
 type GetSharedGroupsForFolderRow struct {
 	ID         uuid.UUID `json:"id"`
 	Name       string    `json:"name"`
-	AccessType string    `json:"access_type"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedGroupsForFolderRow, error) {
@@ -280,8 +280,8 @@ SELECT EXISTS (
 `
 
 type IsFolderOwnerParams struct {
-	FolderID uuid.UUID `json:"folder_id"`
-	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
 }
 
 func (q *Queries) IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error) {
@@ -299,8 +299,8 @@ SELECT EXISTS (
 `
 
 type IsUserManagerOrOwnerParams struct {
-	FolderID uuid.UUID `json:"folder_id"`
-	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
 }
 
 func (q *Queries) IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error) {
