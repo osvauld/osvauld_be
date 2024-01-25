@@ -20,9 +20,9 @@ VALUES ($1, $2, $3)
 `
 
 type AddGroupMemberRecordParams struct {
-	GroupingID uuid.UUID `json:"grouping_id"`
-	UserID     uuid.UUID `json:"user_id"`
-	AccessType string    `json:"access_type"`
+	GroupingID uuid.UUID `json:"groupingId"`
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) AddGroupMemberRecord(ctx context.Context, arg AddGroupMemberRecordParams) error {
@@ -38,8 +38,8 @@ SELECT EXISTS (
 `
 
 type CheckUserMemberOfGroupParams struct {
-	UserID     uuid.UUID `json:"user_id"`
-	GroupingID uuid.UUID `json:"grouping_id"`
+	UserID     uuid.UUID `json:"userId"`
+	GroupingID uuid.UUID `json:"groupingId"`
 }
 
 func (q *Queries) CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error) {
@@ -57,7 +57,7 @@ RETURNING id
 
 type CreateGroupParams struct {
 	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"created_by"`
+	CreatedBy uuid.UUID `json:"createdBy"`
 }
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.UUID, error) {
@@ -73,9 +73,9 @@ WHERE group_id = $1 AND credential_id = $2 AND user_id = $3
 `
 
 type FetchCredentialAccessTypeForGroupMemberParams struct {
-	GroupID      uuid.NullUUID `json:"group_id"`
-	CredentialID uuid.UUID     `json:"credential_id"`
-	UserID       uuid.UUID     `json:"user_id"`
+	GroupID      uuid.NullUUID `json:"groupId"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
 }
 
 func (q *Queries) FetchCredentialAccessTypeForGroupMember(ctx context.Context, arg FetchCredentialAccessTypeForGroupMemberParams) (string, error) {
@@ -119,8 +119,8 @@ WHERE user_id = $1 AND grouping_id = $2
 `
 
 type FetchGroupAccessTypeParams struct {
-	UserID     uuid.UUID `json:"user_id"`
-	GroupingID uuid.UUID `json:"grouping_id"`
+	UserID     uuid.UUID `json:"userId"`
+	GroupingID uuid.UUID `json:"groupingId"`
 }
 
 func (q *Queries) FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error) {
@@ -140,8 +140,8 @@ WHERE group_list.user_id = $1
 type FetchUserGroupsRow struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"created_by"`
-	CreatedAt time.Time `json:"created_at"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error) {
