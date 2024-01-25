@@ -178,25 +178,12 @@ ORDER BY
 
 -- name: GetAllUrlsForUser :many
 SELECT DISTINCT
-    COALESCE(ud.url, '') AS url
+    field_value as value, credential_id as "credentialId"
 FROM 
-    unencrypted_data ud
-JOIN 
-    credentials c ON ud.credential_id = c.id
-JOIN 
-    access_list al ON c.id = al.credential_id
+    encrypted_data
 WHERE 
-    al.user_id = $1 AND ud.is_url = TRUE;
+    user_id = $1 AND field_name = 'Domain';
 
--- name: GetCredentialIdsByUrl :many
-SELECT credential_id 
-FROM unencrypted_data 
-WHERE url = $1
-AND credential_id IN (
-    SELECT DISTINCT credential_id 
-    FROM access_list 
-    WHERE user_id = $2
-);
 
 -- name: GetCredentialDetailsByIds :many
 SELECT
@@ -208,19 +195,10 @@ SELECT
             'fieldName', COALESCE(ED.field_name, ''),
             'fieldValue', ED.field_value
         )
-    ) AS "encryptedFields",
-    json_agg(
-        json_build_object(
-            'fieldName', COALESCE(UD.field_name, ''),
-            'fieldValue', UD.field_value,
-            'isUrl', UD.is_url,
-            'url', UD.url
-        )
-    ) AS "unencryptedFields"
+    ) AS "fields"
 FROM
     credentials C
 LEFT JOIN encrypted_data ED ON C.id = ED.credential_id AND ED.user_id = $2
-LEFT JOIN unencrypted_data UD ON C.id = UD.credential_id
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id;
