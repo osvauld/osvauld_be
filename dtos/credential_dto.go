@@ -94,3 +94,7 @@ type ShareCredentialTransactionParams struct {
 	CredentialArgs []CredentialFieldsForUserDto
 	FolderAccess   []UserFolderAccessDto
 }
+
+type GetCredentialsByIDsRequest struct {
+	CredentialIds []uuid.UUID `json:"credentialIds"`
+}
