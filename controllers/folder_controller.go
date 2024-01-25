@@ -74,7 +74,7 @@ func GetSharedUsersForFolder(ctx *gin.Context) {
 func GetSharedGroupsForFolder(ctx *gin.Context) {
 	folderIDStr := ctx.Param("id")
 	folderID, _ := uuid.Parse(folderIDStr)
-	groups, err := service.GetSharedUsersForFolder(ctx, folderID)
+	groups, err := service.GetSharedGroupsForFolder(ctx, folderID)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch required groups"))
 		return
