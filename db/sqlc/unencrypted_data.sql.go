@@ -20,10 +20,10 @@ VALUES
 `
 
 type CreateUnencryptedDataParams struct {
-	FieldName    string         `json:"field_name"`
-	CredentialID uuid.UUID      `json:"credential_id"`
-	FieldValue   string         `json:"field_value"`
-	IsUrl        bool           `json:"is_url"`
+	FieldName    string         `json:"fieldName"`
+	CredentialID uuid.UUID      `json:"credentialId"`
+	FieldValue   string         `json:"fieldValue"`
+	IsUrl        bool           `json:"isUrl"`
 	Url          sql.NullString `json:"url"`
 }
 
@@ -53,8 +53,8 @@ WHERE
 
 type FetchUnencryptedFieldsByCredentialIDRow struct {
 	ID         uuid.UUID `json:"id"`
-	FieldName  string    `json:"field_name"`
-	FieldValue string    `json:"field_value"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
 }
 
 func (q *Queries) FetchUnencryptedFieldsByCredentialID(ctx context.Context, credentialID uuid.UUID) ([]FetchUnencryptedFieldsByCredentialIDRow, error) {

@@ -21,12 +21,12 @@ WHERE encrypted_data.id = $1 AND encrypted_data.user_id = $2
 
 type FetchFieldNameAndTypeByFieldIDForUserParams struct {
 	ID     uuid.UUID `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	UserID uuid.UUID `json:"userId"`
 }
 
 type FetchFieldNameAndTypeByFieldIDForUserRow struct {
-	FieldName string `json:"field_name"`
-	FieldType string `json:"field_type"`
+	FieldName string `json:"fieldName"`
+	FieldType string `json:"fieldType"`
 }
 
 func (q *Queries) FetchFieldNameAndTypeByFieldIDForUser(ctx context.Context, arg FetchFieldNameAndTypeByFieldIDForUserParams) (FetchFieldNameAndTypeByFieldIDForUserRow, error) {

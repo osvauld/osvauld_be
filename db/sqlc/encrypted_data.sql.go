@@ -24,14 +24,14 @@ WHERE
 `
 
 type FetchEncryptedFieldsByCredentialIDAndUserIDParams struct {
-	CredentialID uuid.UUID `json:"credential_id"`
-	UserID       uuid.UUID `json:"user_id"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
 }
 
 type FetchEncryptedFieldsByCredentialIDAndUserIDRow struct {
 	ID         uuid.UUID `json:"id"`
-	FieldName  string    `json:"field_name"`
-	FieldValue string    `json:"field_value"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
 }
 
 func (q *Queries) FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error) {

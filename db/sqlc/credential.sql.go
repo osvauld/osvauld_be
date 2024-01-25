@@ -37,9 +37,9 @@ VALUES
 type CreateCredentialParams struct {
 	Name           string         `json:"name"`
 	Description    sql.NullString `json:"description"`
-	CredentialType string         `json:"credential_type"`
-	FolderID       uuid.UUID      `json:"folder_id"`
-	CreatedBy      uuid.UUID      `json:"created_by"`
+	CredentialType string         `json:"credentialType"`
+	FolderID       uuid.UUID      `json:"folderId"`
+	CreatedBy      uuid.UUID      `json:"createdBy"`
 }
 
 // sql/create_credential.sql
@@ -64,11 +64,11 @@ VALUES
 `
 
 type CreateFieldDataParams struct {
-	FieldName    string    `json:"field_name"`
-	FieldValue   string    `json:"field_value"`
-	CredentialID uuid.UUID `json:"credential_id"`
-	FieldType    string    `json:"field_type"`
-	UserID       uuid.UUID `json:"user_id"`
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	FieldType    string    `json:"fieldType"`
+	UserID       uuid.UUID `json:"userId"`
 }
 
 func (q *Queries) CreateFieldData(ctx context.Context, arg CreateFieldDataParams) (uuid.UUID, error) {
@@ -101,12 +101,12 @@ WHERE
 
 type FetchCredentialDataByIDRow struct {
 	ID          uuid.UUID      `json:"id"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	FolderID    uuid.UUID      `json:"folder_id"`
-	CreatedBy   uuid.UUID      `json:"created_by"`
+	FolderID    uuid.UUID      `json:"folderId"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
 }
 
 func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error) {
@@ -140,8 +140,8 @@ WHERE
 `
 
 type FetchCredentialFieldsForUserByCredentialIdsParams struct {
-	Column1 []uuid.UUID `json:"column_1"`
-	UserID  uuid.UUID   `json:"user_id"`
+	Column1 []uuid.UUID `json:"column1"`
+	UserID  uuid.UUID   `json:"userId"`
 }
 
 type FetchCredentialFieldsForUserByCredentialIdsRow struct {
@@ -200,8 +200,8 @@ WHERE
 `
 
 type FetchCredentialIdsForUserByFolderIdParams struct {
-	FolderID uuid.UUID `json:"folder_id"`
-	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
 }
 
 type FetchCredentialIdsForUserByFolderIdRow struct {
@@ -371,8 +371,8 @@ GROUP BY C.id
 `
 
 type GetCredentialDetailsByIdsParams struct {
-	Column1 []uuid.UUID `json:"column_1"`
-	UserID  uuid.UUID   `json:"user_id"`
+	Column1 []uuid.UUID `json:"column1"`
+	UserID  uuid.UUID   `json:"userId"`
 }
 
 type GetCredentialDetailsByIdsRow struct {
@@ -423,8 +423,8 @@ WHERE
 `
 
 type GetCredentialIdsByFolderParams struct {
-	UserID   uuid.UUID `json:"user_id"`
-	FolderID uuid.UUID `json:"folder_id"`
+	UserID   uuid.UUID `json:"userId"`
+	FolderID uuid.UUID `json:"folderId"`
 }
 
 func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error) {
@@ -511,8 +511,8 @@ ORDER BY
 `
 
 type GetCredentialsFieldsByIdsParams struct {
-	Column1 []uuid.UUID `json:"column_1"`
-	UserID  uuid.UUID   `json:"user_id"`
+	Column1 []uuid.UUID `json:"column1"`
+	UserID  uuid.UUID   `json:"userId"`
 }
 
 type GetCredentialsFieldsByIdsRow struct {
@@ -567,8 +567,8 @@ ORDER BY
 `
 
 type GetEncryptedCredentialsByFolderParams struct {
-	FolderID uuid.UUID `json:"folder_id"`
-	UserID   uuid.UUID `json:"user_id"`
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
 }
 
 type GetEncryptedCredentialsByFolderRow struct {
@@ -611,8 +611,8 @@ WHERE
 `
 
 type GetSensitiveFieldsParams struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CredentialID uuid.UUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"userId"`
+	CredentialID uuid.UUID `json:"credentialId"`
 }
 
 type GetSensitiveFieldsRow struct {
@@ -656,8 +656,8 @@ WHERE
 `
 
 type GetUserEncryptedDataParams struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CredentialID uuid.UUID `json:"credential_id"`
+	UserID       uuid.UUID `json:"userId"`
+	CredentialID uuid.UUID `json:"credentialId"`
 }
 
 type GetUserEncryptedDataRow struct {
