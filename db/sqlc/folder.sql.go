@@ -202,7 +202,7 @@ group by g.id, g.name, f.access_type
 type GetSharedGroupsForFolderRow struct {
 	ID         uuid.UUID `json:"id"`
 	Name       string    `json:"name"`
-	AccessType string    `json:"access_type"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedGroupsForFolderRow, error) {
