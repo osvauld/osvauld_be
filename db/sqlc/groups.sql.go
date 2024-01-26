@@ -20,9 +20,9 @@ VALUES ($1, $2, $3)
 `
 
 type AddGroupMemberParams struct {
-	GroupingID uuid.UUID `json:"grouping_id"`
-	UserID     uuid.UUID `json:"user_id"`
-	AccessType string    `json:"access_type"`
+	GroupingID uuid.UUID `json:"groupingId"`
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error {
@@ -63,10 +63,11 @@ type CreateGroupParams struct {
 type CreateGroupRow struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"created_by"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
-func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.UUID, error) {
+func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error) {
 	row := q.db.QueryRowContext(ctx, createGroup, arg.Name, arg.CreatedBy)
 	var i CreateGroupRow
 	err := row.Scan(
