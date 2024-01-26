@@ -10,9 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddGroup(ctx *gin.Context, group dto.CreateGroup, userID uuid.UUID) (uuid.UUID, error) {
-	groupID, err := repository.CreateGroup(ctx, group, userID)
-	return groupID, err
+func AddGroup(ctx *gin.Context, groupName string, caller uuid.UUID) (dto.GroupDetails, error) {
+
+	groupDto := dto.GroupDetails{
+		Name:      groupName,
+		CreatedBy: caller,
+	}
+
+	groupDetails, err := repository.CreateGroupAndAddManager(ctx, groupDto)
+
+	return groupDetails, err
 }
 
 func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]dto.GroupDetails, error) {

@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreateGroup struct {
+type CreateGroupRequest struct {
 	Name string `json:"name"`
 }
 

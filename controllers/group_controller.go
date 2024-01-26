@@ -14,29 +14,39 @@ import (
 )
 
 func CreateGroup(ctx *gin.Context) {
-	var req dto.CreateGroup
+	var req dto.CreateGroupRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	_, err := service.AddGroup(ctx, req, userID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "failed to create group", errors.New("failed to create user"))
+		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
 		return
 	}
-	SendResponse(ctx, 201, nil, "created group", nil)
+
+	groupDetails, err := service.AddGroup(ctx, req.Name, caller)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "", errors.New("failed to create user"))
+		return
+	}
+
+	SendResponse(ctx, 201, groupDetails, "created group", nil)
 
 }
 
 func GetUserGroups(ctx *gin.Context) {
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	groups, err := service.GetUserGroups(ctx, userID)
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to fetch Groups", errors.New("failed to fetch users"))
+		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		return
+	}
+
+	groups, err := service.GetUserGroups(ctx, caller)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch users"))
 		return
 	}
 	SendResponse(ctx, 200, groups, "Fetched user groups", nil)
@@ -102,6 +112,7 @@ func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
 
 	SendResponse(ctx, 200, encrypteData, "Fetched credentials", nil)
 }
+
 
 func AddMemberToGroup(ctx *gin.Context) {
 

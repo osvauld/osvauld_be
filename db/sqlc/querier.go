@@ -16,7 +16,7 @@ type Querier interface {
 	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAccessWithGroupParams) error
-	AddGroupMemberRecord(ctx context.Context, arg AddGroupMemberRecordParams) error
+	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
 	AddToAccessList(ctx context.Context, arg AddToAccessListParams) (uuid.UUID, error)
 	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
 	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
@@ -26,7 +26,7 @@ type Querier interface {
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateFieldData(ctx context.Context, arg CreateFieldDataParams) (uuid.UUID, error)
 	CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error)
-	CreateGroup(ctx context.Context, arg CreateGroupParams) (uuid.UUID, error)
+	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
 	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
@@ -43,39 +43,7 @@ type Querier interface {
 	FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error)
 	FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID) ([]FetchUsersByGroupIdsRow, error)
 	GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error)
-	// -- name: GetCredentialsByUrl :many
-	// WITH CredentialWithUnencrypted AS (
-	//     SELECT
-	//         C.id AS "id",
-	//         C.name AS "name",
-	//         COALESCE(C.description, '') AS "description",
-	//         json_agg(
-	//             json_build_object(
-	//                 'fieldName', u.field_name,
-	//                 'fieldValue', u.field_value,
-	//                 'isUrl', u.is_url,
-	//                 'url', u.url
-	//             )
-	//         ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
-	//     FROM
-	//         credentials C
-	//         LEFT JOIN unencrypted_data u ON C.id = u.credential_id
-	//     WHERE
-	//         C.id IN (SELECT credential_id FROM unencrypted_data as und WHERE und.url = $1)
-	//     GROUP BY
-	//         C.id
-	// ),
-	// DistinctAccess AS (
-	//     SELECT DISTINCT credential_id
-	//     FROM access_list
-	//     WHERE user_id = $2
-	// )
-	// SELECT
-	//     cwu.*
-	// FROM
-	//     CredentialWithUnencrypted cwu
-	// JOIN
-	//     DistinctAccess DA ON cwu.id = DA.credential_id;
+
 	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
@@ -87,6 +55,7 @@ type Querier interface {
 	GetCredentialsFieldsByIds(ctx context.Context, arg GetCredentialsFieldsByIdsParams) ([]GetCredentialsFieldsByIdsRow, error)
 	GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEncryptedCredentialsByFolderParams) ([]GetEncryptedCredentialsByFolderRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)
+	//-----------------------------------------------------------------------------------------------------
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
 	GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID) ([]GetGroupsWithoutAccessRow, error)
 	GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error)

@@ -7,21 +7,21 @@ import (
 	"github.com/google/uuid"
 )
 
-func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, args CreateGroupParams) (uuid.UUID, error) {
+func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData dto.GroupDetails) (dto.GroupDetails, error) {
 
-	var groupID uuid.UUID
+	var createGroupResult CreateGroupRow
 	err := store.execTx(ctx, func(q *Queries) error {
-		groupID, err := q.CreateGroup(ctx, CreateGroupParams{
-			Name:      args.Name,
-			CreatedBy: args.CreatedBy,
+		createGroupResult, err := q.CreateGroup(ctx, CreateGroupParams{
+			Name:      groupData.Name,
+			CreatedBy: groupData.CreatedBy,
 		})
 		if err != nil {
 			return err
 		}
 
-		err = q.AddGroupMemberRecord(ctx, AddGroupMemberRecordParams{
-			GroupingID: groupID,
-			UserID:     args.CreatedBy,
+		err = q.AddGroupMember(ctx, AddGroupMemberParams{
+			GroupingID: createGroupResult.ID,
+			UserID:     groupData.CreatedBy,
 			AccessType: "manager",
 		})
 		if err != nil {
@@ -30,7 +30,11 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, args Create
 
 		return nil
 	})
-	return groupID, err
+
+	groupData.GroupID = createGroupResult.ID
+	groupData.CreatedAt = createGroupResult.CreatedAt
+
+	return groupData, err
 }
 
 type AddMemberToGroupTransactionParams struct {
@@ -44,7 +48,7 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		// Add record to grouping table
-		err := q.AddGroupMemberRecord(ctx, AddGroupMemberRecordParams{
+		err := q.AddGroupMember(ctx, AddGroupMemberParams{
 			GroupingID: args.GroupID,
 			UserID:     args.UserID,
 			AccessType: args.MemberRole,

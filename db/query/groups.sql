@@ -1,14 +1,25 @@
-
-
 -- name: CreateGroup :one
 INSERT INTO groupings (name, created_by)
 VALUES ($1, $2)
-RETURNING id;
+RETURNING id, name, created_by, created_at;
 
 
--- name: AddGroupMemberRecord :exec
+-- name: AddGroupMember :exec
 INSERT INTO group_list (grouping_id, user_id, access_type)
 VALUES ($1, $2, $3);
+
+
+-- name: FetchUserGroups :many
+SELECT groupings.id, groupings.name, groupings.created_by, groupings.created_at
+FROM groupings
+JOIN group_list ON group_list.grouping_id = groupings.id
+WHERE group_list.user_id = $1;
+
+
+-------------------------------------------------------------------------------------------------------
+
+
+
 
 
 -- name: GetGroupMembers :many
@@ -17,11 +28,6 @@ FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1;
 
--- name: FetchUserGroups :many
-SELECT groupings.id, groupings.name, groupings.created_by, groupings.created_at
-FROM groupings
-JOIN group_list ON group_list.grouping_id = groupings.id
-WHERE group_list.user_id = $1;
 
 -- name: CheckUserMemberOfGroup :one
 SELECT EXISTS (
