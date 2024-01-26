@@ -13,101 +13,101 @@ import (
 
 type AccessList struct {
 	ID           uuid.UUID     `json:"id"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	CredentialID uuid.UUID     `json:"credential_id"`
-	UserID       uuid.UUID     `json:"user_id"`
-	AccessType   string        `json:"access_type"`
-	GroupID      uuid.NullUUID `json:"group_id"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
+	AccessType   string        `json:"accessType"`
+	GroupID      uuid.NullUUID `json:"groupId"`
 }
 
 type Credential struct {
 	ID             uuid.UUID      `json:"id"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 	Name           string         `json:"name"`
 	Description    sql.NullString `json:"description"`
-	CredentialType string         `json:"credential_type"`
-	FolderID       uuid.UUID      `json:"folder_id"`
-	CreatedBy      uuid.UUID      `json:"created_by"`
+	CredentialType string         `json:"credentialType"`
+	FolderID       uuid.UUID      `json:"folderId"`
+	CreatedBy      uuid.UUID      `json:"createdBy"`
 }
 
 type EncryptedDatum struct {
 	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	FieldName    string    `json:"field_name"`
-	CredentialID uuid.UUID `json:"credential_id"`
-	FieldValue   string    `json:"field_value"`
-	UserID       uuid.UUID `json:"user_id"`
-	FieldType    string    `json:"field_type"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	FieldName    string    `json:"fieldName"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	FieldValue   string    `json:"fieldValue"`
+	UserID       uuid.UUID `json:"userId"`
+	FieldType    string    `json:"fieldType"`
 }
 
 type Folder struct {
 	ID          uuid.UUID      `json:"id"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"created_by"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
 }
 
 type FolderAccess struct {
 	ID         uuid.UUID     `json:"id"`
-	CreatedAt  time.Time     `json:"created_at"`
-	UpdatedAt  time.Time     `json:"updated_at"`
-	FolderID   uuid.UUID     `json:"folder_id"`
-	UserID     uuid.UUID     `json:"user_id"`
-	AccessType string        `json:"access_type"`
-	GroupID    uuid.NullUUID `json:"group_id"`
+	CreatedAt  time.Time     `json:"createdAt"`
+	UpdatedAt  time.Time     `json:"updatedAt"`
+	FolderID   uuid.UUID     `json:"folderId"`
+	UserID     uuid.UUID     `json:"userId"`
+	AccessType string        `json:"accessType"`
+	GroupID    uuid.NullUUID `json:"groupId"`
 }
 
 type GroupList struct {
 	ID         uuid.UUID `json:"id"`
-	GroupingID uuid.UUID `json:"grouping_id"`
-	UserID     uuid.UUID `json:"user_id"`
-	AccessType string    `json:"access_type"`
-	CreatedAt  time.Time `json:"created_at"`
+	GroupingID uuid.UUID `json:"groupingId"`
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 type Grouping struct {
 	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"created_by"`
+	CreatedBy uuid.UUID `json:"createdBy"`
 }
 
 type SessionTable struct {
 	ID        uuid.UUID      `json:"id"`
-	UserID    uuid.UUID      `json:"user_id"`
-	PublicKey string         `json:"public_key"`
+	UserID    uuid.UUID      `json:"userId"`
+	PublicKey string         `json:"publicKey"`
 	Challenge string         `json:"challenge"`
-	DeviceID  sql.NullString `json:"device_id"`
-	SessionID sql.NullString `json:"session_id"`
-	CreatedAt sql.NullTime   `json:"created_at"`
-	UpdatedAt sql.NullTime   `json:"updated_at"`
+	DeviceID  sql.NullString `json:"deviceId"`
+	SessionID sql.NullString `json:"sessionId"`
+	CreatedAt sql.NullTime   `json:"createdAt"`
+	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 
 type UnencryptedDatum struct {
 	ID           uuid.UUID      `json:"id"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	FieldName    string         `json:"field_name"`
-	CredentialID uuid.UUID      `json:"credential_id"`
-	IsUrl        bool           `json:"is_url"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	FieldName    string         `json:"fieldName"`
+	CredentialID uuid.UUID      `json:"credentialId"`
+	IsUrl        bool           `json:"isUrl"`
 	Url          sql.NullString `json:"url"`
-	FieldValue   string         `json:"field_value"`
+	FieldValue   string         `json:"fieldValue"`
 }
 
 type User struct {
 	ID           uuid.UUID      `json:"id"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
 	Username     string         `json:"username"`
 	Name         string         `json:"name"`
-	RsaPubKey    sql.NullString `json:"rsa_pub_key"`
-	EccPubKey    sql.NullString `json:"ecc_pub_key"`
-	TempPassword string         `json:"temp_password"`
-	SignedUp     bool           `json:"signed_up"`
+	RsaPubKey    sql.NullString `json:"rsaPubKey"`
+	EccPubKey    sql.NullString `json:"eccPubKey"`
+	TempPassword string         `json:"tempPassword"`
+	SignedUp     bool           `json:"signedUp"`
 }
