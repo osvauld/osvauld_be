@@ -184,3 +184,35 @@ func GetCredentialGroups(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, users, "fetched credential users", nil)
 }
+
+func GetUsersWithoutGroupAccess(ctx *gin.Context) {
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	groupIDStr := ctx.Param("groupId")
+	groupID, err := uuid.Parse(groupIDStr)
+
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 400, nil, "Invalid group id", errors.New("invalid group id"))
+		return
+	}
+
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 500, nil, "Failed to fetch Group members", errors.New("failed to fetch group members"))
+		return
+	}
+
+	users, err := service.GetUsersWithoutGroupAccess(ctx, userID, groupID)
+
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 500, nil, "failed to fetch users without", errors.New("failed to fetch users that are not group members"))
+		return
+	}
+	SendResponse(ctx, 200, users, "Fetched users not in group", nil)
+}

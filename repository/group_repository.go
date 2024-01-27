@@ -95,3 +95,7 @@ func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersBy
 	}
 	return users, nil
 }
+
+func GetUsersWithoutGroupAccess(ctx *gin.Context, groupId uuid.UUID) ([]db.GetUsersWithoutGroupAccessRow, error) {
+	return database.Store.GetUsersWithoutGroupAccess(ctx, groupId)
+}

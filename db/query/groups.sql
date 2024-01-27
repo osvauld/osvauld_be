@@ -77,3 +77,9 @@ WHERE id NOT IN (
     FROM folder_access
     WHERE folder_id = $1 AND group_id IS NOT NULL
 );
+
+
+-- name: GetUsersWithoutGroupAccess :many
+SELECT u.id, u.username, u.name, COALESCE(u.rsa_pub_key,'') as "publicKey"
+FROM users u
+LEFT JOIN group_list gl ON u.id = gl.user_id AND gl.grouping_id = $1;
