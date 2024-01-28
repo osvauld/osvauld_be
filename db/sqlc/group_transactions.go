@@ -61,7 +61,7 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 		for _, credential := range args.UserEncryptedData {
 			for _, field := range credential.Fields {
 
-				_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
+				_, err = q.AddFieldData(ctx, AddFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
 					CredentialID: credential.CredentialID,
@@ -76,13 +76,13 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 		// Add permissions to access list
 		for _, credential := range args.UserEncryptedData {
 
-			accessListParams := AddToAccessListParams{
+			accessListParams := AddCredentialAccessParams{
 				CredentialID: credential.CredentialID,
 				UserID:       args.UserID,
 				AccessType:   credential.AccessType,
 				GroupID:      uuid.NullUUID{UUID: args.GroupID, Valid: true},
 			}
-			_, err = q.AddToAccessList(ctx, accessListParams)
+			_, err = q.AddCredentialAccess(ctx, accessListParams)
 			if err != nil {
 				return err
 			}

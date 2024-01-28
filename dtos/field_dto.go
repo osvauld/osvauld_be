@@ -20,6 +20,7 @@ type Field struct {
 	FieldType  string    `json:"fieldType"`
 }
 
+
 type ShareField struct {
 	ID         uuid.UUID `json:"fieldId"`
 	FieldValue string    `json:"fieldValue"`

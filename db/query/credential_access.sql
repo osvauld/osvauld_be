@@ -1,4 +1,4 @@
--- name: AddToAccessList :one
+-- name: AddCredentialAccess :one
 
 INSERT INTO access_list (credential_id, user_id, access_type, group_id)
 VALUES ($1, $2, $3, $4)

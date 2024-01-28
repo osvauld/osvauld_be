@@ -55,26 +55,28 @@ func GetUserGroups(ctx *gin.Context) {
 
 func GetGroupMembers(ctx *gin.Context) {
 
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		return
+	}
 
 	groupIDStr := ctx.Param("groupId")
-	groupID, _ := uuid.Parse(groupIDStr)
-
-	// Check user is authorized to see members of the group
-	isMember, err := service.CheckUserMemberOfGroup(ctx, userID, groupID)
-	if !isMember {
-		SendResponse(ctx, 401, nil, "", errors.New("unauthorized for group view"))
-		return
-	}
+	groupID, err := uuid.Parse(groupIDStr)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to fetch Group members", errors.New("failed to fetch group members"))
+		SendResponse(ctx, 400, nil, "", errors.New("invalid group id"))
 		return
 	}
 
-	groups, err := service.GetGroupMembers(ctx, userID, groupID)
+	groups, err := service.GetGroupMembers(ctx, groupID, caller)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to fetch Group members", errors.New("failed to fetch group members"))
+
+		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
+			SendResponse(ctx, 401, nil, err.Error(), nil)
+			return
+		}
+
+		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch group members"))
 		return
 	}
 	SendResponse(ctx, 200, groups, "Fetched group memebers", nil)
@@ -84,7 +86,7 @@ func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
 
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
 		return
 	}
 
@@ -113,7 +115,6 @@ func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
 	SendResponse(ctx, 200, encrypteData, "Fetched credentials", nil)
 }
 
-
 func AddMemberToGroup(ctx *gin.Context) {
 
 	userID, err := utils.FetchUserIDFromCtx(ctx)
@@ -132,13 +133,13 @@ func AddMemberToGroup(ctx *gin.Context) {
 	if err != nil {
 		logger.Errorf(err.Error())
 		if _, ok := err.(*customerrors.UserAlreadyMemberOfGroupError); ok {
-			SendResponse(ctx, 409, nil, err.Error(), nil)
+			SendResponse(ctx, 409, nil, "", err)
 			return
 		} else if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, err.Error(), nil)
+			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 400, nil, err.Error(), nil)
+		SendResponse(ctx, 400, nil, "", err)
 		return
 	}
 

@@ -13,35 +13,19 @@ import (
 )
 
 const addFolderAccess = `-- name: AddFolderAccess :exec
-INSERT INTO folder_access (folder_id, user_id, access_type)
-VALUES ($1, $2, $3)
-`
-
-type AddFolderAccessParams struct {
-	FolderID   uuid.UUID `json:"folderId"`
-	UserID     uuid.UUID `json:"userId"`
-	AccessType string    `json:"accessType"`
-}
-
-func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
-	_, err := q.db.ExecContext(ctx, addFolderAccess, arg.FolderID, arg.UserID, arg.AccessType)
-	return err
-}
-
-const addFolderAccessWithGroup = `-- name: AddFolderAccessWithGroup :exec
 INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
 VALUES ($1, $2, $3, $4)
 `
 
-type AddFolderAccessWithGroupParams struct {
+type AddFolderAccessParams struct {
 	FolderID   uuid.UUID     `json:"folderId"`
 	UserID     uuid.UUID     `json:"userId"`
 	AccessType string        `json:"accessType"`
 	GroupID    uuid.NullUUID `json:"groupId"`
 }
 
-func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAccessWithGroupParams) error {
-	_, err := q.db.ExecContext(ctx, addFolderAccessWithGroup,
+func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
+	_, err := q.db.ExecContext(ctx, addFolderAccess,
 		arg.FolderID,
 		arg.UserID,
 		arg.AccessType,

@@ -31,7 +31,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 		// Create field records
 		for _, userFields := range args.UserFieldsWithAccessType {
 			for _, field := range userFields.Fields {
-				_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
+				_, err = q.AddFieldData(ctx, AddFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
 					CredentialID: credentialID,
@@ -43,12 +43,12 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 				}
 			}
 
-			accessListParams := AddToAccessListParams{
+			accessListParams := AddCredentialAccessParams{
 				CredentialID: credentialID,
 				UserID:       userFields.UserID,
 				AccessType:   userFields.AccessType,
 			}
-			q.AddToAccessList(ctx, accessListParams)
+			q.AddCredentialAccess(ctx, accessListParams)
 		}
 
 		return nil

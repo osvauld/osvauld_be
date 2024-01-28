@@ -79,19 +79,18 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Creat
 	return i, err
 }
 
-const fetchCredentialAccessTypeForGroupMember = `-- name: FetchCredentialAccessTypeForGroupMember :one
+const fetchCredentialAccessTypeForGroup = `-- name: FetchCredentialAccessTypeForGroup :one
 SELECT access_type FROM access_list
-WHERE group_id = $1 AND credential_id = $2 AND user_id = $3
+WHERE group_id = $1 AND credential_id = $2
 `
 
-type FetchCredentialAccessTypeForGroupMemberParams struct {
+type FetchCredentialAccessTypeForGroupParams struct {
 	GroupID      uuid.NullUUID `json:"groupId"`
 	CredentialID uuid.UUID     `json:"credentialId"`
-	UserID       uuid.UUID     `json:"userId"`
 }
 
-func (q *Queries) FetchCredentialAccessTypeForGroupMember(ctx context.Context, arg FetchCredentialAccessTypeForGroupMemberParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, fetchCredentialAccessTypeForGroupMember, arg.GroupID, arg.CredentialID, arg.UserID)
+func (q *Queries) FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, fetchCredentialAccessTypeForGroup, arg.GroupID, arg.CredentialID)
 	var access_type string
 	err := row.Scan(&access_type)
 	return access_type, err
@@ -126,6 +125,14 @@ func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, groupID
 }
 
 const fetchGroupAccessType = `-- name: FetchGroupAccessType :one
+
+
+
+
+
+
+
+
 SELECT access_type FROM group_list
 WHERE user_id = $1 AND grouping_id = $2
 `
@@ -135,6 +142,7 @@ type FetchGroupAccessTypeParams struct {
 	GroupingID uuid.UUID `json:"groupingId"`
 }
 
+// -----------------------------------------------------------------------------------------------------
 func (q *Queries) FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, fetchGroupAccessType, arg.UserID, arg.GroupingID)
 	var access_type string
@@ -229,11 +237,6 @@ func (q *Queries) FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-
-
-
-
-
 SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key, '') as "publicKey"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
@@ -247,7 +250,6 @@ type GetGroupMembersRow struct {
 	PublicKey string    `json:"publicKey"`
 }
 
-// -----------------------------------------------------------------------------------------------------
 func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error) {
 	rows, err := q.db.QueryContext(ctx, getGroupMembers, groupingID)
 	if err != nil {

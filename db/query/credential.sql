@@ -5,13 +5,6 @@ INSERT INTO
 VALUES
     ($1, $2, $3, $4, $5) RETURNING id;
 
--- name: CreateFieldData :one
-INSERT INTO
-    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
-VALUES
-    ($1, $2, $3, $4, $5) RETURNING id;
-
-
 
 -- name: FetchCredentialDataByID :one
 SELECT
