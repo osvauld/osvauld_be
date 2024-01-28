@@ -16,6 +16,7 @@ type Querier interface {
 	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
 	AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error)
 	AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error)
+	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
 	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
@@ -24,11 +25,10 @@ type Querier interface {
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
 	// sql/create_credential.sql
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
-	CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
-	FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error)
+	FetchAccessibleFolderIdsThroughCredentialsForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)
 	FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error)
@@ -37,6 +37,7 @@ type Querier interface {
 	FetchCredentialIdsForUserByFolderId(ctx context.Context, arg FetchCredentialIdsForUserByFolderIdParams) ([]FetchCredentialIdsForUserByFolderIdRow, error)
 	FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error)
 	FetchFieldNameAndTypeByFieldIDForUser(ctx context.Context, arg FetchFieldNameAndTypeByFieldIDForUserParams) (FetchFieldNameAndTypeByFieldIDForUserRow, error)
+	FetchFoldersWithDirectUserAccess(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	//-----------------------------------------------------------------------------------------------------
 	FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error)
 	FetchUnencryptedFieldsByCredentialID(ctx context.Context, credentialID uuid.UUID) ([]FetchUnencryptedFieldsByCredentialIDRow, error)

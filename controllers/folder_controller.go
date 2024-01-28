@@ -2,39 +2,50 @@ package controllers
 
 import (
 	"errors"
-	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	service "osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func CreateFolder(ctx *gin.Context) {
-	var req dto.CreateFolder
+	var req dto.CreateFolderRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		logger.Errorf(err.Error())
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request"})
+		SendResponse(ctx, 400, nil, "", err)
 	}
 
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	err := service.CreateFolder(ctx, req, userID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
+		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		return
+	}
+
+	folderDetails, err := service.CreateFolder(ctx, req, caller)
+	if err != nil {
+		logger.Errorf(err.Error())
 		SendResponse(ctx, 500, nil, "Failed to create folder", errors.New("failed to create folder"))
 		return
 	}
-	SendResponse(ctx, 201, nil, "Created folder", nil)
+
+	SendResponse(ctx, 200, folderDetails, "", nil)
 }
 
 func GetAccessibleFolders(ctx *gin.Context) {
 
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		return
+	}
+
 	folders, err := service.GetAccessibleFolders(ctx, userID)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to get folders", errors.New("failed to fetch required folders"))
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch required folders"))
 		return
 	}
 

@@ -8,9 +8,34 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+const addFolder = `-- name: AddFolder :one
+INSERT INTO folders (name, description, created_by)
+VALUES ($1, $2, $3)
+RETURNING id, created_at
+`
+
+type AddFolderParams struct {
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
+}
+
+type AddFolderRow struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+func (q *Queries) AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error) {
+	row := q.db.QueryRowContext(ctx, addFolder, arg.Name, arg.Description, arg.CreatedBy)
+	var i AddFolderRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
 
 const addFolderAccess = `-- name: AddFolderAccess :exec
 INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
@@ -34,71 +59,55 @@ func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams
 	return err
 }
 
-const createFolder = `-- name: CreateFolder :one
-WITH new_folder AS (
-  INSERT INTO folders (name, description, created_by)
-  VALUES ($1, $2, $3)
-  RETURNING id
-),
-folder_access_insert AS (
-  INSERT INTO folder_access (folder_id, user_id, access_type)
-  SELECT id, $3, 'owner' FROM new_folder
-)
-SELECT id FROM new_folder
+const fetchAccessibleFolderIdsThroughCredentialsForUser = `-- name: FetchAccessibleFolderIdsThroughCredentialsForUser :many
+SELECT DISTINCT(folder_id)
+FROM credentials
+JOIN access_list ON credentials.id = access_list.credential_id
+WHERE access_list.user_id = $1
 `
 
-type CreateFolderParams struct {
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
-}
-
-func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createFolder, arg.Name, arg.Description, arg.CreatedBy)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
-const fetchAccessibleAndCreatedFoldersByUser = `-- name: FetchAccessibleAndCreatedFoldersByUser :many
-WITH unique_credential_ids AS (
-  SELECT DISTINCT credential_id
-  FROM access_list
-  WHERE user_id = $1
-),
-unique_folder_ids AS (
-  SELECT DISTINCT folder_id
-  FROM credentials
-  WHERE id IN (SELECT credential_id FROM unique_credential_ids)
-)
-SELECT 
-    id, 
-    name, 
-    COALESCE(description, '') AS description 
-FROM folders f
-WHERE f.id IN (SELECT folder_id FROM unique_folder_ids)
-   OR f.created_by = $1
-`
-
-type FetchAccessibleAndCreatedFoldersByUserRow struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-}
-
-func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, fetchAccessibleAndCreatedFoldersByUser, createdBy)
+func (q *Queries) FetchAccessibleFolderIdsThroughCredentialsForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, fetchAccessibleFolderIdsThroughCredentialsForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []FetchAccessibleAndCreatedFoldersByUserRow{}
+	items := []uuid.UUID{}
 	for rows.Next() {
-		var i FetchAccessibleAndCreatedFoldersByUserRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+		var folder_id uuid.UUID
+		if err := rows.Scan(&folder_id); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, folder_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fetchFoldersWithDirectUserAccess = `-- name: FetchFoldersWithDirectUserAccess :many
+SELECT DISTINCT(folder_id)
+FROM folder_access
+WHERE user_id = $1
+`
+
+func (q *Queries) FetchFoldersWithDirectUserAccess(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, fetchFoldersWithDirectUserAccess, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var folder_id uuid.UUID
+		if err := rows.Scan(&folder_id); err != nil {
+			return nil, err
+		}
+		items = append(items, folder_id)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

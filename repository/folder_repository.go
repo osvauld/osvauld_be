@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/infra/database"
@@ -11,27 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateFolder(ctx *gin.Context, folder dto.CreateFolder, userID uuid.UUID) (uuid.UUID, error) {
-	arg := db.CreateFolderParams{
-		Name:        folder.Name,
-		Description: sql.NullString{String: folder.Description, Valid: true},
-		CreatedBy:   userID,
-	}
-	id, err := database.Store.CreateFolder(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return uuid.Nil, err
-	}
-	return id, nil
+func CreateFolder(ctx *gin.Context, args db.CreateFolderTransactionParams) (dto.FolderDetails, error) {
+	return database.Store.CreateFolderTransaction(ctx, args)
 }
 
-func GetAccessibleFolders(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleAndCreatedFoldersByUserRow, error) {
-	folders, err := database.Store.FetchAccessibleAndCreatedFoldersByUser(ctx, userID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return folders, nil
+func FetchAccessibleFoldersThroughCredentialsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleFoldersThroughCredentialsForUserRow, error) {
+
+	return database.Store.FetchAccessibleFoldersThroughCredentialsForUser(ctx, userID)
 }
 
 func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
