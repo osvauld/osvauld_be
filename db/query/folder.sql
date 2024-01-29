@@ -18,12 +18,6 @@ LEFT JOIN access_list al ON c.id = al.credential_id AND al.user_id = $1
 WHERE fa.folder_id IS NOT NULL OR al.folder_id IS NOT NULL;
 
 
--- name: FetchFoldersWithDirectUserAccess :many
-SELECT DISTINCT(folder_id)
-FROM folder_access
-WHERE user_id = $1;
-
-
 -- name: IsFolderOwner :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access

@@ -105,35 +105,6 @@ func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid
 	return items, nil
 }
 
-const fetchFoldersWithDirectUserAccess = `-- name: FetchFoldersWithDirectUserAccess :many
-SELECT DISTINCT(folder_id)
-FROM folder_access
-WHERE user_id = $1
-`
-
-func (q *Queries) FetchFoldersWithDirectUserAccess(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, fetchFoldersWithDirectUserAccess, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []uuid.UUID{}
-	for rows.Next() {
-		var folder_id uuid.UUID
-		if err := rows.Scan(&folder_id); err != nil {
-			return nil, err
-		}
-		items = append(items, folder_id)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getAccessTypeAndUserByFolder = `-- name: GetAccessTypeAndUserByFolder :many
 SELECT user_id, access_type
 FROM folder_access
