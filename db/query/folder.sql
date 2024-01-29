@@ -15,7 +15,7 @@ FROM folders f
 LEFT JOIN folder_access fa ON f.id = fa.folder_id AND fa.user_id = $1
 LEFT JOIN credentials c ON c.folder_id = f.id
 LEFT JOIN access_list al ON c.id = al.credential_id AND al.user_id = $1
-WHERE fa.folder_id IS NOT NULL OR al.folder_id IS NOT NULL;
+WHERE fa.folder_id IS NOT NULL OR c.folder_id IS NOT NULL;
 
 
 -- name: IsFolderOwner :one

@@ -151,14 +151,14 @@ func (q *Queries) FetchGroupAccessType(ctx context.Context, arg FetchGroupAccess
 }
 
 const fetchUserGroups = `-- name: FetchUserGroups :many
-SELECT groupings.id, groupings.name, groupings.created_by, groupings.created_at
+SELECT groupings.id as "groupId", groupings.name, groupings.created_by, groupings.created_at
 FROM groupings
 JOIN group_list ON group_list.grouping_id = groupings.id
 WHERE group_list.user_id = $1
 `
 
 type FetchUserGroupsRow struct {
-	ID        uuid.UUID `json:"id"`
+	GroupId   uuid.UUID `json:"groupId"`
 	Name      string    `json:"name"`
 	CreatedBy uuid.UUID `json:"createdBy"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -174,7 +174,7 @@ func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]Fetc
 	for rows.Next() {
 		var i FetchUserGroupsRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.GroupId,
 			&i.Name,
 			&i.CreatedBy,
 			&i.CreatedAt,
