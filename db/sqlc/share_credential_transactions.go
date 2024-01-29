@@ -2,31 +2,7 @@ package db
 
 import (
 	"context"
-
-	"github.com/google/uuid"
 )
-
-type FieldRecord struct {
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	FieldType    string    `json:"fieldType"`
-	CredentialID uuid.UUID `json:"credentialId"`
-	UserID       uuid.UUID `json:"userId"`
-}
-
-type CredentialAccessRecord struct {
-	CredentialID uuid.UUID     `json:"credentialId"`
-	UserID       uuid.UUID     `json:"userId"`
-	AccessType   string        `json:"accessType"`
-	GroupID      uuid.NullUUID `json:"groupId"`
-}
-
-type FolderAccessRecord struct {
-	FolderID   uuid.UUID     `json:"folderId"`
-	UserID     uuid.UUID     `json:"userId"`
-	AccessType string        `json:"accessType"`
-	GroupID    uuid.NullUUID `json:"groupId"`
-}
 
 type ShareCredentialTransactionParams struct {
 	FieldArgs            []AddFieldDataParams        `json:"fieldArgs"`
