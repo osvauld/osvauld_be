@@ -8,40 +8,49 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-const addFolderAccess = `-- name: AddFolderAccess :exec
-INSERT INTO folder_access (folder_id, user_id, access_type)
+const addFolder = `-- name: AddFolder :one
+INSERT INTO folders (name, description, created_by)
 VALUES ($1, $2, $3)
+RETURNING id, created_at
 `
 
-type AddFolderAccessParams struct {
-	FolderID   uuid.UUID `json:"folderId"`
-	UserID     uuid.UUID `json:"userId"`
-	AccessType string    `json:"accessType"`
+type AddFolderParams struct {
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
 }
 
-func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
-	_, err := q.db.ExecContext(ctx, addFolderAccess, arg.FolderID, arg.UserID, arg.AccessType)
-	return err
+type AddFolderRow struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
-const addFolderAccessWithGroup = `-- name: AddFolderAccessWithGroup :exec
+func (q *Queries) AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error) {
+	row := q.db.QueryRowContext(ctx, addFolder, arg.Name, arg.Description, arg.CreatedBy)
+	var i AddFolderRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
+
+const addFolderAccess = `-- name: AddFolderAccess :exec
 INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
 VALUES ($1, $2, $3, $4)
 `
 
-type AddFolderAccessWithGroupParams struct {
+type AddFolderAccessParams struct {
 	FolderID   uuid.UUID     `json:"folderId"`
 	UserID     uuid.UUID     `json:"userId"`
 	AccessType string        `json:"accessType"`
 	GroupID    uuid.NullUUID `json:"groupId"`
 }
 
-func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAccessWithGroupParams) error {
-	_, err := q.db.ExecContext(ctx, addFolderAccessWithGroup,
+func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
+	_, err := q.db.ExecContext(ctx, addFolderAccess,
 		arg.FolderID,
 		arg.UserID,
 		arg.AccessType,
@@ -50,68 +59,39 @@ func (q *Queries) AddFolderAccessWithGroup(ctx context.Context, arg AddFolderAcc
 	return err
 }
 
-const createFolder = `-- name: CreateFolder :one
-WITH new_folder AS (
-  INSERT INTO folders (name, description, created_by)
-  VALUES ($1, $2, $3)
-  RETURNING id
-),
-folder_access_insert AS (
-  INSERT INTO folder_access (folder_id, user_id, access_type)
-  SELECT id, $3, 'owner' FROM new_folder
-)
-SELECT id FROM new_folder
+const fetchAccessibleFoldersForUser = `-- name: FetchAccessibleFoldersForUser :many
+SELECT DISTINCT f.id, f.name, f.description, f.created_at, f.created_by
+FROM folders f
+LEFT JOIN folder_access fa ON f.id = fa.folder_id AND fa.user_id = $1
+LEFT JOIN credentials c ON c.folder_id = f.id
+LEFT JOIN access_list al ON c.id = al.credential_id AND al.user_id = $1
+WHERE fa.folder_id IS NOT NULL OR c.folder_id IS NOT NULL
 `
 
-type CreateFolderParams struct {
+type FetchAccessibleFoldersForUserRow struct {
+	ID          uuid.UUID      `json:"id"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"createdAt"`
 	CreatedBy   uuid.UUID      `json:"createdBy"`
 }
 
-func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createFolder, arg.Name, arg.Description, arg.CreatedBy)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
-const fetchAccessibleAndCreatedFoldersByUser = `-- name: FetchAccessibleAndCreatedFoldersByUser :many
-WITH unique_credential_ids AS (
-  SELECT DISTINCT credential_id
-  FROM access_list
-  WHERE user_id = $1
-),
-unique_folder_ids AS (
-  SELECT DISTINCT folder_id
-  FROM credentials
-  WHERE id IN (SELECT credential_id FROM unique_credential_ids)
-)
-SELECT 
-    id, 
-    name, 
-    COALESCE(description, '') AS description 
-FROM folders f
-WHERE f.id IN (SELECT folder_id FROM unique_folder_ids)
-   OR f.created_by = $1
-`
-
-type FetchAccessibleAndCreatedFoldersByUserRow struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-}
-
-func (q *Queries) FetchAccessibleAndCreatedFoldersByUser(ctx context.Context, createdBy uuid.UUID) ([]FetchAccessibleAndCreatedFoldersByUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, fetchAccessibleAndCreatedFoldersByUser, createdBy)
+func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, fetchAccessibleFoldersForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []FetchAccessibleAndCreatedFoldersByUserRow{}
+	items := []FetchAccessibleFoldersForUserRow{}
 	for rows.Next() {
-		var i FetchAccessibleAndCreatedFoldersByUserRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+		var i FetchAccessibleFoldersForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.CreatedBy,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

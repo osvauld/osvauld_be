@@ -1,33 +1,22 @@
--- name: CreateFolder :one
-WITH new_folder AS (
-  INSERT INTO folders (name, description, created_by)
-  VALUES ($1, $2, $3)
-  RETURNING id
-),
-folder_access_insert AS (
-  INSERT INTO folder_access (folder_id, user_id, access_type)
-  SELECT id, $3, 'owner' FROM new_folder
-)
-SELECT id FROM new_folder;
 
--- name: FetchAccessibleAndCreatedFoldersByUser :many
-WITH unique_credential_ids AS (
-  SELECT DISTINCT credential_id
-  FROM access_list
-  WHERE user_id = $1
-),
-unique_folder_ids AS (
-  SELECT DISTINCT folder_id
-  FROM credentials
-  WHERE id IN (SELECT credential_id FROM unique_credential_ids)
-)
-SELECT 
-    id, 
-    name, 
-    COALESCE(description, '') AS description 
+-- name: AddFolder :one
+INSERT INTO folders (name, description, created_by)
+VALUES ($1, $2, $3)
+RETURNING id, created_at;
+
+-- name: AddFolderAccess :exec
+INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
+VALUES ($1, $2, $3, $4);
+
+
+-- name: FetchAccessibleFoldersForUser :many
+SELECT DISTINCT f.id, f.name, f.description, f.created_at, f.created_by
 FROM folders f
-WHERE f.id IN (SELECT folder_id FROM unique_folder_ids)
-   OR f.created_by = $1;
+LEFT JOIN folder_access fa ON f.id = fa.folder_id AND fa.user_id = $1
+LEFT JOIN credentials c ON c.folder_id = f.id
+LEFT JOIN access_list al ON c.id = al.credential_id AND al.user_id = $1
+WHERE fa.folder_id IS NOT NULL OR c.folder_id IS NOT NULL;
+
 
 -- name: IsFolderOwner :one
 SELECT EXISTS (
@@ -35,9 +24,6 @@ SELECT EXISTS (
   WHERE folder_id = $1 AND user_id = $2 AND access_type = 'owner'
 );
 
--- name: AddFolderAccess :exec
-INSERT INTO folder_access (folder_id, user_id, access_type)
-VALUES ($1, $2, $3);
 
 -- name: GetSharedUsersForFolder :many
 SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key,'') as "publicKey", folder_access.access_type as "accessType"
@@ -66,7 +52,3 @@ SELECT EXISTS (
   SELECT 1 FROM folder_access
   WHERE folder_id = $1 AND user_id = $2 AND access_type IN ('owner', 'manager')
 );
--- name: AddFolderAccessWithGroup :exec
-INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
-VALUES ($1, $2, $3, $4);
-

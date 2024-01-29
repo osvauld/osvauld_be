@@ -7,21 +7,21 @@ import (
 	"github.com/google/uuid"
 )
 
-func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, args CreateGroupParams) (uuid.UUID, error) {
+func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData dto.GroupDetails) (dto.GroupDetails, error) {
 
-	var groupID uuid.UUID
+	var createGroupResult CreateGroupRow
 	err := store.execTx(ctx, func(q *Queries) error {
-		groupID, err := q.CreateGroup(ctx, CreateGroupParams{
-			Name:      args.Name,
-			CreatedBy: args.CreatedBy,
+		createGroupResult, err := q.CreateGroup(ctx, CreateGroupParams{
+			Name:      groupData.Name,
+			CreatedBy: groupData.CreatedBy,
 		})
 		if err != nil {
 			return err
 		}
 
-		err = q.AddGroupMemberRecord(ctx, AddGroupMemberRecordParams{
-			GroupingID: groupID,
-			UserID:     args.CreatedBy,
+		err = q.AddGroupMember(ctx, AddGroupMemberParams{
+			GroupingID: createGroupResult.ID,
+			UserID:     groupData.CreatedBy,
 			AccessType: "manager",
 		})
 		if err != nil {
@@ -30,7 +30,11 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, args Create
 
 		return nil
 	})
-	return groupID, err
+
+	groupData.GroupID = createGroupResult.ID
+	groupData.CreatedAt = createGroupResult.CreatedAt
+
+	return groupData, err
 }
 
 type AddMemberToGroupTransactionParams struct {
@@ -44,7 +48,7 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		// Add record to grouping table
-		err := q.AddGroupMemberRecord(ctx, AddGroupMemberRecordParams{
+		err := q.AddGroupMember(ctx, AddGroupMemberParams{
 			GroupingID: args.GroupID,
 			UserID:     args.UserID,
 			AccessType: args.MemberRole,
@@ -57,7 +61,7 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 		for _, credential := range args.UserEncryptedData {
 			for _, field := range credential.Fields {
 
-				_, err = q.CreateFieldData(ctx, CreateFieldDataParams{
+				_, err = q.AddFieldData(ctx, AddFieldDataParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
 					CredentialID: credential.CredentialID,
@@ -72,13 +76,13 @@ func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args Add
 		// Add permissions to access list
 		for _, credential := range args.UserEncryptedData {
 
-			accessListParams := AddToAccessListParams{
+			accessListParams := AddCredentialAccessParams{
 				CredentialID: credential.CredentialID,
 				UserID:       args.UserID,
 				AccessType:   credential.AccessType,
 				GroupID:      uuid.NullUUID{UUID: args.GroupID, Valid: true},
 			}
-			_, err = q.AddToAccessList(ctx, accessListParams)
+			_, err = q.AddCredentialAccess(ctx, accessListParams)
 			if err != nil {
 				return err
 			}

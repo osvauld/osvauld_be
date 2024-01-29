@@ -56,34 +56,6 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 	return id, err
 }
 
-const createFieldData = `-- name: CreateFieldData :one
-INSERT INTO
-    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
-VALUES
-    ($1, $2, $3, $4, $5) RETURNING id
-`
-
-type CreateFieldDataParams struct {
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	CredentialID uuid.UUID `json:"credentialId"`
-	FieldType    string    `json:"fieldType"`
-	UserID       uuid.UUID `json:"userId"`
-}
-
-func (q *Queries) CreateFieldData(ctx context.Context, arg CreateFieldDataParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createFieldData,
-		arg.FieldName,
-		arg.FieldValue,
-		arg.CredentialID,
-		arg.FieldType,
-		arg.UserID,
-	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
 const fetchCredentialDataByID = `-- name: FetchCredentialDataByID :one
 SELECT
     id,

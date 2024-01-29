@@ -10,19 +10,41 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddGroup(ctx *gin.Context, group dto.CreateGroup, userID uuid.UUID) (uuid.UUID, error) {
-	groupID, err := repository.CreateGroup(ctx, group, userID)
-	return groupID, err
+func AddGroup(ctx *gin.Context, groupName string, caller uuid.UUID) (dto.GroupDetails, error) {
+
+	groupDto := dto.GroupDetails{
+		Name:      groupName,
+		CreatedBy: caller,
+	}
+
+	groupDetails, err := repository.CreateGroupAndAddManager(ctx, groupDto)
+
+	return groupDetails, err
 }
 
-func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]dto.GroupDetails, error) {
+func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.FetchUserGroupsRow, error) {
+
 	groups, err := repository.GetUserGroups(ctx, userID)
-	return groups, err
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, nil
 
 }
 
-func GetGroupMembers(ctx *gin.Context, userID uuid.UUID, groupId uuid.UUID) ([]db.GetGroupMembersRow, error) {
-	users, err := repository.GetGroupMembers(ctx, groupId)
+func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID, userID uuid.UUID) ([]db.GetGroupMembersRow, error) {
+
+	// Check user is a member of the group
+	isMember, err := CheckUserMemberOfGroup(ctx, userID, groupID)
+	if err != nil {
+		return []db.GetGroupMembersRow{}, err
+	}
+	if !isMember {
+		return []db.GetGroupMembersRow{}, &customerrors.UserNotAuthenticatedError{Message: "user is not a member of the group"}
+	}
+
+	users, err := repository.GetGroupMembers(ctx, groupID)
 	return users, err
 }
 
@@ -89,37 +111,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	userEncryptedDataWithAccessType := []dto.CredentialFieldsForUserDto{}
-
-	for _, credential := range payload.EncryptedData {
-
-		credentialAccessTypeForGroup, err := repository.FetchCredentialAccessTypeForGroupMember(ctx, credential.CredentialID, payload.GroupID, caller)
-		if err != nil {
-			return err
-		}
-		// find out the current group access of each credential
-		encryptedDataWithAccessType := dto.CredentialFieldsForUserDto{
-			CredentialID: credential.CredentialID,
-			AccessType:   credentialAccessTypeForGroup,
-			Fields:       credential.Fields,
-		}
-
-		userEncryptedDataWithAccessType = append(userEncryptedDataWithAccessType, encryptedDataWithAccessType)
-
-	}
-
-	args := repository.AddGroupMemberRepositoryParams{
-		GroupID:           payload.GroupID,
-		MemberID:          payload.MemberID,
-		MemberRole:        payload.MemberRole,
-		UserEncryptedData: userEncryptedDataWithAccessType,
-	}
-
-	err = repository.AddGroupMember(ctx, args)
-	if err != nil {
-		return err
-	}
-
+	// TODO
 	return nil
 }
 

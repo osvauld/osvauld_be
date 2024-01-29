@@ -11,6 +11,34 @@ import (
 	"github.com/google/uuid"
 )
 
+const addFieldData = `-- name: AddFieldData :one
+INSERT INTO
+    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
+VALUES
+    ($1, $2, $3, $4, $5) RETURNING id
+`
+
+type AddFieldDataParams struct {
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	FieldType    string    `json:"fieldType"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addFieldData,
+		arg.FieldName,
+		arg.FieldValue,
+		arg.CredentialID,
+		arg.FieldType,
+		arg.UserID,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const fetchFieldNameAndTypeByFieldIDForUser = `-- name: FetchFieldNameAndTypeByFieldIDForUser :one
 SELECT
     encrypted_data.field_name,

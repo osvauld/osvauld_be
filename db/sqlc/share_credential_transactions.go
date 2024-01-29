@@ -2,54 +2,38 @@ package db
 
 import (
 	"context"
-	dto "osvauld/dtos"
 )
 
-func (store *SQLStore) ShareCredentialsTransaction(ctx context.Context, args dto.ShareCredentialTransactionParams) error {
+type ShareCredentialTransactionParams struct {
+	FieldArgs            []AddFieldDataParams        `json:"fieldArgs"`
+	CredentialAccessArgs []AddCredentialAccessParams `json:"credentialAccessArgs"`
+	FolderAccessArgs     []AddFolderAccessParams     `json:"folderAccessArgs"`
+}
+
+func (store *SQLStore) ShareCredentialsTransaction(ctx context.Context, args ShareCredentialTransactionParams) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 
-		for _, credentialData := range args.CredentialArgs {
+		for _, fieldRecord := range args.FieldArgs {
 
-			// Create encrypted data records
-			for _, field := range credentialData.Fields {
-				_, err := q.CreateFieldData(ctx, CreateFieldDataParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					FieldType:    field.FieldType,
-					CredentialID: credentialData.CredentialID,
-					UserID:       credentialData.UserID,
-				})
-				if err != nil {
-					return err
-				}
+			_, err := q.AddFieldData(ctx, fieldRecord)
+			if err != nil {
+				return err
 			}
+		}
 
-			// Add row in access list
-			accessListParams := AddToAccessListParams{
-				CredentialID: credentialData.CredentialID,
-				UserID:       credentialData.UserID,
-				AccessType:   credentialData.AccessType,
-				GroupID:      credentialData.GroupID,
-			}
-			_, err := q.AddToAccessList(ctx, accessListParams)
+		for _, credentialAccessRecord := range args.CredentialAccessArgs {
+
+			_, err := q.AddCredentialAccess(ctx, credentialAccessRecord)
 			if err != nil {
 				return err
 			}
 
 		}
 
-		for _, folderAccessData := range args.FolderAccess {
+		for _, folderAccessRecord := range args.FolderAccessArgs {
 
-			// Add row in access list
-			accessListParams := AddFolderAccessWithGroupParams{
-				FolderID:   folderAccessData.FolderID,
-				UserID:     folderAccessData.UserID,
-				AccessType: folderAccessData.AccessType,
-				GroupID:    folderAccessData.GroupID,
-			}
-
-			err := q.AddFolderAccessWithGroup(ctx, accessListParams)
+			err := q.AddFolderAccess(ctx, folderAccessRecord)
 			if err != nil {
 				return err
 			}

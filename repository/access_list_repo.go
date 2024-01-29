@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddToAccessList(ctx *gin.Context, credentialID uuid.UUID, accessType string, userID uuid.UUID) error {
-	arg := db.AddToAccessListParams{
+func AddCredentialAccess(ctx *gin.Context, credentialID uuid.UUID, accessType string, userID uuid.UUID) error {
+	arg := db.AddCredentialAccessParams{
 		CredentialID: credentialID,
 		UserID:       userID,
 	}
-	_, err := database.Store.AddToAccessList(ctx, arg)
+	_, err := database.Store.AddCredentialAccess(ctx, arg)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return err
