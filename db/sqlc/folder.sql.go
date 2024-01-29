@@ -59,26 +59,42 @@ func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams
 	return err
 }
 
-const fetchAccessibleFolderIdsThroughCredentialsForUser = `-- name: FetchAccessibleFolderIdsThroughCredentialsForUser :many
-SELECT DISTINCT(folder_id)
-FROM credentials
-JOIN access_list ON credentials.id = access_list.credential_id
-WHERE access_list.user_id = $1
+const fetchAccessibleFoldersForUser = `-- name: FetchAccessibleFoldersForUser :many
+SELECT DISTINCT f.id, f.name, f.description, f.created_at, f.created_by
+FROM folders f
+LEFT JOIN folder_access fa ON f.id = fa.folder_id AND fa.user_id = $1
+LEFT JOIN credentials c ON c.folder_id = f.id
+LEFT JOIN access_list al ON c.id = al.credential_id AND al.user_id = $1
+WHERE fa.folder_id IS NOT NULL OR al.folder_id IS NOT NULL
 `
 
-func (q *Queries) FetchAccessibleFolderIdsThroughCredentialsForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, fetchAccessibleFolderIdsThroughCredentialsForUser, userID)
+type FetchAccessibleFoldersForUserRow struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
+}
+
+func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, fetchAccessibleFoldersForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []uuid.UUID{}
+	items := []FetchAccessibleFoldersForUserRow{}
 	for rows.Next() {
-		var folder_id uuid.UUID
-		if err := rows.Scan(&folder_id); err != nil {
+		var i FetchAccessibleFoldersForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.CreatedBy,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, folder_id)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

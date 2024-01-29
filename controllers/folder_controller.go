@@ -34,7 +34,7 @@ func CreateFolder(ctx *gin.Context) {
 	SendResponse(ctx, 200, folderDetails, "", nil)
 }
 
-func GetAccessibleFolders(ctx *gin.Context) {
+func FetchAccessibleFoldersForUser(ctx *gin.Context) {
 
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
@@ -42,7 +42,7 @@ func GetAccessibleFolders(ctx *gin.Context) {
 		return
 	}
 
-	folders, err := service.GetAccessibleFolders(ctx, userID)
+	folders, err := service.FetchAccessibleFoldersForUser(ctx, userID)
 	if err != nil {
 		logger.Errorf(err.Error())
 		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch required folders"))

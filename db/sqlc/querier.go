@@ -28,7 +28,7 @@ type Querier interface {
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUnencryptedData(ctx context.Context, arg CreateUnencryptedDataParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
-	FetchAccessibleFolderIdsThroughCredentialsForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)
 	FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error)

@@ -14,9 +14,9 @@ func CreateFolder(ctx *gin.Context, args db.CreateFolderTransactionParams) (dto.
 	return database.Store.CreateFolderTransaction(ctx, args)
 }
 
-func FetchAccessibleFoldersThroughCredentialsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleFoldersThroughCredentialsForUserRow, error) {
+func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleFoldersForUserRow, error) {
 
-	return database.Store.FetchAccessibleFoldersThroughCredentialsForUser(ctx, userID)
+	return database.Store.FetchAccessibleFoldersForUser(ctx, userID)
 }
 
 func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
