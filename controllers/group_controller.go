@@ -82,7 +82,7 @@ func GetGroupMembers(ctx *gin.Context) {
 	SendResponse(ctx, 200, groups, "Fetched group memebers", nil)
 }
 
-func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
+func GetAllCredentialsByGroupID(ctx *gin.Context) {
 
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
@@ -97,7 +97,7 @@ func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
 		return
 	}
 
-	encrypteData, err := service.FetchEncryptedDataWithGroupAccess(ctx, userID, groupID)
+	credentialFields, err := service.GetCredentialFieldsByGroupID(ctx, userID, groupID)
 	if err != nil {
 		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
 			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
@@ -107,12 +107,12 @@ func FetchEncryptedValuesByGroupID(ctx *gin.Context) {
 		return
 	}
 
-	if len(encrypteData) == 0 {
+	if len(credentialFields) == 0 {
 		SendResponse(ctx, 204, nil, "No credentials found", nil)
 		return
 	}
 
-	SendResponse(ctx, 200, encrypteData, "Fetched credentials", nil)
+	SendResponse(ctx, 200, credentialFields, "Fetched credentials", nil)
 }
 
 func AddMemberToGroup(ctx *gin.Context) {

@@ -43,6 +43,7 @@ func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uui
 const getFieldDataByCredentialIDsForUser = `-- name: GetFieldDataByCredentialIDsForUser :many
 SELECT
     encrypted_data.id,
+    encrypted_data.credential_id,
     encrypted_data.field_name,
     encrypted_data.field_value,
     encrypted_data.field_type
@@ -57,10 +58,11 @@ type GetFieldDataByCredentialIDsForUserParams struct {
 }
 
 type GetFieldDataByCredentialIDsForUserRow struct {
-	ID         uuid.UUID `json:"id"`
-	FieldName  string    `json:"fieldName"`
-	FieldValue string    `json:"fieldValue"`
-	FieldType  string    `json:"fieldType"`
+	ID           uuid.UUID `json:"id"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	FieldType    string    `json:"fieldType"`
 }
 
 func (q *Queries) GetFieldDataByCredentialIDsForUser(ctx context.Context, arg GetFieldDataByCredentialIDsForUserParams) ([]GetFieldDataByCredentialIDsForUserRow, error) {
@@ -74,6 +76,7 @@ func (q *Queries) GetFieldDataByCredentialIDsForUser(ctx context.Context, arg Ge
 		var i GetFieldDataByCredentialIDsForUserRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.CredentialID,
 			&i.FieldName,
 			&i.FieldValue,
 			&i.FieldType,

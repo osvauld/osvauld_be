@@ -45,7 +45,7 @@ WHERE user_id = $1 AND grouping_id = $2;
 
 -- name: FetchCredentialIDsWithGroupAccess :many
 SELECT distinct(credential_id) from access_list
-WHERE group_id = $1;
+WHERE group_id = $1 and user_id = $2;
 
 
 -- name: FetchCredentialAccessTypeForGroup :one

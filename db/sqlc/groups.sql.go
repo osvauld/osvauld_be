@@ -98,11 +98,16 @@ func (q *Queries) FetchCredentialAccessTypeForGroup(ctx context.Context, arg Fet
 
 const fetchCredentialIDsWithGroupAccess = `-- name: FetchCredentialIDsWithGroupAccess :many
 SELECT distinct(credential_id) from access_list
-WHERE group_id = $1
+WHERE group_id = $1 and user_id = $2
 `
 
-func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, fetchCredentialIDsWithGroupAccess, groupID)
+type FetchCredentialIDsWithGroupAccessParams struct {
+	GroupID uuid.NullUUID `json:"groupId"`
+	UserID  uuid.UUID     `json:"userId"`
+}
+
+func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, arg FetchCredentialIDsWithGroupAccessParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, fetchCredentialIDsWithGroupAccess, arg.GroupID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}

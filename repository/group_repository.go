@@ -56,10 +56,10 @@ func CheckUserManagerOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UU
 	return false, nil
 }
 
-func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID) ([]uuid.UUID, error) {
+func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]uuid.UUID, error) {
 	// doing this because in the table the group_id is nullable
 	nullableGroupID := uuid.NullUUID{UUID: groupID, Valid: true}
-	credentialIDs, err := database.Store.FetchCredentialIDsWithGroupAccess(ctx, nullableGroupID)
+	credentialIDs, err := database.Store.FetchCredentialIDsWithGroupAccess(ctx, db.FetchCredentialIDsWithGroupAccessParams{GroupID: nullableGroupID, UserID: caller})
 	if err != nil {
 		return []uuid.UUID{}, err
 	}
