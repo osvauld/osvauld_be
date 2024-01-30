@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"osvauld/infra/logger"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +19,7 @@ func SendResponse(c *gin.Context, httpStatus int, data interface{}, message stri
 	// Prepare the response based on the presence of an error
 	var res APIResponse
 	if err != nil {
+		logger.Errorf(err.Error())
 		res = APIResponse{Success: false, Error: err.Error()}
 		c.JSON(httpStatus, res)
 		return

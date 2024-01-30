@@ -90,11 +90,6 @@ type FieldWithURL struct {
 	IsUrl      bool   `json:"isUrl"`
 }
 
-type ShareCredentialTransactionParams struct {
-	CredentialArgs []CredentialFieldsForUserDto
-	FolderAccess   []UserFolderAccessDto
-}
-
 type GetCredentialsByIDsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
 }

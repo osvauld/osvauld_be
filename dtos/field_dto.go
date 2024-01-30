@@ -32,7 +32,7 @@ type ShareCredentialPayload struct {
 
 type ShareCredentialsForUserPayload struct {
 	UserID         uuid.UUID                `json:"userId" binding:"required"`
-	AccessType     string                   `json:"accessType" binding:"required"`
+	AccessType     string                   `json:"accessType"`
 	CredentialData []ShareCredentialPayload `json:"credentials" binding:"required"`
 }
 

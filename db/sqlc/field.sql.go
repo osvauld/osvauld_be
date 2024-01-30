@@ -9,29 +9,87 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
-const fetchFieldNameAndTypeByFieldIDForUser = `-- name: FetchFieldNameAndTypeByFieldIDForUser :one
-SELECT
-    encrypted_data.field_name,
-    encrypted_data.field_type
-FROM encrypted_data
-WHERE encrypted_data.id = $1 AND encrypted_data.user_id = $2
+const addFieldData = `-- name: AddFieldData :one
+INSERT INTO
+    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
+VALUES
+    ($1, $2, $3, $4, $5) RETURNING id
 `
 
-type FetchFieldNameAndTypeByFieldIDForUserParams struct {
-	ID     uuid.UUID `json:"id"`
-	UserID uuid.UUID `json:"userId"`
+type AddFieldDataParams struct {
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	FieldType    string    `json:"fieldType"`
+	UserID       uuid.UUID `json:"userId"`
 }
 
-type FetchFieldNameAndTypeByFieldIDForUserRow struct {
-	FieldName string `json:"fieldName"`
-	FieldType string `json:"fieldType"`
+func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addFieldData,
+		arg.FieldName,
+		arg.FieldValue,
+		arg.CredentialID,
+		arg.FieldType,
+		arg.UserID,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
-func (q *Queries) FetchFieldNameAndTypeByFieldIDForUser(ctx context.Context, arg FetchFieldNameAndTypeByFieldIDForUserParams) (FetchFieldNameAndTypeByFieldIDForUserRow, error) {
-	row := q.db.QueryRowContext(ctx, fetchFieldNameAndTypeByFieldIDForUser, arg.ID, arg.UserID)
-	var i FetchFieldNameAndTypeByFieldIDForUserRow
-	err := row.Scan(&i.FieldName, &i.FieldType)
-	return i, err
+const getFieldDataByCredentialIDsForUser = `-- name: GetFieldDataByCredentialIDsForUser :many
+SELECT
+    encrypted_data.id,
+    encrypted_data.credential_id,
+    encrypted_data.field_name,
+    encrypted_data.field_value,
+    encrypted_data.field_type
+FROM encrypted_data
+WHERE encrypted_data.user_id = $1 
+AND encrypted_data.credential_id = ANY($2::UUID[])
+`
+
+type GetFieldDataByCredentialIDsForUserParams struct {
+	UserID      uuid.UUID   `json:"userId"`
+	Credentials []uuid.UUID `json:"credentials"`
+}
+
+type GetFieldDataByCredentialIDsForUserRow struct {
+	ID           uuid.UUID `json:"id"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	FieldType    string    `json:"fieldType"`
+}
+
+func (q *Queries) GetFieldDataByCredentialIDsForUser(ctx context.Context, arg GetFieldDataByCredentialIDsForUserParams) ([]GetFieldDataByCredentialIDsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFieldDataByCredentialIDsForUser, arg.UserID, pq.Array(arg.Credentials))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetFieldDataByCredentialIDsForUserRow{}
+	for rows.Next() {
+		var i GetFieldDataByCredentialIDsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CredentialID,
+			&i.FieldName,
+			&i.FieldValue,
+			&i.FieldType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
