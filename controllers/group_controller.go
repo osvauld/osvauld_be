@@ -147,6 +147,7 @@ func AddMemberToGroup(ctx *gin.Context) {
 		SendResponse(ctx, 500, nil, "failed to add members to group", nil)
 		return
 	}
+	SendResponse(ctx, 200, nil, "Added members to group", nil)
 }
 
 func GetUsersOfGroups(ctx *gin.Context) {
