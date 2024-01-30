@@ -56,10 +56,10 @@ func CheckUserManagerOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UU
 	return false, nil
 }
 
-func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID) ([]uuid.UUID, error) {
+func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]uuid.UUID, error) {
 	// doing this because in the table the group_id is nullable
 	nullableGroupID := uuid.NullUUID{UUID: groupID, Valid: true}
-	credentialIDs, err := database.Store.FetchCredentialIDsWithGroupAccess(ctx, nullableGroupID)
+	credentialIDs, err := database.Store.FetchCredentialIDsWithGroupAccess(ctx, db.FetchCredentialIDsWithGroupAccessParams{GroupID: nullableGroupID, UserID: caller})
 	if err != nil {
 		return []uuid.UUID{}, err
 	}
@@ -73,37 +73,20 @@ type AddGroupMemberRepositoryParams struct {
 	UserEncryptedData []dto.CredentialFieldsForUserDto `json:"encryptedFields"`
 }
 
-func AddGroupMember(ctx *gin.Context, payload AddGroupMemberRepositoryParams) error {
+func AddMembersToGroupTransaction(ctx *gin.Context, args db.AddMembersToGroupTransactionParams) error {
 
-	args := db.AddMemberToGroupTransactionParams{
-		GroupID:           payload.GroupID,
-		UserID:            payload.MemberID,
-		MemberRole:        payload.MemberRole,
-		UserEncryptedData: payload.UserEncryptedData,
-	}
-
-	err := database.Store.AddMemberToGroupTransaction(ctx, args)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return database.Store.AddMembersToGroupTransaction(ctx, args)
 }
 
-// func FetchCredentialAccessTypeForGroupMember(ctx *gin.Context, credentialID uuid.UUID, groupID uuid.UUID, userID uuid.UUID) (string, error) {
-// 	args := db.FetchCredentialAccessTypeForGroupMemberParams{
-// 		GroupID:      uuid.NullUUID{UUID: groupID, Valid: true},
-// 		CredentialID: credentialID,
-// 		UserID:       userID,
-// 	}
+func GetCredentialIDAndTypeWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetCredentialIDAndTypeWithGroupAccessRow, error) {
+	return database.Store.GetCredentialIDAndTypeWithGroupAccess(ctx, groupID)
 
-// 	accessType, err := database.Store.FetchCredentialAccessTypeForGroupMember(ctx, args)
-// 	if err != nil {
-// 		return "", err
-// 	}
+}
 
-// 	return accessType, nil
-// }
+func GetFolderIDAndTypeWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetFolderIDAndTypeWithGroupAccessRow, error) {
+	return database.Store.GetFolderIDAndTypeWithGroupAccess(ctx, groupID)
+
+}
 
 func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
 	users, err := database.Store.FetchUsersByGroupIds(ctx, groupIDs)

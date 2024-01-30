@@ -55,42 +55,31 @@ func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUI
 
 func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]uuid.UUID, error) {
 
-	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID)
+	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID, caller)
 	return credentialIDs, err
 }
 
-func FetchEncryptedDataWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]dto.CredentialFieldsForUserDto, error) {
+func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
 
 	isMember, err := repository.CheckUserMemberOfGroup(ctx, caller, groupID)
 	if !isMember {
-		return []dto.CredentialFieldsForUserDto{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the group"}
+		return nil, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the group"}
 	}
 	if err != nil {
-		return []dto.CredentialFieldsForUserDto{}, err
+		return nil, err
 	}
 
-	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID)
+	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID, caller)
 	if err != nil {
-		return []dto.CredentialFieldsForUserDto{}, err
+		return nil, err
 	}
 
-	allCredentialEncryptedFields := []dto.CredentialFieldsForUserDto{}
-	for _, credentialID := range credentialIDs {
-
-		credentialEncryptedFields, err := repository.FetchEncryptedFieldsByCredentialIDByAndUserID(ctx, credentialID, caller)
-		if err != nil {
-			return []dto.CredentialFieldsForUserDto{}, err
-		}
-
-		dtoObject := dto.CredentialFieldsForUserDto{
-			CredentialID: credentialID,
-			Fields:       credentialEncryptedFields,
-		}
-
-		allCredentialEncryptedFields = append(allCredentialEncryptedFields, dtoObject)
+	credentialFields, err := repository.GetCredentialsFieldsByIds(ctx, credentialIDs, caller)
+	if err != nil {
+		return nil, err
 	}
 
-	return allCredentialEncryptedFields, nil
+	return credentialFields, nil
 }
 
 func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, caller uuid.UUID) error {
@@ -111,7 +100,63 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	// TODO
+	credentialIDAndTypeWithGroupAccess, err := repository.GetCredentialIDAndTypeWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
+	if err != nil {
+		return err
+	}
+
+	folderIDAndTypeWithGroupAccess, err := repository.GetFolderIDAndTypeWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
+	if err != nil {
+		return err
+	}
+
+	userFieldRecords, err := CreateFieldDataRecords(ctx, payload.Credentials, payload.MemberID)
+	if err != nil {
+		return err
+	}
+
+	credentialAccessRecords := []db.AddCredentialAccessParams{}
+	for _, credentialDetails := range credentialIDAndTypeWithGroupAccess {
+		credentialAccessRecord := db.AddCredentialAccessParams{
+			CredentialID: credentialDetails.CredentialID,
+			UserID:       payload.MemberID,
+			AccessType:   credentialDetails.AccessType,
+			GroupID:      uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+		}
+		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+	}
+
+	folderAccessRecords := []db.AddFolderAccessParams{}
+	for _, folderDetails := range folderIDAndTypeWithGroupAccess {
+		folderAccessRecord := db.AddFolderAccessParams{
+			FolderID:   folderDetails.FolderID,
+			UserID:     payload.MemberID,
+			AccessType: folderDetails.AccessType,
+			GroupID:    uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+		}
+		folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+	}
+
+	groupMembershipRecords := []db.AddGroupMemberParams{
+		{
+			GroupingID: payload.GroupID,
+			UserID:     payload.MemberID,
+			AccessType: payload.MemberRole,
+		},
+	}
+
+	addMemberToGroupTransactionParams := db.AddMembersToGroupTransactionParams{
+		FieldArgs:            userFieldRecords,
+		CredentialAccessArgs: credentialAccessRecords,
+		FolderAccessArgs:     folderAccessRecords,
+		GroupMembershipArgs:  groupMembershipRecords,
+	}
+
+	err = repository.AddMembersToGroupTransaction(ctx, addMemberToGroupTransactionParams)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

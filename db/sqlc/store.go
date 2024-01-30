@@ -13,7 +13,7 @@ type Store interface {
 	AddCredentialTransaction(context.Context, dto.AddCredentialDto, uuid.UUID) (uuid.UUID, error)
 	CreateFolderTransaction(context.Context, CreateFolderTransactionParams) (dto.FolderDetails, error)
 	CreateGroupAndAddManager(context.Context, dto.GroupDetails) (dto.GroupDetails, error)
-	AddMemberToGroupTransaction(context.Context, AddMemberToGroupTransactionParams) error
+	AddMembersToGroupTransaction(context.Context, AddMembersToGroupTransactionParams) error
 	ShareCredentialsTransaction(context.Context, ShareCredentialTransactionParams) error
 }
 

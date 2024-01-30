@@ -50,7 +50,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/credentials/by-ids", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByIDs)
 	route.GET("/urls", middleware.JWTAuthMiddleware(), controllers.GetAllUrlsForUser)
 
-	route.GET("/group/:groupId/encrypted/", middleware.JWTAuthMiddleware(), controllers.FetchEncryptedValuesByGroupID)
+	route.GET("/group/:groupId/credential-fields", middleware.JWTAuthMiddleware(), controllers.GetAllCredentialsByGroupID)
 
 	//Add All route
 	//TestRoutes(route)

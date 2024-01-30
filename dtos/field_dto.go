@@ -20,7 +20,6 @@ type Field struct {
 	FieldType  string    `json:"fieldType"`
 }
 
-
 type ShareField struct {
 	ID         uuid.UUID `json:"fieldId"`
 	FieldValue string    `json:"fieldValue"`
@@ -33,7 +32,7 @@ type ShareCredentialPayload struct {
 
 type ShareCredentialsForUserPayload struct {
 	UserID         uuid.UUID                `json:"userId" binding:"required"`
-	AccessType     string                   `json:"accessType" binding:"required"`
+	AccessType     string                   `json:"accessType"`
 	CredentialData []ShareCredentialPayload `json:"credentials" binding:"required"`
 }
 
