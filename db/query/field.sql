@@ -9,8 +9,8 @@ VALUES
 
 -- name: GetFieldDataByCredentialIDsForUser :many
 SELECT
-    encrypted_data.id as "fieldId",
-    encrypted_data.credential_id as "credentialId",
+    encrypted_data.id,
+    encrypted_data.credential_id,
     encrypted_data.field_name,
     encrypted_data.field_value,
     encrypted_data.field_type

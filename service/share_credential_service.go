@@ -101,16 +101,13 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 	// we share all the credentials for a single user in a single transaction
 	for _, userData := range payload {
 
-		userFieldRecords := []db.AddFieldDataParams{}
-		credentialAccessRecords := []db.AddCredentialAccessParams{}
-
 		userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
 		if err != nil {
 			return nil, err
 		}
 
 		credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
-		credentialAccessRecords, err = CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
+		credentialAccessRecords, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
 			CredentialIDs: credentialIDs,
 			UserID:        userData.UserID,
 			AccessType:    userData.AccessType,
@@ -172,7 +169,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 			credentialAccessRecordsForUser, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
 				CredentialIDs: credentialIDs,
 				UserID:        userData.UserID,
-				AccessType:    userData.AccessType,
+				AccessType:    groupData.AccessType,
 				GroupID:       uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
 			})
 			if err != nil {
@@ -236,7 +233,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 		}
 
 		folderAccessRecords := []db.AddFolderAccessParams{
-			db.AddFolderAccessParams{
+			{
 				UserID:     userData.UserID,
 				AccessType: userData.AccessType,
 				FolderID:   payload.FolderID,
@@ -297,7 +294,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 			credentialAccessRecordsForUser, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
 				CredentialIDs: credentialIDs,
 				UserID:        userData.UserID,
-				AccessType:    userData.AccessType,
+				AccessType:    groupData.AccessType,
 				GroupID:       uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
 			})
 			if err != nil {
@@ -308,7 +305,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 
 			folderAccessRecord := db.AddFolderAccessParams{
 				UserID:     userData.UserID,
-				AccessType: userData.AccessType,
+				AccessType: groupData.AccessType,
 				FolderID:   payload.FolderID,
 				GroupID:    uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
 			}

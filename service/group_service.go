@@ -137,13 +137,22 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
 	}
 
-	shareCredentialsParams := db.ShareCredentialTransactionParams{
+	groupMembershipRecords := []db.AddGroupMemberParams{
+		{
+			GroupingID: payload.GroupID,
+			UserID:     payload.MemberID,
+			AccessType: payload.MemberRole,
+		},
+	}
+
+	addMemberToGroupTransactionParams := db.AddMembersToGroupTransactionParams{
 		FieldArgs:            userFieldRecords,
 		CredentialAccessArgs: credentialAccessRecords,
 		FolderAccessArgs:     folderAccessRecords,
+		GroupMembershipArgs:  groupMembershipRecords,
 	}
 
-	err = repository.ShareCredentials(ctx, shareCredentialsParams)
+	err = repository.AddMembersToGroupTransaction(ctx, addMemberToGroupTransactionParams)
 	if err != nil {
 		return err
 	}

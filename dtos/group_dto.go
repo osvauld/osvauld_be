@@ -21,7 +21,7 @@ type AddMemberToGroupRequest struct {
 	GroupID     uuid.UUID                `json:"groupId"`
 	MemberID    uuid.UUID                `json:"memberId"`
 	MemberRole  string                   `json:"memberRole"`
-	Credentials []ShareCredentialPayload `json:"encryptedData"`
+	Credentials []ShareCredentialPayload `json:"credentials"`
 }
 
 type GetUsersOfGroupsRequest struct {

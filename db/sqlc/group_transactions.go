@@ -3,8 +3,6 @@ package db
 import (
 	"context"
 	dto "osvauld/dtos"
-
-	"github.com/google/uuid"
 )
 
 func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData dto.GroupDetails) (dto.GroupDetails, error) {
@@ -37,52 +35,46 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData d
 	return groupData, err
 }
 
-type AddMemberToGroupTransactionParams struct {
-	GroupID           uuid.UUID                        `json:"groupId"`
-	UserID            uuid.UUID                        `json:"userId"`
-	MemberRole        string                           `json:"memberRole"`
-	UserEncryptedData []dto.CredentialFieldsForUserDto `json:"encryptedFields"`
+type AddMembersToGroupTransactionParams struct {
+	FieldArgs            []AddFieldDataParams        `json:"fieldArgs"`
+	CredentialAccessArgs []AddCredentialAccessParams `json:"credentialAccessArgs"`
+	FolderAccessArgs     []AddFolderAccessParams     `json:"folderAccessArgs"`
+	GroupMembershipArgs  []AddGroupMemberParams      `json:"groupMembershipArgs"`
 }
 
-func (store *SQLStore) AddMemberToGroupTransaction(ctx context.Context, args AddMemberToGroupTransactionParams) error {
+func (store *SQLStore) AddMembersToGroupTransaction(ctx context.Context, args AddMembersToGroupTransactionParams) error {
+
 	err := store.execTx(ctx, func(q *Queries) error {
 
-		// Add record to grouping table
-		err := q.AddGroupMember(ctx, AddGroupMemberParams{
-			GroupingID: args.GroupID,
-			UserID:     args.UserID,
-			AccessType: args.MemberRole,
-		})
-		if err != nil {
-			return err
-		}
+		for _, fieldRecord := range args.FieldArgs {
 
-		// Add Values to encrypted fields
-		for _, credential := range args.UserEncryptedData {
-			for _, field := range credential.Fields {
-
-				_, err = q.AddFieldData(ctx, AddFieldDataParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					CredentialID: credential.CredentialID,
-					UserID:       args.UserID,
-				})
-				if err != nil {
-					return err
-				}
+			_, err := q.AddFieldData(ctx, fieldRecord)
+			if err != nil {
+				return err
 			}
 		}
 
-		// Add permissions to access list
-		for _, credential := range args.UserEncryptedData {
+		for _, credentialAccessRecord := range args.CredentialAccessArgs {
 
-			accessListParams := AddCredentialAccessParams{
-				CredentialID: credential.CredentialID,
-				UserID:       args.UserID,
-				AccessType:   credential.AccessType,
-				GroupID:      uuid.NullUUID{UUID: args.GroupID, Valid: true},
+			_, err := q.AddCredentialAccess(ctx, credentialAccessRecord)
+			if err != nil {
+				return err
 			}
-			_, err = q.AddCredentialAccess(ctx, accessListParams)
+
+		}
+
+		for _, folderAccessRecord := range args.FolderAccessArgs {
+
+			err := q.AddFolderAccess(ctx, folderAccessRecord)
+			if err != nil {
+				return err
+			}
+
+		}
+
+		for _, groupMembershipRecord := range args.GroupMembershipArgs {
+
+			err := q.AddGroupMember(ctx, groupMembershipRecord)
 			if err != nil {
 				return err
 			}

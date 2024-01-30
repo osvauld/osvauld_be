@@ -73,21 +73,9 @@ type AddGroupMemberRepositoryParams struct {
 	UserEncryptedData []dto.CredentialFieldsForUserDto `json:"encryptedFields"`
 }
 
-func AddGroupMember(ctx *gin.Context, payload AddGroupMemberRepositoryParams) error {
+func AddMembersToGroupTransaction(ctx *gin.Context, args db.AddMembersToGroupTransactionParams) error {
 
-	args := db.AddMemberToGroupTransactionParams{
-		GroupID:           payload.GroupID,
-		UserID:            payload.MemberID,
-		MemberRole:        payload.MemberRole,
-		UserEncryptedData: payload.UserEncryptedData,
-	}
-
-	err := database.Store.AddMemberToGroupTransaction(ctx, args)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return database.Store.AddMembersToGroupTransaction(ctx, args)
 }
 
 func GetCredentialIDAndTypeWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetCredentialIDAndTypeWithGroupAccessRow, error) {
