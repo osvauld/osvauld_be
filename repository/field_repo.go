@@ -5,17 +5,10 @@ import (
 	"osvauld/infra/database"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
-func FetchFieldDetailsByFieldIDForUser(ctx *gin.Context, fieldID uuid.UUID, userID uuid.UUID) (db.FetchFieldNameAndTypeByFieldIDForUserRow, error) {
+func GetFieldDataForCredentialIDsForUser(ctx *gin.Context, args db.GetFieldDataByCredentialIDsForUserParams) ([]db.GetFieldDataByCredentialIDsForUserRow, error) {
 
-	fieldDetails, err := database.Store.FetchFieldNameAndTypeByFieldIDForUser(ctx, db.FetchFieldNameAndTypeByFieldIDForUserParams{
-		ID:     fieldID,
-		UserID: userID,
-	})
-	if err != nil {
-		return fieldDetails, err
-	}
-	return fieldDetails, nil
+	return database.Store.GetFieldDataByCredentialIDsForUser(ctx, args)
+
 }

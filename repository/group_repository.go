@@ -90,20 +90,15 @@ func AddGroupMember(ctx *gin.Context, payload AddGroupMemberRepositoryParams) er
 	return nil
 }
 
-// func FetchCredentialAccessTypeForGroupMember(ctx *gin.Context, credentialID uuid.UUID, groupID uuid.UUID, userID uuid.UUID) (string, error) {
-// 	args := db.FetchCredentialAccessTypeForGroupMemberParams{
-// 		GroupID:      uuid.NullUUID{UUID: groupID, Valid: true},
-// 		CredentialID: credentialID,
-// 		UserID:       userID,
-// 	}
+func GetCredentialIDAndTypeWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetCredentialIDAndTypeWithGroupAccessRow, error) {
+	return database.Store.GetCredentialIDAndTypeWithGroupAccess(ctx, groupID)
 
-// 	accessType, err := database.Store.FetchCredentialAccessTypeForGroupMember(ctx, args)
-// 	if err != nil {
-// 		return "", err
-// 	}
+}
 
-// 	return accessType, nil
-// }
+func GetFolderIDAndTypeWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetFolderIDAndTypeWithGroupAccessRow, error) {
+	return database.Store.GetFolderIDAndTypeWithGroupAccess(ctx, groupID)
+
+}
 
 func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
 	users, err := database.Store.FetchUsersByGroupIds(ctx, groupIDs)

@@ -28,11 +28,16 @@ SELECT EXISTS (
 -------------------------------------------------------------------------------------------------------
 
 
+-- name: GetCredentialIDAndTypeWithGroupAccess :many
+SELECT DISTINCT credential_id, access_type
+FROM access_list
+WHERE group_id = $1;
 
 
-
-
-
+-- name: GetFolderIDAndTypeWithGroupAccess :many
+SELECT DISTINCT folder_id, access_type
+FROM folder_access
+WHERE group_id = $1;
 
 -- name: FetchGroupAccessType :one
 SELECT access_type FROM group_list

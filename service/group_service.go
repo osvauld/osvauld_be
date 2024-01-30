@@ -111,7 +111,54 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	// TODO
+	credentialIDAndTypeWithGroupAccess, err := repository.GetCredentialIDAndTypeWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
+	if err != nil {
+		return err
+	}
+
+	folderIDAndTypeWithGroupAccess, err := repository.GetFolderIDAndTypeWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
+	if err != nil {
+		return err
+	}
+
+	userFieldRecords, err := CreateFieldDataRecords(ctx, payload.Credentials, payload.MemberID)
+	if err != nil {
+		return err
+	}
+
+	credentialAccessRecords := []db.AddCredentialAccessParams{}
+	for _, credentialDetails := range credentialIDAndTypeWithGroupAccess {
+		credentialAccessRecord := db.AddCredentialAccessParams{
+			CredentialID: credentialDetails.CredentialID,
+			UserID:       payload.MemberID,
+			AccessType:   credentialDetails.AccessType,
+			GroupID:      uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+		}
+		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+	}
+
+	folderAccessRecords := []db.AddFolderAccessParams{}
+	for _, folderDetails := range folderIDAndTypeWithGroupAccess {
+		folderAccessRecord := db.AddFolderAccessParams{
+			FolderID:   folderDetails.FolderID,
+			UserID:     payload.MemberID,
+			AccessType: folderDetails.AccessType,
+			GroupID:    uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+		}
+		folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+	}
+
+	shareCredentialsParams := db.ShareCredentialTransactionParams{
+		FieldArgs:            userFieldRecords,
+		CredentialAccessArgs: credentialAccessRecords,
+		FolderAccessArgs:     folderAccessRecords,
+	}
+
+	err = repository.ShareCredentials(ctx, shareCredentialsParams)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

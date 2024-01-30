@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const addFieldData = `-- name: AddFieldData :one
@@ -39,27 +40,53 @@ func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uui
 	return id, err
 }
 
-const fetchFieldNameAndTypeByFieldIDForUser = `-- name: FetchFieldNameAndTypeByFieldIDForUser :one
+const getFieldDataByCredentialIDsForUser = `-- name: GetFieldDataByCredentialIDsForUser :many
 SELECT
+    encrypted_data.id,
     encrypted_data.field_name,
+    encrypted_data.field_value,
     encrypted_data.field_type
 FROM encrypted_data
-WHERE encrypted_data.id = $1 AND encrypted_data.user_id = $2
+WHERE encrypted_data.user_id = $1 
+AND encrypted_data.credential_id = ANY($2::UUID[])
 `
 
-type FetchFieldNameAndTypeByFieldIDForUserParams struct {
-	ID     uuid.UUID `json:"id"`
-	UserID uuid.UUID `json:"userId"`
+type GetFieldDataByCredentialIDsForUserParams struct {
+	UserID      uuid.UUID   `json:"userId"`
+	Credentials []uuid.UUID `json:"credentials"`
 }
 
-type FetchFieldNameAndTypeByFieldIDForUserRow struct {
-	FieldName string `json:"fieldName"`
-	FieldType string `json:"fieldType"`
+type GetFieldDataByCredentialIDsForUserRow struct {
+	ID         uuid.UUID `json:"id"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
 }
 
-func (q *Queries) FetchFieldNameAndTypeByFieldIDForUser(ctx context.Context, arg FetchFieldNameAndTypeByFieldIDForUserParams) (FetchFieldNameAndTypeByFieldIDForUserRow, error) {
-	row := q.db.QueryRowContext(ctx, fetchFieldNameAndTypeByFieldIDForUser, arg.ID, arg.UserID)
-	var i FetchFieldNameAndTypeByFieldIDForUserRow
-	err := row.Scan(&i.FieldName, &i.FieldType)
-	return i, err
+func (q *Queries) GetFieldDataByCredentialIDsForUser(ctx context.Context, arg GetFieldDataByCredentialIDsForUserParams) ([]GetFieldDataByCredentialIDsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFieldDataByCredentialIDsForUser, arg.UserID, pq.Array(arg.Credentials))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetFieldDataByCredentialIDsForUserRow{}
+	for rows.Next() {
+		var i GetFieldDataByCredentialIDsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FieldName,
+			&i.FieldValue,
+			&i.FieldType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

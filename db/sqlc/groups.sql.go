@@ -125,14 +125,6 @@ func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, groupID
 }
 
 const fetchGroupAccessType = `-- name: FetchGroupAccessType :one
-
-
-
-
-
-
-
-
 SELECT access_type FROM group_list
 WHERE user_id = $1 AND grouping_id = $2
 `
@@ -142,7 +134,6 @@ type FetchGroupAccessTypeParams struct {
 	GroupingID uuid.UUID `json:"groupingId"`
 }
 
-// -----------------------------------------------------------------------------------------------------
 func (q *Queries) FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, fetchGroupAccessType, arg.UserID, arg.GroupingID)
 	var access_type string
@@ -223,6 +214,77 @@ func (q *Queries) FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID
 	for rows.Next() {
 		var i FetchUsersByGroupIdsRow
 		if err := rows.Scan(&i.GroupId, &i.UserDetails); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCredentialIDAndTypeWithGroupAccess = `-- name: GetCredentialIDAndTypeWithGroupAccess :many
+
+
+SELECT DISTINCT credential_id, access_type
+FROM access_list
+WHERE group_id = $1
+`
+
+type GetCredentialIDAndTypeWithGroupAccessRow struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	AccessType   string    `json:"accessType"`
+}
+
+// -----------------------------------------------------------------------------------------------------
+func (q *Queries) GetCredentialIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialIDAndTypeWithGroupAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialIDAndTypeWithGroupAccess, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialIDAndTypeWithGroupAccessRow{}
+	for rows.Next() {
+		var i GetCredentialIDAndTypeWithGroupAccessRow
+		if err := rows.Scan(&i.CredentialID, &i.AccessType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFolderIDAndTypeWithGroupAccess = `-- name: GetFolderIDAndTypeWithGroupAccess :many
+SELECT DISTINCT folder_id, access_type
+FROM folder_access
+WHERE group_id = $1
+`
+
+type GetFolderIDAndTypeWithGroupAccessRow struct {
+	FolderID   uuid.UUID `json:"folderId"`
+	AccessType string    `json:"accessType"`
+}
+
+func (q *Queries) GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetFolderIDAndTypeWithGroupAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFolderIDAndTypeWithGroupAccess, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetFolderIDAndTypeWithGroupAccessRow{}
+	for rows.Next() {
+		var i GetFolderIDAndTypeWithGroupAccessRow
+		if err := rows.Scan(&i.FolderID, &i.AccessType); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

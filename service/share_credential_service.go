@@ -4,11 +4,85 @@ import (
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/repository"
-	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+func GetUniqueCredentialIDs(credentials []dto.ShareCredentialPayload) []uuid.UUID {
+
+	// find all unique credential ids
+	credentialIDMap := make(map[uuid.UUID]bool)
+	for _, credential := range credentials {
+		credentialIDMap[credential.CredentialID] = true
+	}
+
+	credentialIDs := []uuid.UUID{}
+	for credentialID := range credentialIDMap {
+		credentialIDs = append(credentialIDs, credentialID)
+	}
+	return credentialIDs
+}
+
+func CreateFieldDataRecords(ctx *gin.Context, credentials []dto.ShareCredentialPayload, userID uuid.UUID) ([]db.AddFieldDataParams, error) {
+
+	credentialIDs := GetUniqueCredentialIDs(credentials)
+
+	fieldData, err := repository.GetFieldDataForCredentialIDsForUser(ctx, db.GetFieldDataByCredentialIDsForUserParams{
+		UserID:      userID,
+		Credentials: credentialIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	fieldMap := make(map[uuid.UUID]db.GetFieldDataByCredentialIDsForUserRow)
+	for _, field := range fieldData {
+		fieldMap[field.ID] = field
+	}
+
+	userFieldRecords := []db.AddFieldDataParams{}
+	for _, credential := range credentials {
+
+		for _, field := range credential.Fields {
+
+			userFieldRecord := db.AddFieldDataParams{
+				FieldName:    fieldMap[field.ID].FieldName,
+				FieldType:    fieldMap[field.ID].FieldType,
+				FieldValue:   field.FieldValue,
+				UserID:       userID,
+				CredentialID: credential.CredentialID,
+			}
+
+			userFieldRecords = append(userFieldRecords, userFieldRecord)
+		}
+	}
+	return userFieldRecords, nil
+
+}
+
+type CreateCredentialAccessRecordParams struct {
+	CredentialIDs []uuid.UUID
+	UserID        uuid.UUID
+	AccessType    string
+	GroupID       uuid.NullUUID
+}
+
+func CreateCredentialAccessRecords(ctx *gin.Context, params CreateCredentialAccessRecordParams) ([]db.AddCredentialAccessParams, error) {
+
+	credentialAccessRecords := []db.AddCredentialAccessParams{}
+	for _, credentialID := range params.CredentialIDs {
+
+		credentialAccessRecord := db.AddCredentialAccessParams{
+			CredentialID: credentialID,
+			UserID:       params.UserID,
+			AccessType:   params.AccessType,
+			GroupID:      params.GroupID,
+		}
+		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+	}
+	return credentialAccessRecords, nil
+}
 
 type ShareCredentialsWithUserResponse struct {
 	Status  string    `json:"status"`
@@ -22,55 +96,28 @@ type ShareCredentialsWithUserResponse struct {
 // The response contains success or failure for each user
 func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsForUserPayload, caller uuid.UUID) ([]ShareCredentialsWithUserResponse, error) {
 
-	uniqueCredentialIDs := []uuid.UUID{}
-
-	// get all the unique credential ids
-	for _, userData := range payload {
-		for _, credential := range userData.CredentialData {
-			// if the credential id does not exist in the uniqueCredentialIDs slice add it
-			if !utils.Contains(uniqueCredentialIDs, credential.CredentialID) {
-				uniqueCredentialIDs = append(uniqueCredentialIDs, credential.CredentialID)
-			}
-		}
-	}
-
-	_, err := HasOwnerAccessForCredentials(ctx, uniqueCredentialIDs, caller)
-	if err != nil {
-		return nil, err
-	}
-
 	responses := []ShareCredentialsWithUserResponse{}
-	// the following loop is for grouping the credentials shared for a single user
-	// so that we can share all the credentials for a single user in a single transaction
+
+	// we share all the credentials for a single user in a single transaction
 	for _, userData := range payload {
 
 		userFieldRecords := []db.AddFieldDataParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 
-		for _, credential := range userData.CredentialData {
+		userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
+		if err != nil {
+			return nil, err
+		}
 
-			for _, field := range credential.Fields {
+		credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
+		credentialAccessRecords, err = CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
+			CredentialIDs: credentialIDs,
+			UserID:        userData.UserID,
+			AccessType:    userData.AccessType,
+		})
 
-				fieldDetails, err := FetchFieldNameAndTypeByFieldIDForUser(ctx, field.ID, caller)
-				if err != nil {
-					return nil, err
-				}
-				fieldRecord := db.AddFieldDataParams{
-					FieldName:    fieldDetails.FieldName,
-					FieldValue:   field.FieldValue,
-					FieldType:    fieldDetails.FieldType,
-					CredentialID: credential.CredentialID,
-					UserID:       userData.UserID,
-				}
-				userFieldRecords = append(userFieldRecords, fieldRecord)
-			}
-
-			credentialAccessRecord := db.AddCredentialAccessParams{
-				CredentialID: credential.CredentialID,
-				UserID:       userData.UserID,
-				AccessType:   userData.AccessType,
-			}
-			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+		if err != nil {
+			return nil, err
 		}
 
 		userShareResponse := ShareCredentialsWithUserResponse{
@@ -82,7 +129,7 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 			CredentialAccessArgs: credentialAccessRecords,
 		}
 
-		err := repository.ShareCredentials(ctx, shareCredentialParams)
+		err = repository.ShareCredentials(ctx, shareCredentialParams)
 		if err != nil {
 			userShareResponse.Status = "failed"
 			userShareResponse.Message = err.Error()
@@ -104,8 +151,6 @@ type ShareCredentialsWithGroupResponse struct {
 
 func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGroupsPayload, caller uuid.UUID) ([]ShareCredentialsWithGroupResponse, error) {
 
-	// TODO: check caller access to credentials, resume logic from ShareCredentialsWithUsers
-
 	// combine credentials for a single group
 
 	var responses []ShareCredentialsWithGroupResponse
@@ -113,37 +158,29 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 
 		groupFieldRecords := []db.AddFieldDataParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
+
 		for _, userData := range groupData.UserData {
 
-			for _, credential := range userData.CredentialData {
-
-				for _, field := range credential.Fields {
-
-					fieldDetails, err := FetchFieldNameAndTypeByFieldIDForUser(ctx, field.ID, caller)
-					if err != nil {
-						return nil, err
-					}
-
-					fieldRecord := db.AddFieldDataParams{
-						FieldName:    fieldDetails.FieldName,
-						FieldValue:   field.FieldValue,
-						FieldType:    fieldDetails.FieldType,
-						CredentialID: credential.CredentialID,
-						UserID:       userData.UserID,
-					}
-
-					groupFieldRecords = append(groupFieldRecords, fieldRecord)
-				}
-
-				credentialAccessRecord := db.AddCredentialAccessParams{
-					CredentialID: credential.CredentialID,
-					UserID:       userData.UserID,
-					AccessType:   userData.AccessType,
-					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
-				}
-				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
-
+			userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
+			if err != nil {
+				return nil, err
 			}
+
+			groupFieldRecords = append(groupFieldRecords, userFieldRecords...)
+
+			credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
+			credentialAccessRecordsForUser, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
+				CredentialIDs: credentialIDs,
+				UserID:        userData.UserID,
+				AccessType:    userData.AccessType,
+				GroupID:       uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecordsForUser...)
+
 		}
 
 		groupShareResponse := ShareCredentialsWithGroupResponse{}
@@ -164,6 +201,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 		}
 		responses = append(responses, groupShareResponse)
 	}
+
 	return responses, nil
 }
 
@@ -182,42 +220,28 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 	var responses []ShareFolderWithUserResponse
 	for _, userData := range payload.UserData {
 
-		userFieldRecords := []db.AddFieldDataParams{}
-		credentialAccessRecords := []db.AddCredentialAccessParams{}
-		folderAccessRecords := []db.AddFolderAccessParams{}
-
-		for _, credential := range userData.CredentialData {
-
-			for _, field := range credential.Fields {
-
-				fieldDetails, err := FetchFieldNameAndTypeByFieldIDForUser(ctx, field.ID, caller)
-				if err != nil {
-					return nil, err
-				}
-				fieldRecord := db.AddFieldDataParams{
-					FieldName:    fieldDetails.FieldName,
-					FieldValue:   field.FieldValue,
-					FieldType:    fieldDetails.FieldType,
-					CredentialID: credential.CredentialID,
-					UserID:       userData.UserID,
-				}
-				userFieldRecords = append(userFieldRecords, fieldRecord)
-			}
-
-			credentialAccessRecord := db.AddCredentialAccessParams{
-				CredentialID: credential.CredentialID,
-				UserID:       userData.UserID,
-				AccessType:   userData.AccessType,
-			}
-			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+		userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
+		if err != nil {
+			return nil, err
 		}
 
-		folderAccessRecord := db.AddFolderAccessParams{
-			UserID:     userData.UserID,
-			AccessType: userData.AccessType,
-			FolderID:   payload.FolderID,
+		credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
+		credentialAccessRecords, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
+			CredentialIDs: credentialIDs,
+			UserID:        userData.UserID,
+			AccessType:    userData.AccessType,
+		})
+		if err != nil {
+			return nil, err
 		}
-		folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+
+		folderAccessRecords := []db.AddFolderAccessParams{
+			db.AddFolderAccessParams{
+				UserID:     userData.UserID,
+				AccessType: userData.AccessType,
+				FolderID:   payload.FolderID,
+			},
+		}
 
 		userShareResponse := ShareFolderWithUserResponse{}
 		userShareResponse.UserID = userData.UserID
@@ -230,7 +254,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 			FolderAccessArgs:     folderAccessRecords,
 		}
 
-		err := repository.ShareCredentials(ctx, shareCredentialTransactionParams)
+		err = repository.ShareCredentials(ctx, shareCredentialTransactionParams)
 		if err != nil {
 			userShareResponse.Status = "failed"
 			userShareResponse.Message = err.Error()
@@ -262,34 +286,25 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 
 		for _, userData := range groupData.UserData {
 
-			for _, credential := range userData.CredentialData {
-
-				for _, field := range credential.Fields {
-
-					fieldDetails, err := FetchFieldNameAndTypeByFieldIDForUser(ctx, field.ID, caller)
-					if err != nil {
-						return nil, err
-					}
-					fieldRecord := db.AddFieldDataParams{
-						FieldName:    fieldDetails.FieldName,
-						FieldValue:   field.FieldValue,
-						FieldType:    fieldDetails.FieldType,
-						CredentialID: credential.CredentialID,
-						UserID:       userData.UserID,
-					}
-					groupFieldRecords = append(groupFieldRecords, fieldRecord)
-
-				}
-
-				credentialAccessRecord := db.AddCredentialAccessParams{
-					CredentialID: credential.CredentialID,
-					UserID:       userData.UserID,
-					AccessType:   userData.AccessType,
-					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
-				}
-				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
-
+			userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
+			if err != nil {
+				return nil, err
 			}
+
+			groupFieldRecords = append(groupFieldRecords, userFieldRecords...)
+
+			credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
+			credentialAccessRecordsForUser, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
+				CredentialIDs: credentialIDs,
+				UserID:        userData.UserID,
+				AccessType:    userData.AccessType,
+				GroupID:       uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecordsForUser...)
 
 			folderAccessRecord := db.AddFolderAccessParams{
 				UserID:     userData.UserID,
