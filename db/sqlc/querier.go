@@ -19,7 +19,8 @@ type Querier interface {
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
-	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
+	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
+	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
 	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)

@@ -3,26 +3,12 @@ package service
 import (
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
-
-func GetUniqueCredentialIDs(credentials []dto.ShareCredentialPayload) []uuid.UUID {
-
-	// find all unique credential ids
-	credentialIDMap := make(map[uuid.UUID]bool)
-	for _, credential := range credentials {
-		credentialIDMap[credential.CredentialID] = true
-	}
-
-	credentialIDs := []uuid.UUID{}
-	for credentialID := range credentialIDMap {
-		credentialIDs = append(credentialIDs, credentialID)
-	}
-	return credentialIDs
-}
 
 func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID) ([]db.AddFieldDataParams, error) {
 
@@ -58,29 +44,6 @@ func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayl
 
 }
 
-type CreateCredentialAccessRecordParams struct {
-	CredentialIDs []uuid.UUID
-	UserID        uuid.UUID
-	AccessType    string
-	GroupID       uuid.NullUUID
-}
-
-func CreateCredentialAccessRecords(ctx *gin.Context, params CreateCredentialAccessRecordParams) ([]db.AddCredentialAccessParams, error) {
-
-	credentialAccessRecords := []db.AddCredentialAccessParams{}
-	for _, credentialID := range params.CredentialIDs {
-
-		credentialAccessRecord := db.AddCredentialAccessParams{
-			CredentialID: credentialID,
-			UserID:       params.UserID,
-			AccessType:   params.AccessType,
-			GroupID:      params.GroupID,
-		}
-		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
-	}
-	return credentialAccessRecords, nil
-}
-
 type ShareCredentialsWithUserResponse struct {
 	Status  string    `json:"status"`
 	Message string    `json:"message,omitempty"`
@@ -100,15 +63,33 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 
 		userFieldRecords := []db.AddFieldDataParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
+		userShareResponse := ShareCredentialsWithUserResponse{
+			UserID: userData.UserID,
+		}
 
 		for _, credential := range userData.CredentialData {
 
-			userFieldRecords, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
-			if err != nil {
-				return nil, err
-			}
+			// // Check credential already shared for user
+			// exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+			// 	UserID:       userData.UserID,
+			// 	CredentialID: credential.CredentialID,
+			// })
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// if exists {
+			// 	logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
+			// 	continue
+			// } else {
 
-			userFieldRecords = append(userFieldRecords, userFieldRecords...)
+			// 	credentialAccessRecord := db.AddCredentialAccessParams{
+			// 		CredentialID: credential.CredentialID,
+			// 		UserID:       userData.UserID,
+			// 		AccessType:   userData.AccessType,
+			// 	}
+			// 	credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+
+			// }
 
 			credentialAccessRecord := db.AddCredentialAccessParams{
 				CredentialID: credential.CredentialID,
@@ -117,11 +98,31 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 			}
 			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 
+			///////////////////////////////////////////////////////////////////////////////////////////
+			// Check Fields already shared for user
+
+			fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+				UserID:       userData.UserID,
+				CredentialID: credential.CredentialID,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			if !fieldDataExists {
+				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+				if err != nil {
+					return nil, err
+				}
+
+				userFieldRecords = append(userFieldRecords, userFields...)
+			} else {
+				logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
+			}
+
+			//////////////////////////////////////////////////////////////////////////////////////////////
 		}
 
-		userShareResponse := ShareCredentialsWithUserResponse{
-			UserID: userData.UserID,
-		}
 		// Share all the credentials for a user in a single transaction
 		shareCredentialParams := db.ShareCredentialTransactionParams{
 			FieldArgs:            userFieldRecords,
@@ -148,7 +149,6 @@ type ShareCredentialsWithGroupResponse struct {
 	GroupID uuid.UUID `json:"groupId"`
 }
 
-
 func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGroupsPayload, caller uuid.UUID) ([]ShareCredentialsWithGroupResponse, error) {
 	// combine credentials for a single group
 
@@ -162,19 +162,57 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 
 			for _, credential := range userData.CredentialData {
 
-				userFieldRecords, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
-				if err != nil {
-					return nil, err
-				}
+				// Check credential already shared for user
+				// exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+				// 	UserID:       userData.UserID,
+				// 	CredentialID: credential.CredentialID,
+				// 	GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+				// })
+				// if err != nil {
+				// 	return nil, err
+				// }
+				// if exists {
+				// 	logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
+				// 	continue
+				// } else {
 
-				groupFieldRecords = append(groupFieldRecords, userFieldRecords...)
+				// 	credentialAccessRecord := db.AddCredentialAccessParams{
+				// 		CredentialID: credential.CredentialID,
+				// 		UserID:       userData.UserID,
+				// 		AccessType:   userData.AccessType,
+				// 		GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+				// 	}
+				// 	credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+
+				// }
 
 				credentialAccessRecord := db.AddCredentialAccessParams{
 					CredentialID: credential.CredentialID,
 					UserID:       userData.UserID,
 					AccessType:   userData.AccessType,
+					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
 				}
 				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+
+				fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+					UserID:       userData.UserID,
+					CredentialID: credential.CredentialID,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				if !fieldDataExists {
+					userFieldRecords, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+					if err != nil {
+						return nil, err
+					}
+
+					groupFieldRecords = append(groupFieldRecords, userFieldRecords...)
+				} else {
+					logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
+				}
+
 			}
 		}
 
@@ -215,41 +253,56 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 	var responses []ShareFolderWithUserResponse
 	for _, userData := range payload.UserData {
 
-		userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
-		if err != nil {
-			return nil, err
-		}
-
-		credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
-		credentialAccessRecords, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
-			CredentialIDs: credentialIDs,
-			UserID:        userData.UserID,
-			AccessType:    userData.AccessType,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		folderAccessRecords := []db.AddFolderAccessParams{
-			{
-				UserID:     userData.UserID,
-				AccessType: userData.AccessType,
-				FolderID:   payload.FolderID,
-			},
-		}
+		credentialAccessRecords := []db.AddCredentialAccessParams{}
+		userFieldRecords := []db.AddFieldDataParams{}
+		folderAccessRecords := []db.AddFolderAccessParams{}
 
 		userShareResponse := ShareFolderWithUserResponse{}
 		userShareResponse.UserID = userData.UserID
 
-		// Share all the credentials for a user in a single transaction
+		for _, credential := range userData.CredentialData {
 
+			fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+				UserID:       userData.UserID,
+				CredentialID: credential.CredentialID,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			if !fieldDataExists {
+				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+				if err != nil {
+					return nil, err
+				}
+				userFieldRecords = append(userFieldRecords, userFields...)
+			} else {
+				logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
+			}
+
+			credentialAccessRecord := db.AddCredentialAccessParams{
+				CredentialID: credential.CredentialID,
+				UserID:       userData.UserID,
+				AccessType:   userData.AccessType,
+			}
+			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+		}
+
+		folderAccessRecord := db.AddFolderAccessParams{
+			UserID:     userData.UserID,
+			AccessType: userData.AccessType,
+			FolderID:   payload.FolderID,
+		}
+		folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+
+		// Share all the credentials for a user in a single transaction
 		shareCredentialTransactionParams := db.ShareCredentialTransactionParams{
 			FieldArgs:            userFieldRecords,
 			CredentialAccessArgs: credentialAccessRecords,
 			FolderAccessArgs:     folderAccessRecords,
 		}
 
-		err = repository.ShareCredentials(ctx, shareCredentialTransactionParams)
+		err := repository.ShareCredentials(ctx, shareCredentialTransactionParams)
 		if err != nil {
 			userShareResponse.Status = "failed"
 			userShareResponse.Message = err.Error()
@@ -258,6 +311,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 			userShareResponse.Message = "shared successfully"
 		}
 		responses = append(responses, userShareResponse)
+
 	}
 
 	return responses, nil
@@ -281,25 +335,36 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 
 		for _, userData := range groupData.UserData {
 
-			userFieldRecords, err := CreateFieldDataRecords(ctx, userData.CredentialData, userData.UserID)
-			if err != nil {
-				return nil, err
+			for _, credential := range userData.CredentialData {
+
+				fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+					UserID:       userData.UserID,
+					CredentialID: credential.CredentialID,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				if !fieldDataExists {
+					userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+					if err != nil {
+						return nil, err
+					}
+
+					groupFieldRecords = append(groupFieldRecords, userFields...)
+				} else {
+					logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
+				}
+
+				credentialAccessRecord := db.AddCredentialAccessParams{
+					CredentialID: credential.CredentialID,
+					UserID:       userData.UserID,
+					AccessType:   userData.AccessType,
+					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+				}
+
+				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 			}
-
-			groupFieldRecords = append(groupFieldRecords, userFieldRecords...)
-
-			credentialIDs := GetUniqueCredentialIDs(userData.CredentialData)
-			credentialAccessRecordsForUser, err := CreateCredentialAccessRecords(ctx, CreateCredentialAccessRecordParams{
-				CredentialIDs: credentialIDs,
-				UserID:        userData.UserID,
-				AccessType:    groupData.AccessType,
-				GroupID:       uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecordsForUser...)
 
 			folderAccessRecord := db.AddFolderAccessParams{
 				UserID:     userData.UserID,
