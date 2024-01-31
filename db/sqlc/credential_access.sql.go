@@ -41,17 +41,18 @@ const checkAccessListEntryExists = `-- name: CheckAccessListEntryExists :one
 SELECT EXISTS (
     SELECT 1
     FROM access_list
-    WHERE user_id = $1 AND credential_id = $2
+    WHERE user_id = $1 AND credential_id = $2 AND group_id = $3
 )
 `
 
 type CheckAccessListEntryExistsParams struct {
-	UserID       uuid.UUID `json:"userId"`
-	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	GroupID      uuid.NullUUID `json:"groupId"`
 }
 
 func (q *Queries) CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkAccessListEntryExists, arg.UserID, arg.CredentialID)
+	row := q.db.QueryRowContext(ctx, checkAccessListEntryExists, arg.UserID, arg.CredentialID, arg.GroupID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
