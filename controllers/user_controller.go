@@ -126,3 +126,15 @@ func TestLoginController(ctx *gin.Context) {
 
 	SendResponse(ctx, 200, TokenResponse{Token: token}, "Login successfull", nil)
 }
+
+func GetCredentialUsers(ctx *gin.Context) {
+	credentialIDStr := ctx.Param("id")
+	credentialID, _ := uuid.Parse(credentialIDStr)
+
+	users, err := service.GetCredentialUsers(ctx, credentialID)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to get credential users", err)
+		return
+	}
+	SendResponse(ctx, 200, users, "fetched credential users", nil)
+}

@@ -185,3 +185,12 @@ func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersBy
 	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
 	return users, err
 }
+
+func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
+	groups, err := repository.GetCredentialGroups(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return groups, err
+	}
+	return groups, nil
+}
