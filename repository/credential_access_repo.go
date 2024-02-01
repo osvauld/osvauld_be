@@ -59,4 +59,3 @@ func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialA
 	return database.Store.CheckCredentialAccessEntryExists(ctx, args)
 
 }
-

@@ -28,8 +28,8 @@ SELECT EXISTS (
 -------------------------------------------------------------------------------------------------------
 
 
--- name: GetCredentialIDAndTypeWithGroupAccess :many
-SELECT DISTINCT credential_id, access_type
+-- name: GetCredentialAccessDetailsWithGroupAccess :many
+SELECT DISTINCT credential_id, access_type, folder_id
 FROM access_list
 WHERE group_id = $1;
 

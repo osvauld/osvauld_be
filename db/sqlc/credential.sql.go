@@ -96,6 +96,73 @@ func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (Fe
 	return i, err
 }
 
+const fetchCredentialDetailsForUserByFolderId = `-- name: FetchCredentialDetailsForUserByFolderId :many
+SELECT
+    C.id AS "credentialID",
+    C.name,
+    COALESCE(C.description, '') AS "description",
+    C.credential_type AS "credentialType",
+    C.created_at AS "createdAt",
+    C.updated_at AS "updatedAt",
+    C.created_by AS "createdBy",
+    A.access_type AS "accessType"
+FROM
+    credentials AS C,
+    access_list AS A
+WHERE
+    C.id = A .credential_id
+    AND C.folder_id = $1
+    AND A.user_id = $2
+`
+
+type FetchCredentialDetailsForUserByFolderIdParams struct {
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
+}
+
+type FetchCredentialDetailsForUserByFolderIdRow struct {
+	CredentialID   uuid.UUID `json:"credentialID"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	CredentialType string    `json:"credentialType"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	CreatedBy      uuid.UUID `json:"createdBy"`
+	AccessType     string    `json:"accessType"`
+}
+
+func (q *Queries) FetchCredentialDetailsForUserByFolderId(ctx context.Context, arg FetchCredentialDetailsForUserByFolderIdParams) ([]FetchCredentialDetailsForUserByFolderIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, fetchCredentialDetailsForUserByFolderId, arg.FolderID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FetchCredentialDetailsForUserByFolderIdRow{}
+	for rows.Next() {
+		var i FetchCredentialDetailsForUserByFolderIdRow
+		if err := rows.Scan(
+			&i.CredentialID,
+			&i.Name,
+			&i.Description,
+			&i.CredentialType,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.AccessType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const fetchCredentialFieldsForUserByCredentialIds = `-- name: FetchCredentialFieldsForUserByCredentialIds :many
 SELECT
     credential_id AS "credentialID",
@@ -153,56 +220,83 @@ func (q *Queries) FetchCredentialFieldsForUserByCredentialIds(ctx context.Contex
 	return items, nil
 }
 
-const fetchCredentialIdsForUserByFolderId = `-- name: FetchCredentialIdsForUserByFolderId :many
-SELECT
-    C.id AS "credentialID",
-    C.name,
-    COALESCE(C.description, '') AS "description",
-    C.credential_type AS "credentialType",
-    C.created_at AS "createdAt",
-    C.updated_at AS "updatedAt",
-    C.created_by AS "createdBy"
-FROM
-    credentials AS C,
-    access_list AS A
-WHERE
-    C.id = A .credential_id
-    AND C.folder_id = $1
-    AND A.user_id = $2
+const getAccessTypeAndGroupsByCredentialId = `-- name: GetAccessTypeAndGroupsByCredentialId :many
+    SELECT DISTINCT
+        al.group_id, 
+        g.name,
+        al.access_type
+    FROM 
+        access_list al
+    JOIN 
+        groupings g ON al.group_id = g.id
+    WHERE 
+        al.credential_id = $1
 `
 
-type FetchCredentialIdsForUserByFolderIdParams struct {
-	FolderID uuid.UUID `json:"folderId"`
-	UserID   uuid.UUID `json:"userId"`
+type GetAccessTypeAndGroupsByCredentialIdRow struct {
+	GroupID    uuid.NullUUID `json:"groupId"`
+	Name       string        `json:"name"`
+	AccessType string        `json:"accessType"`
 }
 
-type FetchCredentialIdsForUserByFolderIdRow struct {
-	CredentialID   uuid.UUID `json:"credentialID"`
-	Name           string    `json:"name"`
-	Description    string    `json:"description"`
-	CredentialType string    `json:"credentialType"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	CreatedBy      uuid.UUID `json:"createdBy"`
-}
-
-func (q *Queries) FetchCredentialIdsForUserByFolderId(ctx context.Context, arg FetchCredentialIdsForUserByFolderIdParams) ([]FetchCredentialIdsForUserByFolderIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, fetchCredentialIdsForUserByFolderId, arg.FolderID, arg.UserID)
+func (q *Queries) GetAccessTypeAndGroupsByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndGroupsByCredentialIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAccessTypeAndGroupsByCredentialId, credentialID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []FetchCredentialIdsForUserByFolderIdRow{}
+	items := []GetAccessTypeAndGroupsByCredentialIdRow{}
 	for rows.Next() {
-		var i FetchCredentialIdsForUserByFolderIdRow
+		var i GetAccessTypeAndGroupsByCredentialIdRow
+		if err := rows.Scan(&i.GroupID, &i.Name, &i.AccessType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAccessTypeAndUsersByCredentialId = `-- name: GetAccessTypeAndUsersByCredentialId :many
+SELECT 
+    al.user_id as "id",
+    u.name, 
+    al.access_type,
+    COALESCE(u.rsa_pub_key, '') AS "publicKey"
+FROM 
+    access_list al
+JOIN 
+    users u ON al.user_id = u.id
+WHERE 
+    al.credential_id = $1 AND al.group_id IS NULL
+`
+
+type GetAccessTypeAndUsersByCredentialIdRow struct {
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	AccessType string    `json:"accessType"`
+	PublicKey  string    `json:"publicKey"`
+}
+
+func (q *Queries) GetAccessTypeAndUsersByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndUsersByCredentialIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAccessTypeAndUsersByCredentialId, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAccessTypeAndUsersByCredentialIdRow{}
+	for rows.Next() {
+		var i GetAccessTypeAndUsersByCredentialIdRow
 		if err := rows.Scan(
-			&i.CredentialID,
+			&i.ID,
 			&i.Name,
-			&i.Description,
-			&i.CredentialType,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.CreatedBy,
+			&i.AccessType,
+			&i.PublicKey,
 		); err != nil {
 			return nil, err
 		}

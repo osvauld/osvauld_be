@@ -35,7 +35,7 @@ WHERE
     AND user_id = $2;
 
 
--- name: FetchCredentialIdsForUserByFolderId :many
+-- name: FetchCredentialDetailsForUserByFolderId :many
 SELECT
     C.id AS "credentialID",
     C.name,
@@ -43,7 +43,8 @@ SELECT
     C.credential_type AS "credentialType",
     C.created_at AS "createdAt",
     C.updated_at AS "updatedAt",
-    C.created_by AS "createdBy"
+    C.created_by AS "createdBy",
+    A.access_type AS "accessType"
 FROM
     credentials AS C,
     access_list AS A

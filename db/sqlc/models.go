@@ -19,6 +19,7 @@ type AccessList struct {
 	UserID       uuid.UUID     `json:"userId"`
 	AccessType   string        `json:"accessType"`
 	GroupID      uuid.NullUUID `json:"groupId"`
+	FolderID     uuid.NullUUID `json:"folderId"`
 }
 
 type Credential struct {

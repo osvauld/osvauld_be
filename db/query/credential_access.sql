@@ -1,7 +1,7 @@
 -- name: AddCredentialAccess :one
 
-INSERT INTO access_list (credential_id, user_id, access_type, group_id)
-VALUES ($1, $2, $3, $4)
+INSERT INTO access_list (credential_id, user_id, access_type, group_id, folder_id)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 
@@ -33,6 +33,7 @@ SELECT credential_id FROM access_list WHERE user_id = $1;
 SELECT EXISTS (
     SELECT 1
     FROM access_list
-    WHERE user_id = $1 AND credential_id = $2 AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
+    WHERE user_id = $1 AND credential_id = $2 
+    AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
+    AND ((folder_id IS NOT NULL AND folder_id = $4) OR (folder_id is null and $4 is null))
 );
-
