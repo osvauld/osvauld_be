@@ -123,7 +123,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		}
 
 		if !fieldDataExists {
-			userFields, err := CreateFieldDataRecords(ctx, credential, payload.MemberID)
+			userFields, err := CreateFieldDataRecords(ctx, credential, payload.MemberID, caller)
 			if err != nil {
 				return err
 			}
