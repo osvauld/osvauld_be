@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var accessLevels = map[string]int{
+var CredentialAccessLevels = map[string]int{
 	"unauthorized": 0,
 	"read":         1,
 	"write":        2,
@@ -28,7 +28,7 @@ func GetAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uui
 	highestAccess := "unauthorized"
 	for _, accessRow := range accessRows {
 
-		if accessLevels[accessRow.AccessType] > accessLevels[highestAccess] {
+		if CredentialAccessLevels[accessRow.AccessType] > CredentialAccessLevels[highestAccess] {
 			highestAccess = accessRow.AccessType
 		}
 	}
@@ -43,7 +43,7 @@ func HasReadAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID
 	if err != nil {
 		return false, err
 	}
-	if accessLevels[access] > 0 {
+	if CredentialAccessLevels[access] > 0 {
 		return true, nil
 	}
 	return false, nil
@@ -56,7 +56,7 @@ func HasOwnerAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userI
 	if err != nil {
 		return false, err
 	}
-	if accessLevels[access] == 99 {
+	if CredentialAccessLevels[access] == 99 {
 		return true, nil
 	}
 	return false, nil

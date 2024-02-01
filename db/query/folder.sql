@@ -17,11 +17,21 @@ WHERE id IN (
   FROM folder_access
   WHERE folder_access.user_id = $1
   UNION
-  SELECT DISTINCT(folder_id)
-  FROM credentials
-  JOIN access_list ON credentials.id = access_list.credential_id
-  WHERE access_list.user_id = $1
+  SELECT DISTINCT(c.folder_id)
+  FROM credentials as c
+  JOIN access_list as a ON c.id = a.credential_id
+  WHERE a.user_id = $1
 );
+
+-- name: CheckFolderAccessEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM folder_access
+    WHERE user_id = $1 AND folder_id = $2 
+    AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
+);
+
+
 
 
 -- name: IsFolderOwner :one

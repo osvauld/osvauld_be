@@ -4,6 +4,7 @@ import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -100,7 +101,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	credentialIDAndTypeWithGroupAccess, err := repository.GetCredentialIDAndTypeWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
+	credentialIDAndTypeWithGroupAccess, err := repository.GetCredentialAccessDetailsWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
 	if err != nil {
 		return err
 	}
@@ -110,9 +111,29 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	userFieldRecords, err := CreateFieldDataRecords(ctx, payload.Credentials, payload.MemberID)
-	if err != nil {
-		return err
+	userFieldRecords := []db.AddFieldDataParams{}
+	for _, credential := range payload.Credentials {
+
+		fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+			UserID:       payload.MemberID,
+			CredentialID: credential.CredentialID,
+		})
+		if err != nil {
+			return err
+		}
+
+		if !fieldDataExists {
+			userFields, err := CreateFieldDataRecords(ctx, credential, payload.MemberID)
+			if err != nil {
+				return err
+			}
+
+			userFieldRecords = append(userFieldRecords, userFields...)
+
+		} else {
+			logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, payload.MemberID)
+		}
+
 	}
 
 	credentialAccessRecords := []db.AddCredentialAccessParams{}
@@ -122,6 +143,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 			UserID:       payload.MemberID,
 			AccessType:   credentialDetails.AccessType,
 			GroupID:      uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+			FolderID:     credentialDetails.FolderID,
 		}
 		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 	}
@@ -163,4 +185,13 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
 	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
 	return users, err
+}
+
+func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
+	groups, err := repository.GetCredentialGroups(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return groups, err
+	}
+	return groups, nil
 }

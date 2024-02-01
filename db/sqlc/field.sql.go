@@ -40,6 +40,26 @@ func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uui
 	return id, err
 }
 
+const checkFieldEntryExists = `-- name: CheckFieldEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM encrypted_data
+    WHERE credential_id = $1 AND user_id = $2
+)
+`
+
+type CheckFieldEntryExistsParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkFieldEntryExists, arg.CredentialID, arg.UserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getFieldDataByCredentialIDsForUser = `-- name: GetFieldDataByCredentialIDsForUser :many
 SELECT
     encrypted_data.id,

@@ -78,8 +78,8 @@ func AddMembersToGroupTransaction(ctx *gin.Context, args db.AddMembersToGroupTra
 	return database.Store.AddMembersToGroupTransaction(ctx, args)
 }
 
-func GetCredentialIDAndTypeWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetCredentialIDAndTypeWithGroupAccessRow, error) {
-	return database.Store.GetCredentialIDAndTypeWithGroupAccess(ctx, groupID)
+func GetCredentialAccessDetailsWithGroupAccess(ctx *gin.Context, groupID uuid.NullUUID) ([]db.GetCredentialAccessDetailsWithGroupAccessRow, error) {
+	return database.Store.GetCredentialAccessDetailsWithGroupAccess(ctx, groupID)
 
 }
 

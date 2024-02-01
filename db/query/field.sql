@@ -17,3 +17,13 @@ SELECT
 FROM encrypted_data
 WHERE encrypted_data.user_id = $1 
 AND encrypted_data.credential_id = ANY(@Credentials::UUID[]);
+
+
+-- name: CheckFieldEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM encrypted_data
+    WHERE credential_id = $1 AND user_id = $2
+);
+
+

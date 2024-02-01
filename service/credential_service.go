@@ -4,6 +4,7 @@ import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/database"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -109,11 +110,99 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.U
 	return credential, err
 }
 
-func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
-	credentials, err := repository.GetCredentialsByFolder(ctx, folderID, userID)
-	if err != nil {
-		return nil, err
+func GetUniqueCredentialsWithHighestAccess(credentials []db.FetchCredentialDetailsForUserByFolderIdRow) []db.FetchCredentialDetailsForUserByFolderIdRow {
+	credentialMap := make(map[uuid.UUID]db.FetchCredentialDetailsForUserByFolderIdRow)
+	for _, credential := range credentials {
+		if _, ok := credentialMap[credential.CredentialID]; ok {
+
+			existingAccessType := credentialMap[credential.CredentialID].AccessType
+			newAccessType := credential.AccessType
+
+			if CredentialAccessLevels[newAccessType] > CredentialAccessLevels[existingAccessType] {
+				credentialMap[credential.CredentialID] = credential
+			}
+		} else {
+			credentialMap[credential.CredentialID] = credential
+		}
 	}
+
+	uniqueCredentials := []db.FetchCredentialDetailsForUserByFolderIdRow{}
+	for _, credential := range credentialMap {
+		uniqueCredentials = append(uniqueCredentials, credential)
+	}
+
+	return uniqueCredentials
+}
+
+func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
+
+	// Users can have access to only some of the credentials in a folder.
+	// So check the access_list table to see which credentials the user has access to
+	credentialDetails, err := repository.FetchCredentialDetailsForUserByFolderId(ctx, db.FetchCredentialDetailsForUserByFolderIdParams{
+		FolderID: folderID,
+		UserID:   userID,
+	})
+	if err != nil {
+		return []dto.CredentialForUser{}, err
+	}
+
+	uniqueCredentialDetails := GetUniqueCredentialsWithHighestAccess(credentialDetails)
+
+	credentialIDs := []uuid.UUID{}
+	for _, credential := range uniqueCredentialDetails {
+		credentialIDs = append(credentialIDs, credential.CredentialID)
+	}
+
+	arg := db.FetchCredentialFieldsForUserByCredentialIdsParams{
+		Column1: credentialIDs,
+		UserID:  userID,
+	}
+	FieldsData, err := database.Store.FetchCredentialFieldsForUserByCredentialIds(ctx, arg)
+	if err != nil {
+		return []dto.CredentialForUser{}, err
+	}
+
+	credentialFieldGroups := map[uuid.UUID][]dto.Field{}
+
+	for _, field := range FieldsData {
+		// if credential.CredentialID does not exist add it to the map and add the field to the array
+		if _, ok := credentialFieldGroups[field.CredentialID]; ok {
+			credentialFieldGroups[field.CredentialID] = append(credentialFieldGroups[field.CredentialID], dto.Field{
+				ID:         field.FieldID,
+				FieldName:  field.FieldName,
+				FieldValue: field.FieldValue,
+				FieldType:  field.FieldType,
+			})
+		} else {
+			credentialFieldGroups[field.CredentialID] = []dto.Field{
+				{
+					ID:         field.FieldID,
+					FieldName:  field.FieldName,
+					FieldValue: field.FieldValue,
+					FieldType:  field.FieldType,
+				},
+			}
+		}
+	}
+
+	credentials := []dto.CredentialForUser{}
+	for _, credential := range uniqueCredentialDetails {
+		credentialForUser := dto.CredentialForUser{}
+
+		credentialForUser.CredentialID = credential.CredentialID
+		credentialForUser.Name = credential.Name
+		credentialForUser.Description = credential.Description
+		credentialForUser.CredentialType = credential.CredentialType
+		credentialForUser.AccessType = credential.AccessType
+		credentialForUser.FolderID = folderID
+		credentialForUser.CreatedAt = credential.CreatedAt
+		credentialForUser.UpdatedAt = credential.UpdatedAt
+		credentialForUser.CreatedBy = credential.CreatedBy
+		credentialForUser.Fields = credentialFieldGroups[credential.CredentialID]
+
+		credentials = append(credentials, credentialForUser)
+	}
+
 	return credentials, nil
 }
 

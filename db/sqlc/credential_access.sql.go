@@ -13,8 +13,8 @@ import (
 
 const addCredentialAccess = `-- name: AddCredentialAccess :one
 
-INSERT INTO access_list (credential_id, user_id, access_type, group_id)
-VALUES ($1, $2, $3, $4)
+INSERT INTO access_list (credential_id, user_id, access_type, group_id, folder_id)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
@@ -23,6 +23,7 @@ type AddCredentialAccessParams struct {
 	UserID       uuid.UUID     `json:"userId"`
 	AccessType   string        `json:"accessType"`
 	GroupID      uuid.NullUUID `json:"groupId"`
+	FolderID     uuid.NullUUID `json:"folderId"`
 }
 
 func (q *Queries) AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error) {
@@ -31,27 +32,37 @@ func (q *Queries) AddCredentialAccess(ctx context.Context, arg AddCredentialAcce
 		arg.UserID,
 		arg.AccessType,
 		arg.GroupID,
+		arg.FolderID,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
-const checkAccessListEntryExists = `-- name: CheckAccessListEntryExists :one
+const checkCredentialAccessEntryExists = `-- name: CheckCredentialAccessEntryExists :one
 SELECT EXISTS (
     SELECT 1
     FROM access_list
-    WHERE user_id = $1 AND credential_id = $2
+    WHERE user_id = $1 AND credential_id = $2 
+    AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
+    AND ((folder_id IS NOT NULL AND folder_id = $4) OR (folder_id is null and $4 is null))
 )
 `
 
-type CheckAccessListEntryExistsParams struct {
-	UserID       uuid.UUID `json:"userId"`
-	CredentialID uuid.UUID `json:"credentialId"`
+type CheckCredentialAccessEntryExistsParams struct {
+	UserID       uuid.UUID     `json:"userId"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	GroupID      uuid.NullUUID `json:"groupId"`
+	FolderID     uuid.NullUUID `json:"folderId"`
 }
 
-func (q *Queries) CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkAccessListEntryExists, arg.UserID, arg.CredentialID)
+func (q *Queries) CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkCredentialAccessEntryExists,
+		arg.UserID,
+		arg.CredentialID,
+		arg.GroupID,
+		arg.FolderID,
+	)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

@@ -19,7 +19,9 @@ type Querier interface {
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
-	CheckAccessListEntryExists(ctx context.Context, arg CheckAccessListEntryExistsParams) (bool, error)
+	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
+	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
+	CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error)
 	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
@@ -32,55 +34,24 @@ type Querier interface {
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)
 	FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error)
+	FetchCredentialDetailsForUserByFolderId(ctx context.Context, arg FetchCredentialDetailsForUserByFolderIdParams) ([]FetchCredentialDetailsForUserByFolderIdRow, error)
 	FetchCredentialFieldsForUserByCredentialIds(ctx context.Context, arg FetchCredentialFieldsForUserByCredentialIdsParams) ([]FetchCredentialFieldsForUserByCredentialIdsRow, error)
 	FetchCredentialIDsWithGroupAccess(ctx context.Context, arg FetchCredentialIDsWithGroupAccessParams) ([]uuid.UUID, error)
-	FetchCredentialIdsForUserByFolderId(ctx context.Context, arg FetchCredentialIdsForUserByFolderIdParams) ([]FetchCredentialIdsForUserByFolderIdRow, error)
 	FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error)
 	FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error)
 	FetchUnencryptedFieldsByCredentialID(ctx context.Context, credentialID uuid.UUID) ([]FetchUnencryptedFieldsByCredentialIDRow, error)
 	FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error)
 	FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID) ([]FetchUsersByGroupIdsRow, error)
+	GetAccessTypeAndGroupsByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndGroupsByCredentialIdRow, error)
 	GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error)
-	// -- name: GetCredentialsByUrl :many
-	// WITH CredentialWithUnencrypted AS (
-	//     SELECT
-	//         C.id AS "id",
-	//         C.name AS "name",
-	//         COALESCE(C.description, '') AS "description",
-	//         json_agg(
-	//             json_build_object(
-	//                 'fieldName', u.field_name,
-	//                 'fieldValue', u.field_value,
-	//                 'isUrl', u.is_url,
-	//                 'url', u.url
-	//             )
-	//         ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
-	//     FROM
-	//         credentials C
-	//         LEFT JOIN unencrypted_data u ON C.id = u.credential_id
-	//     WHERE
-	//         C.id IN (SELECT credential_id FROM unencrypted_data as und WHERE und.url = $1)
-	//     GROUP BY
-	//         C.id
-	// ),
-	// DistinctAccess AS (
-	//     SELECT DISTINCT credential_id
-	//     FROM access_list
-	//     WHERE user_id = $2
-	// )
-	// SELECT
-	//     cwu.*
-	// FROM
-	//     CredentialWithUnencrypted cwu
-	// JOIN
-	//     DistinctAccess DA ON cwu.id = DA.credential_id;
+	GetAccessTypeAndUsersByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndUsersByCredentialIdRow, error)
 	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
+	//-----------------------------------------------------------------------------------------------------
+	GetCredentialAccessDetailsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialAccessDetailsWithGroupAccessRow, error)
 	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
 	GetCredentialDetails(ctx context.Context, id uuid.UUID) (GetCredentialDetailsRow, error)
 	GetCredentialDetailsByIds(ctx context.Context, arg GetCredentialDetailsByIdsParams) ([]GetCredentialDetailsByIdsRow, error)
-	//-----------------------------------------------------------------------------------------------------
-	GetCredentialIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialIDAndTypeWithGroupAccessRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error)
 	GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error)

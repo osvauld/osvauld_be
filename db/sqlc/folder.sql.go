@@ -59,6 +59,28 @@ func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams
 	return err
 }
 
+const checkFolderAccessEntryExists = `-- name: CheckFolderAccessEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM folder_access
+    WHERE user_id = $1 AND folder_id = $2 
+    AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
+)
+`
+
+type CheckFolderAccessEntryExistsParams struct {
+	UserID   uuid.UUID     `json:"userId"`
+	FolderID uuid.UUID     `json:"folderId"`
+	GroupID  uuid.NullUUID `json:"groupId"`
+}
+
+func (q *Queries) CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkFolderAccessEntryExists, arg.UserID, arg.FolderID, arg.GroupID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const fetchAccessibleFoldersForUser = `-- name: FetchAccessibleFoldersForUser :many
 SELECT id, name, description, created_at, created_by
 FROM folders
@@ -67,10 +89,10 @@ WHERE id IN (
   FROM folder_access
   WHERE folder_access.user_id = $1
   UNION
-  SELECT DISTINCT(folder_id)
-  FROM credentials
-  JOIN access_list ON credentials.id = access_list.credential_id
-  WHERE access_list.user_id = $1
+  SELECT DISTINCT(c.folder_id)
+  FROM credentials as c
+  JOIN access_list as a ON c.id = a.credential_id
+  WHERE a.user_id = $1
 )
 `
 

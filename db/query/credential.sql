@@ -35,7 +35,7 @@ WHERE
     AND user_id = $2;
 
 
--- name: FetchCredentialIdsForUserByFolderId :many
+-- name: FetchCredentialDetailsForUserByFolderId :many
 SELECT
     C.id AS "credentialID",
     C.name,
@@ -43,7 +43,8 @@ SELECT
     C.credential_type AS "credentialType",
     C.created_at AS "createdAt",
     C.updated_at AS "updatedAt",
-    C.created_by AS "createdBy"
+    C.created_by AS "createdBy",
+    A.access_type AS "accessType"
 FROM
     credentials AS C,
     access_list AS A
@@ -130,45 +131,6 @@ ORDER BY
     e.credential_id;
 
 
-
-
-
--- -- name: GetCredentialsByUrl :many
-
--- WITH CredentialWithUnencrypted AS (
---     SELECT
---         C.id AS "id",
---         C.name AS "name",
---         COALESCE(C.description, '') AS "description",
---         json_agg(
---             json_build_object(
---                 'fieldName', u.field_name,
---                 'fieldValue', u.field_value,
---                 'isUrl', u.is_url,
---                 'url', u.url
---             )
---         ) FILTER (WHERE u.field_name IS NOT NULL) AS "unencryptedFields"
---     FROM
---         credentials C
---         LEFT JOIN unencrypted_data u ON C.id = u.credential_id
---     WHERE
---         C.id IN (SELECT credential_id FROM unencrypted_data as und WHERE und.url = $1)
---     GROUP BY
---         C.id
--- ),
--- DistinctAccess AS (
---     SELECT DISTINCT credential_id
---     FROM access_list
---     WHERE user_id = $2
--- )
--- SELECT
---     cwu.*
--- FROM
---     CredentialWithUnencrypted cwu
--- JOIN
---     DistinctAccess DA ON cwu.id = DA.credential_id;
-
-
 -- name: GetAllUrlsForUser :many
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"
@@ -216,3 +178,28 @@ JOIN
 WHERE 
     a.user_id = $1
     AND c.folder_id = $2;
+
+-- name: GetAccessTypeAndUsersByCredentialId :many
+SELECT 
+    al.user_id as "id",
+    u.name, 
+    al.access_type,
+    COALESCE(u.rsa_pub_key, '') AS "publicKey"
+FROM 
+    access_list al
+JOIN 
+    users u ON al.user_id = u.id
+WHERE 
+    al.credential_id = $1 AND al.group_id IS NULL;
+
+-- name: GetAccessTypeAndGroupsByCredentialId :many
+    SELECT DISTINCT
+        al.group_id, 
+        g.name,
+        al.access_type
+    FROM 
+        access_list al
+    JOIN 
+        groupings g ON al.group_id = g.id
+    WHERE 
+        al.credential_id = $1;

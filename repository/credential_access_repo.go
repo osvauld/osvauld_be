@@ -53,3 +53,9 @@ func GetCredentialAccessForUser(ctx *gin.Context, credentialID uuid.UUID, userID
 	}
 	return accessListResults, nil
 }
+
+func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialAccessEntryExistsParams) (bool, error) {
+
+	return database.Store.CheckCredentialAccessEntryExists(ctx, args)
+
+}

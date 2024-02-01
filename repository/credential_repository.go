@@ -42,73 +42,10 @@ func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, userID uuid.U
 	return credentialDetails, nil
 }
 
-func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
+func FetchCredentialDetailsForUserByFolderId(ctx *gin.Context, args db.FetchCredentialDetailsForUserByFolderIdParams) ([]db.FetchCredentialDetailsForUserByFolderIdRow, error) {
 
-	args := db.FetchCredentialIdsForUserByFolderIdParams{
-		FolderID: folderID,
-		UserID:   userID,
-	}
+	return database.Store.FetchCredentialDetailsForUserByFolderId(ctx, args)
 
-	// Users can have access to only some of the credentials in a folder.
-	// So check the access_list table to see which credentials the user has access to
-	credentialDetails, err := database.Store.FetchCredentialIdsForUserByFolderId(ctx, args)
-	if err != nil {
-		return []dto.CredentialForUser{}, err
-	}
-
-	credentialIDs := []uuid.UUID{}
-	for _, credential := range credentialDetails {
-		credentialIDs = append(credentialIDs, credential.CredentialID)
-	}
-
-	arg := db.FetchCredentialFieldsForUserByCredentialIdsParams{
-		Column1: credentialIDs,
-		UserID:  userID,
-	}
-	FieldsData, err := database.Store.FetchCredentialFieldsForUserByCredentialIds(ctx, arg)
-	if err != nil {
-		return []dto.CredentialForUser{}, err
-	}
-
-	credentialFieldGroups := map[uuid.UUID][]dto.Field{}
-
-	for _, credential := range FieldsData {
-		// if credential.CredentialID does not exist add it to the map and add the field to the array
-		if _, ok := credentialFieldGroups[credential.CredentialID]; ok {
-			credentialFieldGroups[credential.CredentialID] = append(credentialFieldGroups[credential.CredentialID], dto.Field{
-				ID:         credential.FieldID,
-				FieldName:  credential.FieldName,
-				FieldValue: credential.FieldValue,
-				FieldType:  credential.FieldType,
-			})
-		} else {
-			credentialFieldGroups[credential.CredentialID] = []dto.Field{
-				{
-					ID:         credential.FieldID,
-					FieldName:  credential.FieldName,
-					FieldValue: credential.FieldValue,
-					FieldType:  credential.FieldType,
-				},
-			}
-		}
-	}
-
-	credentials := []dto.CredentialForUser{}
-	for _, credential := range credentialDetails {
-		credentialForUser := dto.CredentialForUser{}
-		credentialForUser.CredentialID = credential.CredentialID
-		credentialForUser.Name = credential.Name
-		credentialForUser.Description = credential.Description
-		credentialForUser.CredentialType = credential.CredentialType
-		credentialForUser.FolderID = folderID
-		credentialForUser.CreatedAt = credential.CreatedAt
-		credentialForUser.UpdatedAt = credential.UpdatedAt
-		credentialForUser.CreatedBy = credential.CreatedBy
-		credentialForUser.Fields = credentialFieldGroups[credential.CredentialID]
-		credentials = append(credentials, credentialForUser)
-	}
-
-	return credentials, nil
 }
 
 func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
@@ -175,4 +112,14 @@ func GetCredentialIdsByFolderAndUserId(ctx *gin.Context, folderID uuid.UUID, use
 		return nil, err
 	}
 	return credentialIds, err
+}
+
+func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndUsersByCredentialIdRow, error) {
+	return database.Store.GetAccessTypeAndUsersByCredentialId(ctx, credentialID)
+
+}
+
+func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
+	return database.Store.GetAccessTypeAndGroupsByCredentialId(ctx, credentialID)
+
 }

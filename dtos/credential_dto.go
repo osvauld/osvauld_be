@@ -35,6 +35,7 @@ type CredentialForUser struct {
 	Description    string    `json:"description"`
 	FolderID       uuid.UUID `json:"folderId"`
 	CredentialType string    `json:"credentialType"`
+	AccessType     string    `json:"accessType"`
 	Fields         []Field   `json:"fields"`
 	CreatedBy      uuid.UUID `json:"createdBy"`
 	CreatedAt      time.Time `json:"createdAt"`
