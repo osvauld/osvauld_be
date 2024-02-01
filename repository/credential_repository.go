@@ -183,10 +183,6 @@ func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAcces
 }
 
 func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
-	groups, err := database.Store.GetAccessTypeAndGroupsByCredentialId(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return groups, err
+	return database.Store.GetAccessTypeAndGroupsByCredentialId(ctx, credentialID)
+
 }
