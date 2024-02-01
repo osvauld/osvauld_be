@@ -36,6 +36,8 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)
 	route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.FetchCredentialByID)
 	route.GET("/credential/:id/sensitive", middleware.JWTAuthMiddleware(), controllers.GetSensitiveFieldsCredentialByID)
+	route.GET("/credential/:id/users", middleware.JWTAuthMiddleware(), controllers.GetCredentialUsers)
+	route.GET("/credential/:id/groups", middleware.JWTAuthMiddleware(), controllers.GetCredentialGroups)
 
 	// route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialByID)
 	route.POST("/group", middleware.JWTAuthMiddleware(), controllers.CreateGroup)

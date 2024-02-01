@@ -4,6 +4,7 @@ import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -163,4 +164,13 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
 	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
 	return users, err
+}
+
+func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
+	groups, err := repository.GetCredentialGroups(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return groups, err
+	}
+	return groups, nil
 }

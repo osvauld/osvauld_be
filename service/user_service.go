@@ -96,3 +96,12 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 	return true, nil
 
 }
+
+func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndUsersByCredentialIdRow, error) {
+	users, err := repository.GetCredentialUsers(ctx, credentialID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return users, err
+	}
+	return users, nil
+}
