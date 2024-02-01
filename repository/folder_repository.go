@@ -86,19 +86,15 @@ func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 }
 
 func GetFolderAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetAccessTypeAndUserByFolderRow, error) {
-	access, err := database.Store.GetAccessTypeAndUserByFolder(ctx, folderId)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return access, err
-	}
-	return access, nil
+	return database.Store.GetAccessTypeAndUserByFolder(ctx, folderId)
+
 }
 
 func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
-	groups, err := database.Store.GetGroupsWithoutAccess(ctx, folderId)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return groups, err
-	}
-	return groups, nil
+	return database.Store.GetGroupsWithoutAccess(ctx, folderId)
+
+}
+
+func CheckFolderAccessEntryExists(ctx *gin.Context, args db.CheckFolderAccessEntryExistsParams) (bool, error) {
+	return database.Store.CheckFolderAccessEntryExists(ctx, args)
 }

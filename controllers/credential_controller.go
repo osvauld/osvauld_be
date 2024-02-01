@@ -61,15 +61,20 @@ func FetchCredentialByID(ctx *gin.Context) {
 
 func GetCredentialsByFolder(ctx *gin.Context) {
 	// Parse user_id from headerss
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
+
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
 	// Get folder_id from query params
 	folderIDStr := ctx.Param("id")
 	folderID, err := uuid.Parse(folderIDStr)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder_id query parameter."})
+		SendResponse(ctx, 400, nil, "Invalid folder id", errors.New("invalid folder id"))
 		return
 	}
+
 	credentials, err := service.GetCredentialsByFolder(ctx, folderID, userID)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))

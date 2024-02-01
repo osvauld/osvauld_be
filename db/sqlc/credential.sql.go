@@ -96,6 +96,73 @@ func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (Fe
 	return i, err
 }
 
+const fetchCredentialDetailsForUserByFolderId = `-- name: FetchCredentialDetailsForUserByFolderId :many
+SELECT
+    C.id AS "credentialID",
+    C.name,
+    COALESCE(C.description, '') AS "description",
+    C.credential_type AS "credentialType",
+    C.created_at AS "createdAt",
+    C.updated_at AS "updatedAt",
+    C.created_by AS "createdBy",
+    A.access_type AS "accessType"
+FROM
+    credentials AS C,
+    access_list AS A
+WHERE
+    C.id = A .credential_id
+    AND C.folder_id = $1
+    AND A.user_id = $2
+`
+
+type FetchCredentialDetailsForUserByFolderIdParams struct {
+	FolderID uuid.UUID `json:"folderId"`
+	UserID   uuid.UUID `json:"userId"`
+}
+
+type FetchCredentialDetailsForUserByFolderIdRow struct {
+	CredentialID   uuid.UUID `json:"credentialID"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	CredentialType string    `json:"credentialType"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	CreatedBy      uuid.UUID `json:"createdBy"`
+	AccessType     string    `json:"accessType"`
+}
+
+func (q *Queries) FetchCredentialDetailsForUserByFolderId(ctx context.Context, arg FetchCredentialDetailsForUserByFolderIdParams) ([]FetchCredentialDetailsForUserByFolderIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, fetchCredentialDetailsForUserByFolderId, arg.FolderID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FetchCredentialDetailsForUserByFolderIdRow{}
+	for rows.Next() {
+		var i FetchCredentialDetailsForUserByFolderIdRow
+		if err := rows.Scan(
+			&i.CredentialID,
+			&i.Name,
+			&i.Description,
+			&i.CredentialType,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.AccessType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const fetchCredentialFieldsForUserByCredentialIds = `-- name: FetchCredentialFieldsForUserByCredentialIds :many
 SELECT
     credential_id AS "credentialID",
@@ -139,70 +206,6 @@ func (q *Queries) FetchCredentialFieldsForUserByCredentialIds(ctx context.Contex
 			&i.FieldName,
 			&i.FieldValue,
 			&i.FieldType,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const fetchCredentialIdsForUserByFolderId = `-- name: FetchCredentialIdsForUserByFolderId :many
-SELECT
-    C.id AS "credentialID",
-    C.name,
-    COALESCE(C.description, '') AS "description",
-    C.credential_type AS "credentialType",
-    C.created_at AS "createdAt",
-    C.updated_at AS "updatedAt",
-    C.created_by AS "createdBy"
-FROM
-    credentials AS C,
-    access_list AS A
-WHERE
-    C.id = A .credential_id
-    AND C.folder_id = $1
-    AND A.user_id = $2
-`
-
-type FetchCredentialIdsForUserByFolderIdParams struct {
-	FolderID uuid.UUID `json:"folderId"`
-	UserID   uuid.UUID `json:"userId"`
-}
-
-type FetchCredentialIdsForUserByFolderIdRow struct {
-	CredentialID   uuid.UUID `json:"credentialID"`
-	Name           string    `json:"name"`
-	Description    string    `json:"description"`
-	CredentialType string    `json:"credentialType"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	CreatedBy      uuid.UUID `json:"createdBy"`
-}
-
-func (q *Queries) FetchCredentialIdsForUserByFolderId(ctx context.Context, arg FetchCredentialIdsForUserByFolderIdParams) ([]FetchCredentialIdsForUserByFolderIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, fetchCredentialIdsForUserByFolderId, arg.FolderID, arg.UserID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []FetchCredentialIdsForUserByFolderIdRow{}
-	for rows.Next() {
-		var i FetchCredentialIdsForUserByFolderIdRow
-		if err := rows.Scan(
-			&i.CredentialID,
-			&i.Name,
-			&i.Description,
-			&i.CredentialType,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.CreatedBy,
 		); err != nil {
 			return nil, err
 		}

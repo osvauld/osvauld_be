@@ -101,7 +101,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	credentialIDAndTypeWithGroupAccess, err := repository.GetCredentialIDAndTypeWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
+	credentialIDAndTypeWithGroupAccess, err := repository.GetCredentialAccessDetailsWithGroupAccess(ctx, uuid.NullUUID{UUID: payload.GroupID, Valid: true})
 	if err != nil {
 		return err
 	}
@@ -143,6 +143,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 			UserID:       payload.MemberID,
 			AccessType:   credentialDetails.AccessType,
 			GroupID:      uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+			FolderID:     credentialDetails.FolderID,
 		}
 		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 	}

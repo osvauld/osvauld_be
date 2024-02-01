@@ -69,27 +69,27 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 
 		for _, credential := range userData.CredentialData {
 
-			// // Check credential already shared for user
-			// exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
-			// 	UserID:       userData.UserID,
-			// 	CredentialID: credential.CredentialID,
-			// })
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// if exists {
-			// 	logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
-			// 	continue
-			// } else {
+			// Check credential already shared for user
+			exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+				UserID:       userData.UserID,
+				CredentialID: credential.CredentialID,
+			})
+			if err != nil {
+				return nil, err
+			}
+			if exists {
+				logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
+				continue
+			} else {
 
-			// 	credentialAccessRecord := db.AddCredentialAccessParams{
-			// 		CredentialID: credential.CredentialID,
-			// 		UserID:       userData.UserID,
-			// 		AccessType:   userData.AccessType,
-			// 	}
-			// 	credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+				credentialAccessRecord := db.AddCredentialAccessParams{
+					CredentialID: credential.CredentialID,
+					UserID:       userData.UserID,
+					AccessType:   userData.AccessType,
+				}
+				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 
-			// }
+			}
 
 			credentialAccessRecord := db.AddCredentialAccessParams{
 				CredentialID: credential.CredentialID,
@@ -163,28 +163,28 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 			for _, credential := range userData.CredentialData {
 
 				// Check credential already shared for user
-				// exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
-				// 	UserID:       userData.UserID,
-				// 	CredentialID: credential.CredentialID,
-				// 	GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
-				// })
-				// if err != nil {
-				// 	return nil, err
-				// }
-				// if exists {
-				// 	logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
-				// 	continue
-				// } else {
+				exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+					UserID:       userData.UserID,
+					CredentialID: credential.CredentialID,
+					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+				})
+				if err != nil {
+					return nil, err
+				}
+				if exists {
+					logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
+					continue
+				} else {
 
-				// 	credentialAccessRecord := db.AddCredentialAccessParams{
-				// 		CredentialID: credential.CredentialID,
-				// 		UserID:       userData.UserID,
-				// 		AccessType:   userData.AccessType,
-				// 		GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
-				// 	}
-				// 	credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+					credentialAccessRecord := db.AddCredentialAccessParams{
+						CredentialID: credential.CredentialID,
+						UserID:       userData.UserID,
+						AccessType:   userData.AccessType,
+						GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+					}
+					credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 
-				// }
+				}
 
 				credentialAccessRecord := db.AddCredentialAccessParams{
 					CredentialID: credential.CredentialID,
@@ -280,20 +280,48 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 				logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
 			}
 
-			credentialAccessRecord := db.AddCredentialAccessParams{
-				CredentialID: credential.CredentialID,
+			// Check credential already shared for user
+			exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 				UserID:       userData.UserID,
-				AccessType:   userData.AccessType,
+				CredentialID: credential.CredentialID,
+				FolderID:     uuid.NullUUID{UUID: payload.FolderID, Valid: true},
+			})
+			if err != nil {
+				return nil, err
 			}
-			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+			if exists {
+				logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
+			} else {
+
+				credentialAccessRecord := db.AddCredentialAccessParams{
+					CredentialID: credential.CredentialID,
+					UserID:       userData.UserID,
+					AccessType:   userData.AccessType,
+					FolderID:     uuid.NullUUID{UUID: payload.FolderID, Valid: true},
+				}
+				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+			}
+
 		}
 
-		folderAccessRecord := db.AddFolderAccessParams{
-			UserID:     userData.UserID,
-			AccessType: userData.AccessType,
-			FolderID:   payload.FolderID,
+		exists, err := repository.CheckFolderAccessEntryExists(ctx, db.CheckFolderAccessEntryExistsParams{
+			UserID:   userData.UserID,
+			FolderID: payload.FolderID,
+		})
+		if err != nil {
+			return nil, err
 		}
-		folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+		if exists {
+			logger.Infof("Folder %s already shared for user %s", payload.FolderID, userData.UserID)
+		} else {
+
+			folderAccessRecord := db.AddFolderAccessParams{
+				UserID:     userData.UserID,
+				AccessType: userData.AccessType,
+				FolderID:   payload.FolderID,
+			}
+			folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+		}
 
 		// Share all the credentials for a user in a single transaction
 		shareCredentialTransactionParams := db.ShareCredentialTransactionParams{
@@ -302,7 +330,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 			FolderAccessArgs:     folderAccessRecords,
 		}
 
-		err := repository.ShareCredentials(ctx, shareCredentialTransactionParams)
+		err = repository.ShareCredentials(ctx, shareCredentialTransactionParams)
 		if err != nil {
 			userShareResponse.Status = "failed"
 			userShareResponse.Message = err.Error()
@@ -356,23 +384,53 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 					logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
 				}
 
-				credentialAccessRecord := db.AddCredentialAccessParams{
-					CredentialID: credential.CredentialID,
+				exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 					UserID:       userData.UserID,
-					AccessType:   userData.AccessType,
+					CredentialID: credential.CredentialID,
 					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+					FolderID:     uuid.NullUUID{UUID: payload.FolderID, Valid: true},
+				})
+				if err != nil {
+					return nil, err
 				}
+				if exists {
+					logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
+					continue
+				} else {
 
-				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+					credentialAccessRecord := db.AddCredentialAccessParams{
+						CredentialID: credential.CredentialID,
+						UserID:       userData.UserID,
+						AccessType:   userData.AccessType,
+						GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+						FolderID:     uuid.NullUUID{UUID: payload.FolderID, Valid: true},
+					}
+
+					credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
+				}
 			}
 
-			folderAccessRecord := db.AddFolderAccessParams{
-				UserID:     userData.UserID,
-				AccessType: groupData.AccessType,
-				FolderID:   payload.FolderID,
-				GroupID:    uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+			exists, err := repository.CheckFolderAccessEntryExists(ctx, db.CheckFolderAccessEntryExistsParams{
+				UserID:   userData.UserID,
+				FolderID: payload.FolderID,
+				GroupID:  uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+			})
+			if err != nil {
+				return nil, err
 			}
-			folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+
+			if exists {
+				logger.Infof("Folder %s already shared for user %s", payload.FolderID, userData.UserID)
+			} else {
+				folderAccessRecord := db.AddFolderAccessParams{
+					UserID:     userData.UserID,
+					AccessType: groupData.AccessType,
+					FolderID:   payload.FolderID,
+					GroupID:    uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
+				}
+				folderAccessRecords = append(folderAccessRecords, folderAccessRecord)
+			}
+
 		}
 
 		groupShareResponse := ShareFolderWithGroupResponse{}

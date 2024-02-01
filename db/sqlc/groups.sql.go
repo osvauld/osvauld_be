@@ -232,30 +232,31 @@ func (q *Queries) FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID
 	return items, nil
 }
 
-const getCredentialIDAndTypeWithGroupAccess = `-- name: GetCredentialIDAndTypeWithGroupAccess :many
+const getCredentialAccessDetailsWithGroupAccess = `-- name: GetCredentialAccessDetailsWithGroupAccess :many
 
 
-SELECT DISTINCT credential_id, access_type
+SELECT DISTINCT credential_id, access_type, folder_id
 FROM access_list
 WHERE group_id = $1
 `
 
-type GetCredentialIDAndTypeWithGroupAccessRow struct {
-	CredentialID uuid.UUID `json:"credentialId"`
-	AccessType   string    `json:"accessType"`
+type GetCredentialAccessDetailsWithGroupAccessRow struct {
+	CredentialID uuid.UUID     `json:"credentialId"`
+	AccessType   string        `json:"accessType"`
+	FolderID     uuid.NullUUID `json:"folderId"`
 }
 
 // -----------------------------------------------------------------------------------------------------
-func (q *Queries) GetCredentialIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialIDAndTypeWithGroupAccessRow, error) {
-	rows, err := q.db.QueryContext(ctx, getCredentialIDAndTypeWithGroupAccess, groupID)
+func (q *Queries) GetCredentialAccessDetailsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialAccessDetailsWithGroupAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialAccessDetailsWithGroupAccess, groupID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetCredentialIDAndTypeWithGroupAccessRow{}
+	items := []GetCredentialAccessDetailsWithGroupAccessRow{}
 	for rows.Next() {
-		var i GetCredentialIDAndTypeWithGroupAccessRow
-		if err := rows.Scan(&i.CredentialID, &i.AccessType); err != nil {
+		var i GetCredentialAccessDetailsWithGroupAccessRow
+		if err := rows.Scan(&i.CredentialID, &i.AccessType, &i.FolderID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

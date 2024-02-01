@@ -45,7 +45,8 @@ CREATE TABLE access_list (
     credential_id UUID NOT NULL REFERENCES credentials(id),
     user_id UUID NOT NULL REFERENCES users(id),
     access_type VARCHAR(255) NOT NULL,
-    group_id UUID REFERENCES groupings(id)
+    group_id UUID REFERENCES groupings(id),
+    folder_id UUID REFERENCES folders(id)
 );
 
 
