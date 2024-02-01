@@ -28,9 +28,11 @@ WHERE access_list.credential_id = $1;
 -- name: GetCredentialIDsByUserID :many
 SELECT credential_id FROM access_list WHERE user_id = $1;
 
--- name: CheckAccessListEntryExists :one
+
+-- name: CheckCredentialAccessEntryExists :one
 SELECT EXISTS (
     SELECT 1
     FROM access_list
-    WHERE user_id = $1 AND credential_id = $2
+    WHERE user_id = $1 AND credential_id = $2 AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
 );
+

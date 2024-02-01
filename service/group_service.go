@@ -4,6 +4,7 @@ import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -110,9 +111,29 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	userFieldRecords, err := CreateFieldDataRecords(ctx, payload.Credentials, payload.MemberID)
-	if err != nil {
-		return err
+	userFieldRecords := []db.AddFieldDataParams{}
+	for _, credential := range payload.Credentials {
+
+		fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+			UserID:       payload.MemberID,
+			CredentialID: credential.CredentialID,
+		})
+		if err != nil {
+			return err
+		}
+
+		if !fieldDataExists {
+			userFields, err := CreateFieldDataRecords(ctx, credential, payload.MemberID)
+			if err != nil {
+				return err
+			}
+
+			userFieldRecords = append(userFieldRecords, userFields...)
+
+		} else {
+			logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, payload.MemberID)
+		}
+
 	}
 
 	credentialAccessRecords := []db.AddCredentialAccessParams{}
