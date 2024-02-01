@@ -172,3 +172,15 @@ func GetUsersOfGroups(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, groupUsers, "Fetched group users", nil)
 }
+
+func GetCredentialGroups(ctx *gin.Context) {
+	credentialIDStr := ctx.Param("id")
+	credentialID, _ := uuid.Parse(credentialIDStr)
+
+	users, err := service.GetCredentialGroups(ctx, credentialID)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to get credential users", err)
+		return
+	}
+	SendResponse(ctx, 200, users, "fetched credential users", nil)
+}
