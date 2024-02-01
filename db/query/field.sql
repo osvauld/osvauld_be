@@ -16,7 +16,7 @@ SELECT
     encrypted_data.field_type
 FROM encrypted_data
 WHERE encrypted_data.user_id = $1 
-AND encrypted_data.credential_id = ANY(@Credentials::UUID[]);
+AND encrypted_data.credential_id = ANY(@credentials::UUID[]);
 
 
 -- name: CheckFieldEntryExists :one

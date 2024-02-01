@@ -10,10 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID) ([]db.AddFieldDataParams, error) {
+func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID, caller uuid.UUID) ([]db.AddFieldDataParams, error) {
 
 	fieldData, err := repository.GetFieldDataForCredentialIDsForUser(ctx, db.GetFieldDataByCredentialIDsForUserParams{
-		UserID:      userID,
+		UserID:      caller,
 		Credentials: []uuid.UUID{credential.CredentialID},
 	})
 	if err != nil {
@@ -110,7 +110,7 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 			}
 
 			if !fieldDataExists {
-				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
 				if err != nil {
 					return nil, err
 				}
@@ -203,7 +203,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 				}
 
 				if !fieldDataExists {
-					userFieldRecords, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+					userFieldRecords, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
 					if err != nil {
 						return nil, err
 					}
@@ -271,7 +271,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 			}
 
 			if !fieldDataExists {
-				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
 				if err != nil {
 					return nil, err
 				}
@@ -374,7 +374,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 				}
 
 				if !fieldDataExists {
-					userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID)
+					userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
 					if err != nil {
 						return nil, err
 					}
