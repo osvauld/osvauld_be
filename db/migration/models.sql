@@ -51,7 +51,7 @@ CREATE TABLE access_list (
 
 
 -- SQL Definition for EncryptedData
-CREATE TABLE encrypted_data (
+CREATE TABLE fields (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -59,7 +59,10 @@ CREATE TABLE encrypted_data (
     credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value TEXT NOT NULL,
     user_id UUID NOT NULL REFERENCES users(id),
-    field_type VARCHAR(255) NOT NULL
+    field_type VARCHAR(255) NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    current BOOLEAN NOT NULL
+
 );
 
 -- SQL Definition for UnencryptedData
