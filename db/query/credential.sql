@@ -6,7 +6,7 @@ VALUES
     ($1, $2, $3, $4, $5) RETURNING id;
 
 
--- name: FetchCredentialDataByID :one
+-- name: GetCredentialDataByID :one
 SELECT
     id,
     created_at,
@@ -14,25 +14,12 @@ SELECT
     name,
     description,
     folder_id,
+    credential_type,
     created_by
 FROM
     credentials
 WHERE
     id = $1;
-
--- name: FetchCredentialFieldsForUserByCredentialIds :many
-SELECT
-    credential_id AS "credentialID",
-    id AS "fieldID",
-    field_name as "fieldName",
-    field_value as "fieldValue",
-    field_type as "fieldType"
-FROM
-    fields
-WHERE
-    field_type != 'sensitive'
-    AND credential_id = ANY($1::UUID[])
-    AND user_id = $2;
 
 
 -- name: FetchCredentialDetailsForUserByFolderId :many
@@ -154,15 +141,6 @@ WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id;
 
--- name: GetSensitiveFields :many
-SELECT 
-    field_name as "fieldName", 
-    field_value as "fieldValue", 
-    credential_id as "credentialId"
-FROM 
-    fields
-WHERE 
-    user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';
 
 -- name: GetCredentialIdsByFolder :many
 SELECT 

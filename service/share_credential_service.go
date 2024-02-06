@@ -12,7 +12,7 @@ import (
 
 func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID, caller uuid.UUID) ([]db.AddFieldDataParams, error) {
 
-	fieldData, err := repository.GetFieldDataForCredentialIDsForUser(ctx, db.GetFieldDataByCredentialIDsForUserParams{
+	fieldData, err := repository.GetAllFieldsForCredentialIDsForUser(ctx, db.GetAllFieldsByCredentialIDsForUserParams{
 		UserID:      caller,
 		Credentials: []uuid.UUID{credential.CredentialID},
 	})
@@ -20,7 +20,7 @@ func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayl
 		return nil, err
 	}
 
-	fieldMap := make(map[uuid.UUID]db.GetFieldDataByCredentialIDsForUserRow)
+	fieldMap := make(map[uuid.UUID]db.GetAllFieldsByCredentialIDsForUserRow)
 	for _, field := range fieldData {
 		fieldMap[field.ID] = field
 	}

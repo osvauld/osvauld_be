@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
@@ -60,54 +61,71 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 		UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
 	}
 
-	payload := dto.AddCredentialDto{
+	payload := db.AddCredentialTransactionParams{
 		Name:                     request.Name,
-		Description:              request.Description,
+		Description:              sql.NullString{String: request.Description, Valid: true},
 		FolderID:                 request.FolderID,
 		CredentialType:           request.CredentialType,
+		CreatedBy:                caller,
 		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
 	}
 
-	credentialID, err := repository.AddCredential(ctx, payload, caller)
+	credentialID, err := repository.AddCredential(ctx, payload)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 	return credentialID, nil
 }
 
-func FetchCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialDetails, error) {
+// GetCredentialByID returns the credential details and non sensitive fields for the given credentialID
+func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialForUser, error) {
 
-	// Check if caller has access
-	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
+	accessType, err := GetAccessTypeForCredential(ctx, credentialID, caller)
 	if err != nil {
-		return dto.CredentialDetails{}, err
+		return dto.CredentialForUser{}, err
 	}
 
-	if !hasAccess {
+	if !CheckHasReadAccessForCredential(ctx, accessType) {
 		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
-		return dto.CredentialDetails{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
+		return dto.CredentialForUser{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
 	}
 
-	credential, err := repository.FetchCredentialByID(ctx, credentialID, caller)
+	credential, err := repository.GetCredentialDataByID(ctx, credentialID)
 	if err != nil {
-		return dto.CredentialDetails{}, err
+		return dto.CredentialForUser{}, err
 	}
 
-	unencryptedFields, err := repository.FetchUnencryptedFieldsByCredentialID(ctx, credentialID)
+	fields, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
+		Credentials: []uuid.UUID{credentialID},
+		UserID:      caller,
+	})
 	if err != nil {
-		return dto.CredentialDetails{}, err
+		return dto.CredentialForUser{}, err
 	}
 
-	credential.UnencryptedFields = unencryptedFields
-
-	encryptedFields, err := repository.FetchEncryptedFieldsByCredentialIDByAndUserID(ctx, credentialID, caller)
-	if err != nil {
-		return dto.CredentialDetails{}, err
+	fieldDtos := make([]dto.Field, len(fields))
+	for _, field := range fields {
+		fieldDtos = append(fieldDtos, dto.Field{
+			ID:         field.ID,
+			FieldName:  field.FieldName,
+			FieldValue: field.FieldValue,
+			FieldType:  field.FieldType,
+		})
 	}
 
-	credential.EncryptedFields = encryptedFields
-
-	return credential, err
+	credentialDetails := dto.CredentialForUser{
+		CredentialID:   credential.ID,
+		Name:           credential.Name,
+		Description:    credential.Description.String,
+		CredentialType: credential.CredentialType,
+		AccessType:     accessType,
+		FolderID:       credential.FolderID,
+		CreatedAt:      credential.CreatedAt,
+		UpdatedAt:      credential.UpdatedAt,
+		CreatedBy:      credential.CreatedBy,
+		Fields:         fieldDtos,
+	}
+	return credentialDetails, err
 }
 
 func GetUniqueCredentialsWithHighestAccess(credentials []db.FetchCredentialDetailsForUserByFolderIdRow) []db.FetchCredentialDetailsForUserByFolderIdRow {
@@ -153,11 +171,10 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		credentialIDs = append(credentialIDs, credential.CredentialID)
 	}
 
-	arg := db.FetchCredentialFieldsForUserByCredentialIdsParams{
-		Column1: credentialIDs,
-		UserID:  userID,
-	}
-	FieldsData, err := database.Store.FetchCredentialFieldsForUserByCredentialIds(ctx, arg)
+	FieldsData, err := database.Store.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
+		Credentials: credentialIDs,
+		UserID:      userID,
+	})
 	if err != nil {
 		return []dto.CredentialForUser{}, err
 	}
@@ -168,7 +185,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		// if credential.CredentialID does not exist add it to the map and add the field to the array
 		if _, ok := credentialFieldGroups[field.CredentialID]; ok {
 			credentialFieldGroups[field.CredentialID] = append(credentialFieldGroups[field.CredentialID], dto.Field{
-				ID:         field.FieldID,
+				ID:         field.ID,
 				FieldName:  field.FieldName,
 				FieldValue: field.FieldValue,
 				FieldType:  field.FieldType,
@@ -176,7 +193,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		} else {
 			credentialFieldGroups[field.CredentialID] = []dto.Field{
 				{
-					ID:         field.FieldID,
+					ID:         field.ID,
 					FieldName:  field.FieldName,
 					FieldValue: field.FieldValue,
 					FieldType:  field.FieldType,
@@ -239,7 +256,7 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUs
 	return urls, nil
 }
 
-func GetSensitiveFieldsCredentialByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetSensitiveFieldsRow, error) {
+func GetSensitiveFields(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetSensitiveFieldsRow, error) {
 	// Check if caller has access
 	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
 	var sensitiveFields []db.GetSensitiveFieldsRow
@@ -252,7 +269,10 @@ func GetSensitiveFieldsCredentialByID(ctx *gin.Context, credentialID uuid.UUID, 
 		return sensitiveFields, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
 	}
 
-	sensitiveFields, err = repository.GetSensitiveFieldsById(ctx, credentialID, caller)
+	sensitiveFields, err = repository.GetSensitiveFields(ctx, db.GetSensitiveFieldsParams{
+		CredentialID: credentialID,
+		UserID:       caller,
+	})
 
 	return sensitiveFields, err
 }

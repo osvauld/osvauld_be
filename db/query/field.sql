@@ -7,7 +7,7 @@ VALUES
     ($1, $2, $3, $4, $5) RETURNING id;
 
 
--- name: GetFieldDataByCredentialIDsForUser :many
+-- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT
     f.id,
     f.credential_id,
@@ -15,7 +15,23 @@ SELECT
     f.field_value,
     f.field_type
 FROM fields as f
-WHERE f.user_id = $1 
+WHERE
+field_type != 'sensitive' 
+AND f.user_id = $1 
+AND f.credential_id = ANY(@credentials::UUID[]);
+
+
+-- name: GetAllFieldsForCredentialIDs :many
+SELECT
+    f.id,
+    f.credential_id,
+    f.field_name,
+    f.field_value,
+    f.field_type
+FROM fields as f
+WHERE
+field_type != 'sensitive' 
+AND f.user_id = $1 
 AND f.credential_id = ANY(@credentials::UUID[]);
 
 
@@ -26,13 +42,13 @@ SELECT EXISTS (
     WHERE credential_id = $1 AND user_id = $2
 );
 
--- name: FetchEncryptedFieldsByCredentialIDAndUserID :many
+-- name: GetSensitiveFields :many
 SELECT
-    id,
-    field_name,
-    field_value
-FROM
-    fields
+    f.id,
+    f.field_name,
+    f.field_value
+FROM fields as f
 WHERE
-    credential_id = $1
-    AND user_id = $2;
+field_type = 'sensitive'
+AND f.credential_id = $1
+AND f.user_id = $2;

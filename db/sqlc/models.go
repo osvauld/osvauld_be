@@ -43,7 +43,7 @@ type Field struct {
 	UserID       uuid.UUID `json:"userId"`
 	FieldType    string    `json:"fieldType"`
 	Version      int32     `json:"version"`
-	Current      bool      `json:"current"`
+	Latest       bool      `json:"latest"`
 }
 
 type Folder struct {

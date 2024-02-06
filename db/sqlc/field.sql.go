@@ -60,39 +60,49 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	return exists, err
 }
 
-const fetchEncryptedFieldsByCredentialIDAndUserID = `-- name: FetchEncryptedFieldsByCredentialIDAndUserID :many
+const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many
 SELECT
-    id,
-    field_name,
-    field_value
-FROM
-    fields
+    f.id,
+    f.credential_id,
+    f.field_name,
+    f.field_value,
+    f.field_type
+FROM fields as f
 WHERE
-    credential_id = $1
-    AND user_id = $2
+field_type != 'sensitive' 
+AND f.user_id = $1 
+AND f.credential_id = ANY($2::UUID[])
 `
 
-type FetchEncryptedFieldsByCredentialIDAndUserIDParams struct {
+type GetAllFieldsForCredentialIDsParams struct {
+	UserID      uuid.UUID   `json:"userId"`
+	Credentials []uuid.UUID `json:"credentials"`
+}
+
+type GetAllFieldsForCredentialIDsRow struct {
+	ID           uuid.UUID `json:"id"`
 	CredentialID uuid.UUID `json:"credentialId"`
-	UserID       uuid.UUID `json:"userId"`
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	FieldType    string    `json:"fieldType"`
 }
 
-type FetchEncryptedFieldsByCredentialIDAndUserIDRow struct {
-	ID         uuid.UUID `json:"id"`
-	FieldName  string    `json:"fieldName"`
-	FieldValue string    `json:"fieldValue"`
-}
-
-func (q *Queries) FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, fetchEncryptedFieldsByCredentialIDAndUserID, arg.CredentialID, arg.UserID)
+func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFieldsForCredentialIDsParams) ([]GetAllFieldsForCredentialIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentials))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []FetchEncryptedFieldsByCredentialIDAndUserIDRow{}
+	items := []GetAllFieldsForCredentialIDsRow{}
 	for rows.Next() {
-		var i FetchEncryptedFieldsByCredentialIDAndUserIDRow
-		if err := rows.Scan(&i.ID, &i.FieldName, &i.FieldValue); err != nil {
+		var i GetAllFieldsForCredentialIDsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CredentialID,
+			&i.FieldName,
+			&i.FieldValue,
+			&i.FieldType,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -106,7 +116,7 @@ func (q *Queries) FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Contex
 	return items, nil
 }
 
-const getFieldDataByCredentialIDsForUser = `-- name: GetFieldDataByCredentialIDsForUser :many
+const getNonSensitiveFieldsForCredentialIDs = `-- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT
     f.id,
     f.credential_id,
@@ -114,16 +124,18 @@ SELECT
     f.field_value,
     f.field_type
 FROM fields as f
-WHERE f.user_id = $1 
+WHERE
+field_type != 'sensitive' 
+AND f.user_id = $1 
 AND f.credential_id = ANY($2::UUID[])
 `
 
-type GetFieldDataByCredentialIDsForUserParams struct {
+type GetNonSensitiveFieldsForCredentialIDsParams struct {
 	UserID      uuid.UUID   `json:"userId"`
 	Credentials []uuid.UUID `json:"credentials"`
 }
 
-type GetFieldDataByCredentialIDsForUserRow struct {
+type GetNonSensitiveFieldsForCredentialIDsRow struct {
 	ID           uuid.UUID `json:"id"`
 	CredentialID uuid.UUID `json:"credentialId"`
 	FieldName    string    `json:"fieldName"`
@@ -131,15 +143,15 @@ type GetFieldDataByCredentialIDsForUserRow struct {
 	FieldType    string    `json:"fieldType"`
 }
 
-func (q *Queries) GetFieldDataByCredentialIDsForUser(ctx context.Context, arg GetFieldDataByCredentialIDsForUserParams) ([]GetFieldDataByCredentialIDsForUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, getFieldDataByCredentialIDsForUser, arg.UserID, pq.Array(arg.Credentials))
+func (q *Queries) GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentials))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetFieldDataByCredentialIDsForUserRow{}
+	items := []GetNonSensitiveFieldsForCredentialIDsRow{}
 	for rows.Next() {
-		var i GetFieldDataByCredentialIDsForUserRow
+		var i GetNonSensitiveFieldsForCredentialIDsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CredentialID,
@@ -147,6 +159,52 @@ func (q *Queries) GetFieldDataByCredentialIDsForUser(ctx context.Context, arg Ge
 			&i.FieldValue,
 			&i.FieldType,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSensitiveFields = `-- name: GetSensitiveFields :many
+SELECT
+    f.id,
+    f.field_name,
+    f.field_value
+FROM fields as f
+WHERE
+field_type = 'sensitive'
+AND f.credential_id = $1
+AND f.user_id = $2
+`
+
+type GetSensitiveFieldsParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+type GetSensitiveFieldsRow struct {
+	ID         uuid.UUID `json:"id"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+}
+
+func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSensitiveFields, arg.CredentialID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetSensitiveFieldsRow{}
+	for rows.Next() {
+		var i GetSensitiveFieldsRow
+		if err := rows.Scan(&i.ID, &i.FieldName, &i.FieldValue); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

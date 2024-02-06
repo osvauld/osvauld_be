@@ -10,7 +10,7 @@ import (
 
 type Store interface {
 	Querier
-	AddCredentialTransaction(context.Context, dto.AddCredentialDto, uuid.UUID) (uuid.UUID, error)
+	AddCredentialTransaction(context.Context, AddCredentialTransactionParams) (uuid.UUID, error)
 	CreateFolderTransaction(context.Context, CreateFolderTransactionParams) (dto.FolderDetails, error)
 	CreateGroupAndAddManager(context.Context, dto.GroupDetails) (dto.GroupDetails, error)
 	AddMembersToGroupTransaction(context.Context, AddMembersToGroupTransactionParams) error

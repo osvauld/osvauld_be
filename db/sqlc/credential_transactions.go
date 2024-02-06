@@ -8,7 +8,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.AddCredentialDto, caller uuid.UUID) (uuid.UUID, error) {
+type AddCredentialTransactionParams struct {
+	Name                     string
+	Description              sql.NullString
+	FolderID                 uuid.UUID
+	CredentialType           string
+	CreatedBy                uuid.UUID
+	UserFieldsWithAccessType []dto.UserFieldsWithAccessType
+}
+
+func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCredentialTransactionParams) (uuid.UUID, error) {
 
 	var credentialID uuid.UUID
 
@@ -18,9 +27,9 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 		// Create credential record
 		CreateCredentialParams := CreateCredentialParams{
 			Name:           args.Name,
-			Description:    sql.NullString{String: args.Description, Valid: true},
+			Description:    args.Description,
 			FolderID:       args.FolderID,
-			CreatedBy:      caller,
+			CreatedBy:      args.CreatedBy,
 			CredentialType: args.CredentialType,
 		}
 		credentialID, err = q.CreateCredential(ctx, CreateCredentialParams)

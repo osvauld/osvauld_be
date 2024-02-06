@@ -43,16 +43,17 @@ type CredentialForUser struct {
 }
 
 type CredentialDetails struct {
-	CredentialID      uuid.UUID `json:"credentialId"`
-	Name              string    `json:"name"`
-	Description       string    `json:"description"`
-	FolderID          uuid.UUID `json:"folderId"`
-	UnencryptedFields []Field   `json:"unencryptedFields"`
-	EncryptedFields   []Field   `json:"encryptedFields"`
-	UserID            uuid.UUID `json:"userId"`
-	CreatedBy         uuid.UUID `json:"createdBy"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
+	CredentialID   uuid.UUID `json:"credentialId"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	FolderID       uuid.UUID `json:"folderId"`
+	CredentialType string    `json:"credentialType"`
+	AccessType     string    `json:"accessType"`
+	Fields         []Field   `json:"encryptedFields"`
+	UserID         uuid.UUID `json:"userId"`
+	CreatedBy      uuid.UUID `json:"createdBy"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 type User struct {
