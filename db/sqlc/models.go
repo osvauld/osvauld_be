@@ -33,7 +33,7 @@ type Credential struct {
 	CreatedBy      uuid.UUID      `json:"createdBy"`
 }
 
-type EncryptedDatum struct {
+type Field struct {
 	ID           uuid.UUID `json:"id"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
@@ -42,6 +42,8 @@ type EncryptedDatum struct {
 	FieldValue   string    `json:"fieldValue"`
 	UserID       uuid.UUID `json:"userId"`
 	FieldType    string    `json:"fieldType"`
+	Version      int32     `json:"version"`
+	Current      bool      `json:"current"`
 }
 
 type Folder struct {

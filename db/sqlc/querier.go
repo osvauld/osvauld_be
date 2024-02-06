@@ -7,13 +7,11 @@ package db
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/google/uuid"
 )
 
 type Querier interface {
-	AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error)
 	AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error)
 	AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error)
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)

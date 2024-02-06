@@ -15,18 +15,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const addCredential = `-- name: AddCredential :one
-SELECT
-    add_credential_with_access($1 :: JSONB)
-`
-
-func (q *Queries) AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, addCredential, dollar_1)
-	var add_credential_with_access interface{}
-	err := row.Scan(&add_credential_with_access)
-	return add_credential_with_access, err
-}
-
 const createCredential = `-- name: CreateCredential :one
 INSERT INTO
     credentials (NAME, description, credential_type, folder_id, created_by)
@@ -171,7 +159,7 @@ SELECT
     field_value as "fieldValue",
     field_type as "fieldType"
 FROM
-    encrypted_data
+    fields
 WHERE
     field_type != 'sensitive'
     AND credential_id = ANY($1::UUID[])
@@ -315,7 +303,7 @@ const getAllUrlsForUser = `-- name: GetAllUrlsForUser :many
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"
 FROM 
-    encrypted_data
+    fields
 WHERE 
     user_id = $1 AND field_name = 'Domain'
 `
@@ -385,7 +373,7 @@ SELECT
     ) AS "fields"
 FROM
     credentials C
-LEFT JOIN encrypted_data ED ON C.id = ED.credential_id AND ED.user_id = $2
+LEFT JOIN fields ED ON C.id = ED.credential_id AND ED.user_id = $2
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id
@@ -521,7 +509,7 @@ SELECT
         )
     ) AS "fields"
 FROM
-    encrypted_data e
+    fields e
 WHERE
     e.credential_id = ANY($1 :: uuid [ ])
     AND e.user_id = $2
@@ -577,7 +565,7 @@ SELECT
     ) AS "encryptedFields"
 FROM
     credentials C
-    JOIN encrypted_data e ON C .id = e.credential_id
+    JOIN fields e ON C .id = e.credential_id
 WHERE
     C .folder_id = $1
     AND e.user_id = $2
@@ -626,7 +614,7 @@ SELECT
     field_value as "fieldValue", 
     credential_id as "credentialId"
 FROM 
-    encrypted_data
+    fields
 WHERE 
     user_id = $1 AND credential_id = $2 AND field_type = 'sensitive'
 `
@@ -670,7 +658,7 @@ SELECT
     field_name AS "fieldName",
     field_value AS "fieldValue"
 FROM
-    encrypted_data
+    fields
 WHERE
     user_id = $1
     AND credential_id = $2

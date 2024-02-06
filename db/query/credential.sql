@@ -28,7 +28,7 @@ SELECT
     field_value as "fieldValue",
     field_type as "fieldType"
 FROM
-    encrypted_data
+    fields
 WHERE
     field_type != 'sensitive'
     AND credential_id = ANY($1::UUID[])
@@ -69,7 +69,7 @@ SELECT
     field_name AS "fieldName",
     field_value AS "fieldValue"
 FROM
-    encrypted_data
+    fields
 WHERE
     user_id = $1
     AND credential_id = $2;
@@ -82,10 +82,6 @@ FROM
     unencrypted_data
 WHERE
     credential_id = $1;
-
--- name: AddCredential :one
-SELECT
-    add_credential_with_access($1 :: JSONB);
 
 -- name: GetEncryptedCredentialsByFolder :many
 SELECT
@@ -100,7 +96,7 @@ SELECT
     ) AS "encryptedFields"
 FROM
     credentials C
-    JOIN encrypted_data e ON C .id = e.credential_id
+    JOIN fields e ON C .id = e.credential_id
 WHERE
     C .folder_id = $1
     AND e.user_id = $2
@@ -121,7 +117,7 @@ SELECT
         )
     ) AS "fields"
 FROM
-    encrypted_data e
+    fields e
 WHERE
     e.credential_id = ANY($1 :: uuid [ ])
     AND e.user_id = $2
@@ -135,7 +131,7 @@ ORDER BY
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"
 FROM 
-    encrypted_data
+    fields
 WHERE 
     user_id = $1 AND field_name = 'Domain';
 
@@ -153,7 +149,7 @@ SELECT
     ) AS "fields"
 FROM
     credentials C
-LEFT JOIN encrypted_data ED ON C.id = ED.credential_id AND ED.user_id = $2
+LEFT JOIN fields ED ON C.id = ED.credential_id AND ED.user_id = $2
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id;
@@ -164,7 +160,7 @@ SELECT
     field_value as "fieldValue", 
     credential_id as "credentialId"
 FROM 
-    encrypted_data
+    fields
 WHERE 
     user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';
 

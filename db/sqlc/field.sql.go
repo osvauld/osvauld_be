@@ -14,7 +14,7 @@ import (
 
 const addFieldData = `-- name: AddFieldData :one
 INSERT INTO
-    encrypted_data (field_name, field_value, credential_id, field_type, user_id)
+    fields (field_name, field_value, credential_id, field_type, user_id)
 VALUES
     ($1, $2, $3, $4, $5) RETURNING id
 `
@@ -43,7 +43,7 @@ func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uui
 const checkFieldEntryExists = `-- name: CheckFieldEntryExists :one
 SELECT EXISTS (
     SELECT 1
-    FROM encrypted_data
+    FROM fields
     WHERE credential_id = $1 AND user_id = $2
 )
 `
@@ -60,16 +60,62 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	return exists, err
 }
 
+const fetchEncryptedFieldsByCredentialIDAndUserID = `-- name: FetchEncryptedFieldsByCredentialIDAndUserID :many
+SELECT
+    id,
+    field_name,
+    field_value
+FROM
+    fields
+WHERE
+    credential_id = $1
+    AND user_id = $2
+`
+
+type FetchEncryptedFieldsByCredentialIDAndUserIDParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+type FetchEncryptedFieldsByCredentialIDAndUserIDRow struct {
+	ID         uuid.UUID `json:"id"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+}
+
+func (q *Queries) FetchEncryptedFieldsByCredentialIDAndUserID(ctx context.Context, arg FetchEncryptedFieldsByCredentialIDAndUserIDParams) ([]FetchEncryptedFieldsByCredentialIDAndUserIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, fetchEncryptedFieldsByCredentialIDAndUserID, arg.CredentialID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FetchEncryptedFieldsByCredentialIDAndUserIDRow{}
+	for rows.Next() {
+		var i FetchEncryptedFieldsByCredentialIDAndUserIDRow
+		if err := rows.Scan(&i.ID, &i.FieldName, &i.FieldValue); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFieldDataByCredentialIDsForUser = `-- name: GetFieldDataByCredentialIDsForUser :many
 SELECT
-    encrypted_data.id,
-    encrypted_data.credential_id,
-    encrypted_data.field_name,
-    encrypted_data.field_value,
-    encrypted_data.field_type
-FROM encrypted_data
-WHERE encrypted_data.user_id = $1 
-AND encrypted_data.credential_id = ANY($2::UUID[])
+    f.id,
+    f.credential_id,
+    f.field_name,
+    f.field_value,
+    f.field_type
+FROM fields as f
+WHERE f.user_id = $1 
+AND f.credential_id = ANY($2::UUID[])
 `
 
 type GetFieldDataByCredentialIDsForUserParams struct {
