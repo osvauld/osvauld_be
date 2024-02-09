@@ -65,20 +65,6 @@ CREATE TABLE fields (
 
 );
 
--- SQL Definition for UnencryptedData
-CREATE TABLE unencrypted_data (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    field_name VARCHAR(255) NOT NULL,
-    credential_id UUID NOT NULL REFERENCES credentials(id),
-    is_url BOOLEAN NOT NULL DEFAULT FALSE,
-    url VARCHAR(255),
-    field_value VARCHAR(255) NOT NULL
-);
-
-
-
 -- SQL Definition for Group
 CREATE TABLE groupings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

@@ -26,16 +26,6 @@ func FetchCredentialDetailsForUserByFolderId(ctx *gin.Context, args db.FetchCred
 
 }
 
-func FetchUnEncryptedData(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUnencryptedDataRow, error) {
-
-	encryptedData, err := database.Store.GetCredentialUnencryptedData(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return encryptedData, err
-}
-
 func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
 	arg := db.GetCredentialsFieldsByIdsParams{
 		Column1: credentialIds,

@@ -92,17 +92,6 @@ type SessionTable struct {
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 
-type UnencryptedDatum struct {
-	ID           uuid.UUID      `json:"id"`
-	CreatedAt    time.Time      `json:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt"`
-	FieldName    string         `json:"fieldName"`
-	CredentialID uuid.UUID      `json:"credentialId"`
-	IsUrl        bool           `json:"isUrl"`
-	Url          sql.NullString `json:"url"`
-	FieldValue   string         `json:"fieldValue"`
-}
-
 type User struct {
 	ID           uuid.UUID      `json:"id"`
 	CreatedAt    time.Time      `json:"createdAt"`

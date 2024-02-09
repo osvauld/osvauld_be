@@ -25,14 +25,6 @@ func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
 	return id, err
 }
 
-// func GetUser(ctx *gin.Context, userLogin dto.Login) (db.GetUserByUsernameRow, error) {
-// 	user, err := database.Store.GetUserByUsername(ctx, userLogin.UserName)
-// 	if err != nil {
-// 		logger.Errorf(err.Error())
-// 		return user, err
-// 	}
-// 	return user, nil
-// }
 
 func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	user, err := database.Store.GetAllUsers(ctx)

@@ -11,13 +11,6 @@ FROM access_list
 WHERE user_id = $1 AND credential_id = $2;
 
 
--- name: GetUsersByFolder :many
-SELECT DISTINCT u.id, u.username, u.name, COALESCE(u.rsa_pub_key, '') as "publicKey"
-FROM users u
-JOIN access_list al ON u.id = al.user_id
-JOIN credentials c ON al.credential_id = c.id
-WHERE c.folder_id = $1;
-
 -- name: GetUsersByCredential :many
 SELECT users.id, users.username, users.name, COALESCE(users.rsa_pub_key, '') as "publicKey", access_list.access_type as "accessType"
 FROM access_list

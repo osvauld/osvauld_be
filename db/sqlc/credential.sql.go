@@ -405,44 +405,6 @@ func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentia
 	return items, nil
 }
 
-const getCredentialUnencryptedData = `-- name: GetCredentialUnencryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    unencrypted_data
-WHERE
-    credential_id = $1
-`
-
-type GetCredentialUnencryptedDataRow struct {
-	FieldName  string `json:"fieldName"`
-	FieldValue string `json:"fieldValue"`
-}
-
-func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error) {
-	rows, err := q.db.QueryContext(ctx, getCredentialUnencryptedData, credentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetCredentialUnencryptedDataRow{}
-	for rows.Next() {
-		var i GetCredentialUnencryptedDataRow
-		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getCredentialsFieldsByIds = `-- name: GetCredentialsFieldsByIds :many
 SELECT
     e.credential_id AS "credentialId",
@@ -541,50 +503,6 @@ func (q *Queries) GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEn
 	for rows.Next() {
 		var i GetEncryptedCredentialsByFolderRow
 		if err := rows.Scan(&i.CredentialId, &i.EncryptedFields); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUserEncryptedData = `-- name: GetUserEncryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    fields
-WHERE
-    user_id = $1
-    AND credential_id = $2
-`
-
-type GetUserEncryptedDataParams struct {
-	UserID       uuid.UUID `json:"userId"`
-	CredentialID uuid.UUID `json:"credentialId"`
-}
-
-type GetUserEncryptedDataRow struct {
-	FieldName  string `json:"fieldName"`
-	FieldValue string `json:"fieldValue"`
-}
-
-func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserEncryptedData, arg.UserID, arg.CredentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetUserEncryptedDataRow{}
-	for rows.Next() {
-		var i GetUserEncryptedDataRow
-		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

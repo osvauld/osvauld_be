@@ -51,24 +51,6 @@ FROM
 WHERE
     id = $1;
 
--- name: GetUserEncryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    fields
-WHERE
-    user_id = $1
-    AND credential_id = $2;
-
--- name: GetCredentialUnencryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    unencrypted_data
-WHERE
-    credential_id = $1;
 
 -- name: GetEncryptedCredentialsByFolder :many
 SELECT
