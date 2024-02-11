@@ -223,23 +223,6 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return credentials, nil
 }
 
-func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
-	credentialsIds, err := repository.GetCredentialIdsByFolderAndUserId(ctx, folderID, userID)
-	if err != nil {
-		return nil, err
-	}
-	credentials, _ := repository.GetCredentialsFieldsByIds(ctx, credentialsIds, userID)
-	return credentials, nil
-}
-
-func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
-	credentials, err := repository.GetCredentialsFieldsByIds(ctx, credentialIds, userID)
-	if err != nil {
-		return nil, err
-	}
-	return credentials, nil
-}
-
 func GetCredentialsByIDs(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
 	credentials, err := repository.GetCredentialsByIDs(ctx, credentialIds, userID)
 	if err != nil {
@@ -254,25 +237,4 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUs
 		return nil, err
 	}
 	return urls, nil
-}
-
-func GetSensitiveFields(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetSensitiveFieldsRow, error) {
-	// Check if caller has access
-	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
-	var sensitiveFields []db.GetSensitiveFieldsRow
-	if err != nil {
-		return sensitiveFields, err
-	}
-
-	if !hasAccess {
-		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
-		return sensitiveFields, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
-	}
-
-	sensitiveFields, err = repository.GetSensitiveFields(ctx, db.GetSensitiveFieldsParams{
-		CredentialID: credentialID,
-		UserID:       caller,
-	})
-
-	return sensitiveFields, err
 }

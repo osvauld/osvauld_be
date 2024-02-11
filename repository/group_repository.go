@@ -66,13 +66,6 @@ func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID, call
 	return credentialIDs, nil
 }
 
-type AddGroupMemberRepositoryParams struct {
-	GroupID           uuid.UUID                        `json:"groupId"`
-	MemberID          uuid.UUID                        `json:"memberId"`
-	MemberRole        string                           `json:"memberRole"`
-	UserEncryptedData []dto.CredentialFieldsForUserDto `json:"encryptedFields"`
-}
-
 func AddMembersToGroupTransaction(ctx *gin.Context, args db.AddMembersToGroupTransactionParams) error {
 
 	return database.Store.AddMembersToGroupTransaction(ctx, args)

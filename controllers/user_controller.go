@@ -63,7 +63,11 @@ func GetChallenge(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	challenge, _ := service.CreateChallenge(ctx, req)
+	challenge, err := service.CreateChallenge(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
 	type ChallengeResponse struct {
 		Challenge string `json:"challenge"`
 	}

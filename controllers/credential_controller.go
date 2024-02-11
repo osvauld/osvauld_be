@@ -100,7 +100,7 @@ func GetCredentialsFieldsByFolderID(ctx *gin.Context) {
 func GetCredentialsFieldsByIds(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)
-	var req dto.GetEncryptedCredentialsByIdsRequest
+	var req dto.GetCredentialsFieldsByIdsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -168,5 +168,5 @@ func GetSensitiveFieldsCredentialByID(ctx *gin.Context) {
 	}
 
 	SendResponse(ctx, 200, sensitiveFields, "Fetched credential", nil)
-	
+
 }

@@ -67,29 +67,8 @@ type Credential struct {
 	Users        []User    `json:"users"`
 }
 
-type GetEncryptedCredentialsByIdsRequest struct {
+type GetCredentialsFieldsByIdsRequest struct {
 	CredentialIds []uuid.UUID `json:"credentialIds"`
-}
-
-type CredentialsForUser struct {
-	CredentialID uuid.UUID `json:"credentialId"`
-}
-
-type AddCredentialEncryptedField struct {
-	UserID          uuid.UUID `json:"userId"`
-	EncryptedFields []Field   `json:"encryptedFields"`
-}
-
-type EncryptedFieldWithAccess struct {
-	AddCredentialEncryptedField
-	AccessType string `json:"accessType"`
-}
-
-type FieldWithURL struct {
-	FieldName  string `json:"fieldName"`
-	FieldValue string `json:"fieldValue"`
-	URL        string `json:"url"`
-	IsUrl      bool   `json:"isUrl"`
 }
 
 type GetCredentialsByIDsRequest struct {

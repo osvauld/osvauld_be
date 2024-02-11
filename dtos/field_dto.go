@@ -55,32 +55,6 @@ type ShareCredentialsWithGroupsRequest struct {
 	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
 }
 
-type GroupCredentialPayload struct {
-	UserID      uuid.UUID                    `json:"userId" binding:"required"`
-	Credentials []EncryptedCredentialPayload `json:"credentials" binding:"required"`
-}
-
-type CredentialFieldsForUserDto struct {
-	CredentialID uuid.UUID     `json:"credentialId"`
-	UserID       uuid.UUID     `json:"userId"`
-	Fields       []Field       `json:"Fields"`
-	AccessType   string        `json:"accessType"`
-	GroupID      uuid.NullUUID `json:"groupId"`
-	FolderID     uuid.NullUUID `json:"folderId"`
-}
-
-type CredentialFieldsForGroupDto struct {
-	CredentialID        uuid.UUID    `json:"credentialId"`
-	GroupID             uuid.UUID    `json:"groupId"`
-	UserEncryptedFields []UserFields `json:"userFields"`
-	AccessType          string       `json:"accessType"`
-}
-
-type ShareFolderForUserPayload struct {
-	UserID         uuid.UUID                `json:"userId" binding:"required"`
-	CredentialData []ShareCredentialPayload `json:"credentials" binding:"required"`
-}
-
 type ShareFolderWithUsersRequest struct {
 	FolderID uuid.UUID                        `json:"folderId" binding:"required"`
 	UserData []ShareCredentialsForUserPayload `json:"userData" binding:"required"`
@@ -89,17 +63,4 @@ type ShareFolderWithUsersRequest struct {
 type ShareFolderWithGroupsRequest struct {
 	FolderID  uuid.UUID                     `json:"folderId" binding:"required"`
 	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
-}
-
-///////////////////////////////////////////////////////////////////////////////////
-
-type EncryptedCredentialPayload struct {
-	CredentialID    uuid.UUID `json:"credentialId" binding:"required"`
-	EncryptedFields []Field   `json:"encryptedFields" binding:"required"`
-}
-
-type CredentialsForUsersPayload struct {
-	UserID         uuid.UUID                    `json:"userId" binding:"required"`
-	CredentialData []EncryptedCredentialPayload `json:"credentials" binding:"required"`
-	AccessType     string                       `json:"accessType" binding:"required"`
 }
