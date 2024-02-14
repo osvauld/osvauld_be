@@ -159,3 +159,14 @@ WHERE
         groupings g ON al.group_id = g.id
     WHERE 
         al.credential_id = $1;
+
+
+-- name: EditCredentialDetails :exec
+UPDATE
+    credentials
+SET
+    name = $2,
+    description = $3,
+    credential_type = $4
+WHERE
+    id = $1;

@@ -13,7 +13,7 @@ import (
 
 type Querier interface {
 	AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error)
-	AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error)
+	AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error)
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
@@ -27,6 +27,8 @@ type Querier interface {
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
+	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
+	EditField(ctx context.Context, arg EditFieldParams) error
 	FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)

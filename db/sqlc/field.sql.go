@@ -12,14 +12,14 @@ import (
 	"github.com/lib/pq"
 )
 
-const addFieldData = `-- name: AddFieldData :one
+const addField = `-- name: AddField :one
 INSERT INTO
     fields (field_name, field_value, credential_id, field_type, user_id)
 VALUES
     ($1, $2, $3, $4, $5) RETURNING id
 `
 
-type AddFieldDataParams struct {
+type AddFieldParams struct {
 	FieldName    string    `json:"fieldName"`
 	FieldValue   string    `json:"fieldValue"`
 	CredentialID uuid.UUID `json:"credentialId"`
@@ -27,8 +27,8 @@ type AddFieldDataParams struct {
 	UserID       uuid.UUID `json:"userId"`
 }
 
-func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, addFieldData,
+func (q *Queries) AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addField,
 		arg.FieldName,
 		arg.FieldValue,
 		arg.CredentialID,
@@ -58,6 +58,34 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const editField = `-- name: EditField :exec
+UPDATE
+    fields
+SET
+    field_name = $1,
+    field_value = $2,
+    field_type = $3
+WHERE
+    id = $4
+`
+
+type EditFieldParams struct {
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
+	ID         uuid.UUID `json:"id"`
+}
+
+func (q *Queries) EditField(ctx context.Context, arg EditFieldParams) error {
+	_, err := q.db.ExecContext(ctx, editField,
+		arg.FieldName,
+		arg.FieldValue,
+		arg.FieldType,
+		arg.ID,
+	)
+	return err
 }
 
 const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many

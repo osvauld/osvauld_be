@@ -238,3 +238,18 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUs
 	}
 	return urls, nil
 }
+
+func EditCredential(ctx *gin.Context, request dto.EditCredentialRequest, caller uuid.UUID) error {
+
+	isOwner, err := HasOwnerAccessForCredential(ctx, request.CredentialID, caller)
+	if err != nil {
+		return err
+	}
+	if !isOwner {
+		return &customerrors.UserNotAuthenticatedError{Message: "user does not have owner access to the credential"}
+	}
+	
+
+	return nil
+
+}

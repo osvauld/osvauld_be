@@ -44,6 +44,34 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 	return id, err
 }
 
+const editCredentialDetails = `-- name: EditCredentialDetails :exec
+UPDATE
+    credentials
+SET
+    name = $2,
+    description = $3,
+    credential_type = $4
+WHERE
+    id = $1
+`
+
+type EditCredentialDetailsParams struct {
+	ID             uuid.UUID      `json:"id"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	CredentialType string         `json:"credentialType"`
+}
+
+func (q *Queries) EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, editCredentialDetails,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.CredentialType,
+	)
+	return err
+}
+
 const fetchCredentialDetailsForUserByFolderId = `-- name: FetchCredentialDetailsForUserByFolderId :many
 SELECT
     C.id AS "credentialID",

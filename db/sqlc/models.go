@@ -42,8 +42,17 @@ type Field struct {
 	FieldValue   string    `json:"fieldValue"`
 	UserID       uuid.UUID `json:"userId"`
 	FieldType    string    `json:"fieldType"`
-	Version      int32     `json:"version"`
-	Latest       bool      `json:"latest"`
+}
+
+type FieldArchive struct {
+	ID         uuid.UUID `json:"id"`
+	FieldID    uuid.UUID `json:"fieldId"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
+	Version    int32     `json:"version"`
 }
 
 type Folder struct {

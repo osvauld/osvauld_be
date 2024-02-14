@@ -69,3 +69,19 @@ type ShareFolderWithGroupsRequest struct {
 	FolderID  uuid.UUID                     `json:"folderId" binding:"required"`
 	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
 }
+
+type EditCredentialDetailsRequest struct {
+	CredentialID   uuid.UUID `json:"credentialId"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	CredentialType string    `json:"credentialType"`
+}
+
+type EditCredentialRequest struct {
+	CredentialID   uuid.UUID    `json:"credentialId"`
+	Name           string       `json:"name"`
+	Description    string       `json:"description"`
+	CredentialType string       `json:"credentialType"`
+	EditFields     []UserFields `json:"editFields"`
+	AddFields      []UserFields `json:"addFields"`
+}

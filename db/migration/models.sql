@@ -59,10 +59,19 @@ CREATE TABLE fields (
     credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value TEXT NOT NULL,
     user_id UUID NOT NULL REFERENCES users(id),
-    field_type VARCHAR(255) NOT NULL,
-    version INTEGER NOT NULL DEFAULT 1,
-    latest BOOLEAN NOT NULL
+    field_type VARCHAR(255) NOT NULL
+);
 
+-- SQL Definition for Fields
+CREATE TABLE field_archive (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    field_id UUID NOT NULL REFERENCES fields(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    field_name VARCHAR(255) NOT NULL,
+    field_value TEXT NOT NULL,
+    field_type VARCHAR(255) NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1
 );
 
 -- SQL Definition for Group
