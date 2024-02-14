@@ -35,23 +35,27 @@ type Credential struct {
 
 type Field struct {
 	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
 	FieldName    string    `json:"fieldName"`
-	CredentialID uuid.UUID `json:"credentialId"`
 	FieldValue   string    `json:"fieldValue"`
-	UserID       uuid.UUID `json:"userId"`
 	FieldType    string    `json:"fieldType"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+	CreatedAt    time.Time `json:"createdAt"`
+	CreatedBy    uuid.UUID `json:"createdBy"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	UpdatedBy    uuid.UUID `json:"updatedBy"`
 }
 
 type FieldArchive struct {
 	ID         uuid.UUID `json:"id"`
 	FieldID    uuid.UUID `json:"fieldId"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
 	FieldName  string    `json:"fieldName"`
 	FieldValue string    `json:"fieldValue"`
 	FieldType  string    `json:"fieldType"`
+	CreateAt   time.Time `json:"createAt"`
+	CreatedBy  uuid.UUID `json:"createdBy"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	UpdatedBy  uuid.UUID `json:"updatedBy"`
 	Version    int32     `json:"version"`
 }
 

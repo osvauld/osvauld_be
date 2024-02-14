@@ -246,9 +246,22 @@ func EditCredential(ctx *gin.Context, request dto.EditCredentialRequest, caller 
 		return err
 	}
 	if !isOwner {
-		return &customerrors.UserNotAuthenticatedError{Message: "user does not have owner access to the credential"}
+		return &customerrors.UserNotAuthenticatedError{Message: "user does not have manager access to the credential"}
 	}
-	
+
+	err = repository.EditCredential(ctx, db.EditCredentialTransactionParams{
+		CredentialID:   request.CredentialID,
+		Name:           request.Name,
+		Description:    sql.NullString{String: request.Description, Valid: true},
+		CredentialType: request.CredentialType,
+		EditFields:     request.EditFields,
+		AddFields:      request.AddFields,
+		UpdatedBy:      caller,
+	})
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 

@@ -78,10 +78,10 @@ type EditCredentialDetailsRequest struct {
 }
 
 type EditCredentialRequest struct {
-	CredentialID   uuid.UUID    `json:"credentialId"`
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
-	CredentialType string       `json:"credentialType"`
-	EditFields     []UserFields `json:"editFields"`
-	AddFields      []UserFields `json:"addFields"`
+	CredentialID   uuid.UUID                  `json:"credentialId"`
+	Name           string                     `json:"name"`
+	Description    string                     `json:"description"`
+	CredentialType string                     `json:"credentialType"`
+	EditFields     []UserFields               `json:"editFields"`
+	AddFields      []UserFieldsWithAccessType `json:"addFields"`
 }

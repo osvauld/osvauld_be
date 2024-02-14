@@ -35,6 +35,7 @@ func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayl
 			FieldValue:   field.FieldValue,
 			UserID:       userID,
 			CredentialID: credential.CredentialID,
+			CreatedBy:    caller,
 		}
 
 		userFieldRecords = append(userFieldRecords, userFieldRecord)

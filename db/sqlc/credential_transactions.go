@@ -43,9 +43,10 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 				_, err = q.AddField(ctx, AddFieldParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
+					FieldType:    field.FieldType,
 					CredentialID: credentialID,
 					UserID:       userFields.UserID,
-					FieldType:    field.FieldType,
+					CreatedBy:    args.CreatedBy,
 				})
 				if err != nil {
 					return err
@@ -74,6 +75,7 @@ type EditCredentialTransactionParams struct {
 	UpdatedBy      uuid.UUID
 	EditFields     []dto.UserFields
 	AddFields      []dto.UserFieldsWithAccessType
+	EditedBy       uuid.UUID
 }
 
 func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditCredentialTransactionParams) error {

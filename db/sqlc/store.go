@@ -15,6 +15,7 @@ type Store interface {
 	CreateGroupAndAddManager(context.Context, dto.GroupDetails) (dto.GroupDetails, error)
 	AddMembersToGroupTransaction(context.Context, AddMembersToGroupTransactionParams) error
 	ShareCredentialsTransaction(context.Context, ShareCredentialTransactionParams) error
+	EditCredentialTransaction(context.Context, EditCredentialTransactionParams) error
 }
 
 type SQLStore struct {
