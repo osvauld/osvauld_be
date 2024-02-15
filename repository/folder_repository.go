@@ -19,14 +19,6 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	return database.Store.FetchAccessibleFoldersForUser(ctx, userID)
 }
 
-func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
-	users, err := database.Store.GetUsersByFolder(ctx, folderID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return users, err
-	}
-	return users, nil
-}
 
 func CheckFolderAccess(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
 

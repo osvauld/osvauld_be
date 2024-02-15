@@ -50,31 +50,33 @@ CREATE TABLE access_list (
 );
 
 
--- SQL Definition for EncryptedData
-CREATE TABLE encrypted_data (
+-- SQL Definition for Fields
+CREATE TABLE fields (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     field_name VARCHAR(255) NOT NULL,
-    credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value TEXT NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id),
-    field_type VARCHAR(255) NOT NULL
-);
-
--- SQL Definition for UnencryptedData
-CREATE TABLE unencrypted_data (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    field_name VARCHAR(255) NOT NULL,
+    field_type VARCHAR(255) NOT NULL,
     credential_id UUID NOT NULL REFERENCES credentials(id),
-    is_url BOOLEAN NOT NULL DEFAULT FALSE,
-    url VARCHAR(255),
-    field_value VARCHAR(255) NOT NULL
+    user_id UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by UUID NOT NULL REFERENCES users(id)
 );
 
-
+-- SQL Definition for Fields
+CREATE TABLE field_archive (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    field_id UUID NOT NULL REFERENCES fields(id),
+    field_name VARCHAR(255) NOT NULL,
+    field_value TEXT NOT NULL,
+    field_type VARCHAR(255) NOT NULL,
+    create_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by UUID NOT NULL REFERENCES users(id),
+    version INTEGER NOT NULL DEFAULT 1
+);
 
 -- SQL Definition for Group
 CREATE TABLE groupings (

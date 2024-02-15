@@ -7,12 +7,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetFieldDataForCredentialIDsForUser(ctx *gin.Context, args db.GetFieldDataByCredentialIDsForUserParams) ([]db.GetFieldDataByCredentialIDsForUserRow, error) {
+func GetAllFieldsForCredentialIDs(ctx *gin.Context, args db.GetAllFieldsForCredentialIDsParams) ([]db.GetAllFieldsForCredentialIDsRow, error) {
 
-	return database.Store.GetFieldDataByCredentialIDsForUser(ctx, args)
+	return database.Store.GetAllFieldsForCredentialIDs(ctx, args)
+}
+
+func GetNonSensitiveFieldsForCredentialIDs(ctx *gin.Context, args db.GetNonSensitiveFieldsForCredentialIDsParams) ([]db.GetNonSensitiveFieldsForCredentialIDsRow, error) {
+
+	return database.Store.GetNonSensitiveFieldsForCredentialIDs(ctx, args)
 }
 
 func CheckFieldEntryExists(ctx *gin.Context, args db.CheckFieldEntryExistsParams) (bool, error) {
 
 	return database.Store.CheckFieldEntryExists(ctx, args)
+}
+
+func GetSensitiveFields(ctx *gin.Context, args db.GetSensitiveFieldsParams) ([]db.GetSensitiveFieldsRow, error) {
+
+	return database.Store.GetSensitiveFields(ctx, args)
 }

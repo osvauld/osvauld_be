@@ -38,11 +38,6 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	return folders, nil
 }
 
-func GetUsersByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetUsersByFolderRow, error) {
-	users, err := repository.GetUsersByFolder(ctx, folderID)
-	return users, err
-}
-
 func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
 	users, err := repository.GetSharedUsersForFolder(ctx, folderID)
 	return users, err

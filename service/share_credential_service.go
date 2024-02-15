@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID, caller uuid.UUID) ([]db.AddFieldDataParams, error) {
+func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID, caller uuid.UUID) ([]db.AddFieldParams, error) {
 
-	fieldData, err := repository.GetFieldDataForCredentialIDsForUser(ctx, db.GetFieldDataByCredentialIDsForUserParams{
+	fieldData, err := repository.GetAllFieldsForCredentialIDs(ctx, db.GetAllFieldsForCredentialIDsParams{
 		UserID:      caller,
 		Credentials: []uuid.UUID{credential.CredentialID},
 	})
@@ -20,21 +20,22 @@ func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayl
 		return nil, err
 	}
 
-	fieldMap := make(map[uuid.UUID]db.GetFieldDataByCredentialIDsForUserRow)
+	fieldMap := make(map[uuid.UUID]db.GetAllFieldsForCredentialIDsRow)
 	for _, field := range fieldData {
 		fieldMap[field.ID] = field
 	}
 
-	userFieldRecords := []db.AddFieldDataParams{}
+	userFieldRecords := []db.AddFieldParams{}
 
 	for _, field := range credential.Fields {
 
-		userFieldRecord := db.AddFieldDataParams{
+		userFieldRecord := db.AddFieldParams{
 			FieldName:    fieldMap[field.ID].FieldName,
 			FieldType:    fieldMap[field.ID].FieldType,
 			FieldValue:   field.FieldValue,
 			UserID:       userID,
 			CredentialID: credential.CredentialID,
+			CreatedBy:    caller,
 		}
 
 		userFieldRecords = append(userFieldRecords, userFieldRecord)
@@ -61,7 +62,7 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 	// we share all the credentials for a single user in a single transaction
 	for _, userData := range payload {
 
-		userFieldRecords := []db.AddFieldDataParams{}
+		userFieldRecords := []db.AddFieldParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 		userShareResponse := ShareCredentialsWithUserResponse{
 			UserID: userData.UserID,
@@ -155,7 +156,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 	var responses []ShareCredentialsWithGroupResponse
 	for _, groupData := range payload {
 
-		groupFieldRecords := []db.AddFieldDataParams{}
+		groupFieldRecords := []db.AddFieldParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 
 		for _, userData := range groupData.UserData {
@@ -254,7 +255,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 	for _, userData := range payload.UserData {
 
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
-		userFieldRecords := []db.AddFieldDataParams{}
+		userFieldRecords := []db.AddFieldParams{}
 		folderAccessRecords := []db.AddFolderAccessParams{}
 
 		userShareResponse := ShareFolderWithUserResponse{}
@@ -357,7 +358,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 	var responses []ShareFolderWithGroupResponse
 	for _, groupData := range payload.GroupData {
 
-		groupFieldRecords := []db.AddFieldDataParams{}
+		groupFieldRecords := []db.AddFieldParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 		folderAccessRecords := []db.AddFolderAccessParams{}
 
