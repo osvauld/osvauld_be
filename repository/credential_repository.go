@@ -26,6 +26,12 @@ func FetchCredentialDetailsForUserByFolderId(ctx *gin.Context, args db.FetchCred
 
 }
 
+func EditCredential(ctx *gin.Context, args db.EditCredentialTransactionParams) error {
+
+	return database.Store.EditCredentialTransaction(ctx, args)
+
+}
+
 func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
 	arg := db.GetCredentialsFieldsByIdsParams{
 		Column1: credentialIds,

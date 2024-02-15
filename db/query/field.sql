@@ -1,10 +1,23 @@
 
 
--- name: AddFieldData :one
+-- name: AddField :one
 INSERT INTO
-    fields (field_name, field_value, credential_id, field_type, user_id)
+    fields (field_name, field_value, credential_id, field_type, user_id, created_by)
 VALUES
-    ($1, $2, $3, $4, $5) RETURNING id;
+    ($1, $2, $3, $4, $5, $6) RETURNING id;
+
+
+-- name: EditField :exec
+UPDATE
+    fields
+SET
+    field_name = $1,
+    field_value = $2,
+    field_type = $3,
+    updated_by = $4,
+    updated_at = NOW()
+WHERE
+    id = $5;
 
 
 -- name: GetNonSensitiveFieldsForCredentialIDs :many

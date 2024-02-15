@@ -170,3 +170,31 @@ func GetSensitiveFieldsCredentialByID(ctx *gin.Context) {
 	SendResponse(ctx, 200, sensitiveFields, "Fetched credential", nil)
 
 }
+
+func EditCredential(ctx *gin.Context) {
+	var req dto.EditCredentialRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	err = service.EditCredential(ctx, req, caller)
+	if err != nil {
+		logger.Errorf(err.Error())
+
+		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
+			SendResponse(ctx, 401, nil, "", err)
+			return
+		}
+		SendResponse(ctx, 500, nil, "Failed to edit credential", nil)
+		return
+	}
+
+	SendResponse(ctx, 200, nil, "", nil)
+}

@@ -5,7 +5,7 @@ import (
 )
 
 type ShareCredentialTransactionParams struct {
-	FieldArgs            []AddFieldDataParams        `json:"fieldArgs"`
+	FieldArgs            []AddFieldParams            `json:"fieldArgs"`
 	CredentialAccessArgs []AddCredentialAccessParams `json:"credentialAccessArgs"`
 	FolderAccessArgs     []AddFolderAccessParams     `json:"folderAccessArgs"`
 }
@@ -16,7 +16,7 @@ func (store *SQLStore) ShareCredentialsTransaction(ctx context.Context, args Sha
 
 		for _, fieldRecord := range args.FieldArgs {
 
-			_, err := q.AddFieldData(ctx, fieldRecord)
+			_, err := q.AddField(ctx, fieldRecord)
 			if err != nil {
 				return err
 			}

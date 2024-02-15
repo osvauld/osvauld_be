@@ -12,28 +12,30 @@ import (
 	"github.com/lib/pq"
 )
 
-const addFieldData = `-- name: AddFieldData :one
+const addField = `-- name: AddField :one
 INSERT INTO
-    fields (field_name, field_value, credential_id, field_type, user_id)
+    fields (field_name, field_value, credential_id, field_type, user_id, created_by)
 VALUES
-    ($1, $2, $3, $4, $5) RETURNING id
+    ($1, $2, $3, $4, $5, $6) RETURNING id
 `
 
-type AddFieldDataParams struct {
+type AddFieldParams struct {
 	FieldName    string    `json:"fieldName"`
 	FieldValue   string    `json:"fieldValue"`
 	CredentialID uuid.UUID `json:"credentialId"`
 	FieldType    string    `json:"fieldType"`
 	UserID       uuid.UUID `json:"userId"`
+	CreatedBy    uuid.UUID `json:"createdBy"`
 }
 
-func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, addFieldData,
+func (q *Queries) AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addField,
 		arg.FieldName,
 		arg.FieldValue,
 		arg.CredentialID,
 		arg.FieldType,
 		arg.UserID,
+		arg.CreatedBy,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -58,6 +60,38 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const editField = `-- name: EditField :exec
+UPDATE
+    fields
+SET
+    field_name = $1,
+    field_value = $2,
+    field_type = $3,
+    updated_by = $4,
+    updated_at = NOW()
+WHERE
+    id = $5
+`
+
+type EditFieldParams struct {
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
+	UpdatedBy  uuid.UUID `json:"updatedBy"`
+	ID         uuid.UUID `json:"id"`
+}
+
+func (q *Queries) EditField(ctx context.Context, arg EditFieldParams) error {
+	_, err := q.db.ExecContext(ctx, editField,
+		arg.FieldName,
+		arg.FieldValue,
+		arg.FieldType,
+		arg.UpdatedBy,
+		arg.ID,
+	)
+	return err
 }
 
 const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many
