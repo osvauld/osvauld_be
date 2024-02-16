@@ -20,7 +20,7 @@ CREATE TABLE folders (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2048),
     created_by UUID NOT NULL REFERENCES users(id)
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE credentials (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2048),
     credential_type VARCHAR(255) NOT NULL,
     folder_id UUID NOT NULL REFERENCES folders(id),
     created_by UUID NOT NULL REFERENCES users(id)
