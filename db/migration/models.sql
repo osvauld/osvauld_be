@@ -20,7 +20,7 @@ CREATE TABLE folders (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2048),
     created_by UUID NOT NULL REFERENCES users(id)
 );
 
@@ -30,25 +30,11 @@ CREATE TABLE credentials (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2048),
     credential_type VARCHAR(255) NOT NULL,
     folder_id UUID NOT NULL REFERENCES folders(id),
     created_by UUID NOT NULL REFERENCES users(id)
 );
-
-
--- SQL Definition for AccessList
-CREATE TABLE access_list (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    credential_id UUID NOT NULL REFERENCES credentials(id),
-    user_id UUID NOT NULL REFERENCES users(id),
-    access_type VARCHAR(255) NOT NULL,
-    group_id UUID REFERENCES groupings(id),
-    folder_id UUID REFERENCES folders(id)
-);
-
 
 -- SQL Definition for Fields
 CREATE TABLE fields (
@@ -61,7 +47,7 @@ CREATE TABLE fields (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by UUID NOT NULL REFERENCES users(id),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by UUID NOT NULL REFERENCES users(id)
+    updated_by UUID REFERENCES users(id)
 );
 
 -- SQL Definition for Fields
@@ -96,6 +82,19 @@ CREATE TABLE group_list (
     access_type VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(grouping_id, user_id)
+);
+
+
+-- SQL Definition for AccessList
+CREATE TABLE credential_access (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    credential_id UUID NOT NULL REFERENCES credentials(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    access_type VARCHAR(255) NOT NULL,
+    group_id UUID REFERENCES groupings(id),
+    folder_id UUID REFERENCES folders(id)
 );
 
 

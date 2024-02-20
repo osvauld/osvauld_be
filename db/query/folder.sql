@@ -19,7 +19,7 @@ WHERE id IN (
   UNION
   SELECT DISTINCT(c.folder_id)
   FROM credentials as c
-  JOIN access_list as a ON c.id = a.credential_id
+  JOIN credential_access as a ON c.id = a.credential_id
   WHERE a.user_id = $1
 );
 

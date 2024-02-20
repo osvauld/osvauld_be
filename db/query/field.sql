@@ -43,8 +43,7 @@ SELECT
     f.field_type
 FROM fields as f
 WHERE
-field_type != 'sensitive' 
-AND f.user_id = $1 
+f.user_id = $1 
 AND f.credential_id = ANY(@credentials::UUID[]);
 
 

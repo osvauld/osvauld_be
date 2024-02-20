@@ -30,7 +30,7 @@ SELECT EXISTS (
 
 -- name: GetCredentialAccessDetailsWithGroupAccess :many
 SELECT DISTINCT credential_id, access_type, folder_id
-FROM access_list
+FROM credential_access
 WHERE group_id = $1;
 
 
@@ -44,12 +44,12 @@ SELECT access_type FROM group_list
 WHERE user_id = $1 AND grouping_id = $2;
 
 -- name: FetchCredentialIDsWithGroupAccess :many
-SELECT distinct(credential_id) from access_list
+SELECT distinct(credential_id) from credential_access
 WHERE group_id = $1 and user_id = $2;
 
 
 -- name: FetchCredentialAccessTypeForGroup :one
-SELECT access_type FROM access_list
+SELECT access_type FROM credential_access
 WHERE group_id = $1 AND credential_id = $2;
 
 

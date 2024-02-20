@@ -80,7 +80,7 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Creat
 }
 
 const fetchCredentialAccessTypeForGroup = `-- name: FetchCredentialAccessTypeForGroup :one
-SELECT access_type FROM access_list
+SELECT access_type FROM credential_access
 WHERE group_id = $1 AND credential_id = $2
 `
 
@@ -97,7 +97,7 @@ func (q *Queries) FetchCredentialAccessTypeForGroup(ctx context.Context, arg Fet
 }
 
 const fetchCredentialIDsWithGroupAccess = `-- name: FetchCredentialIDsWithGroupAccess :many
-SELECT distinct(credential_id) from access_list
+SELECT distinct(credential_id) from credential_access
 WHERE group_id = $1 and user_id = $2
 `
 
@@ -236,7 +236,7 @@ const getCredentialAccessDetailsWithGroupAccess = `-- name: GetCredentialAccessD
 
 
 SELECT DISTINCT credential_id, access_type, folder_id
-FROM access_list
+FROM credential_access
 WHERE group_id = $1
 `
 
