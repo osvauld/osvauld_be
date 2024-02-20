@@ -90,7 +90,7 @@ func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string,
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id,name,username, COALESCE(rsa_pub_key, '') AS "publicKey" FROM users where signed_up = true
+SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true
 `
 
 type GetAllUsersRow struct {
@@ -131,19 +131,19 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 const getUserByPublicKey = `-- name: GetUserByPublicKey :one
 SELECT id
 FROM users
-WHERE ecc_pub_key = $1
+WHERE device_key = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey sql.NullString) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, getUserByPublicKey, eccPubKey)
+func (q *Queries) GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getUserByPublicKey, deviceKey)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id,name,username, COALESCE(rsa_pub_key,'') as "publicKey"
+SELECT id,name,username, COALESCE(encryption_key,'') as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1
@@ -170,17 +170,17 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 
 const updateKeys = `-- name: UpdateKeys :exec
 UPDATE users
-SET rsa_pub_key = $1, ecc_pub_key = $2, signed_up = TRUE
+SET encryption_key = $1, device_key = $2, signed_up = TRUE
 WHERE username = $3
 `
 
 type UpdateKeysParams struct {
-	RsaPubKey sql.NullString `json:"rsaPubKey"`
-	EccPubKey sql.NullString `json:"eccPubKey"`
-	Username  string         `json:"username"`
+	EncryptionKey sql.NullString `json:"encryptionKey"`
+	DeviceKey     sql.NullString `json:"deviceKey"`
+	Username      string         `json:"username"`
 }
 
 func (q *Queries) UpdateKeys(ctx context.Context, arg UpdateKeysParams) error {
-	_, err := q.db.ExecContext(ctx, updateKeys, arg.RsaPubKey, arg.EccPubKey, arg.Username)
+	_, err := q.db.ExecContext(ctx, updateKeys, arg.EncryptionKey, arg.DeviceKey, arg.Username)
 	return err
 }

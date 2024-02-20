@@ -8,7 +8,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.AddCredentialDto, caller uuid.UUID) (uuid.UUID, error) {
+type AddCredentialTransactionParams struct {
+	Name                     string
+	Description              sql.NullString
+	FolderID                 uuid.UUID
+	CredentialType           string
+	CreatedBy                uuid.UUID
+	UserFieldsWithAccessType []dto.UserFieldsWithAccessType
+}
+
+func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCredentialTransactionParams) (uuid.UUID, error) {
 
 	var credentialID uuid.UUID
 
@@ -18,9 +27,9 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 		// Create credential record
 		CreateCredentialParams := CreateCredentialParams{
 			Name:           args.Name,
-			Description:    sql.NullString{String: args.Description, Valid: true},
+			Description:    args.Description,
 			FolderID:       args.FolderID,
-			CreatedBy:      caller,
+			CreatedBy:      args.CreatedBy,
 			CredentialType: args.CredentialType,
 		}
 		credentialID, err = q.CreateCredential(ctx, CreateCredentialParams)
@@ -31,12 +40,13 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 		// Create field records
 		for _, userFields := range args.UserFieldsWithAccessType {
 			for _, field := range userFields.Fields {
-				_, err = q.AddFieldData(ctx, AddFieldDataParams{
+				_, err = q.AddField(ctx, AddFieldParams{
 					FieldName:    field.FieldName,
 					FieldValue:   field.FieldValue,
+					FieldType:    field.FieldType,
 					CredentialID: credentialID,
 					UserID:       userFields.UserID,
-					FieldType:    field.FieldType,
+					CreatedBy:    args.CreatedBy,
 				})
 				if err != nil {
 					return err
@@ -48,11 +58,89 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args dto.Ad
 				UserID:       userFields.UserID,
 				AccessType:   userFields.AccessType,
 			}
-			q.AddCredentialAccess(ctx, accessListParams)
+			_, err := q.AddCredentialAccess(ctx, accessListParams)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	})
 
 	return credentialID, err
+}
+
+type EditCredentialTransactionParams struct {
+	CredentialID   uuid.UUID
+	Name           string
+	Description    sql.NullString
+	CredentialType string
+	UpdatedBy      uuid.UUID
+	EditFields     []dto.UserFields
+	AddFields      []dto.UserFieldsWithAccessType
+	EditedBy       uuid.UUID
+}
+
+func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditCredentialTransactionParams) error {
+
+	err := store.execTx(ctx, func(q *Queries) error {
+
+		var err error
+		// Update credential record
+		editCredentialDetailsParams := EditCredentialDetailsParams{
+			ID:             args.CredentialID,
+			Name:           args.Name,
+			Description:    args.Description,
+			CredentialType: args.CredentialType,
+		}
+		err = q.EditCredentialDetails(ctx, editCredentialDetailsParams)
+		if err != nil {
+			return err
+		}
+
+		// Edit field records
+		for _, userFields := range args.EditFields {
+			for _, field := range userFields.Fields {
+				err = q.EditField(ctx, EditFieldParams{
+					ID:         field.ID,
+					FieldName:  field.FieldName,
+					FieldValue: field.FieldValue,
+					FieldType:  field.FieldType,
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		// Create field records
+		for _, userFields := range args.AddFields {
+			for _, field := range userFields.Fields {
+				_, err = q.AddField(ctx, AddFieldParams{
+					FieldName:    field.FieldName,
+					FieldValue:   field.FieldValue,
+					CredentialID: args.CredentialID,
+					UserID:       userFields.UserID,
+					FieldType:    field.FieldType,
+				})
+				if err != nil {
+					return err
+				}
+			}
+
+			accessListParams := AddCredentialAccessParams{
+				CredentialID: args.CredentialID,
+				UserID:       userFields.UserID,
+				AccessType:   userFields.AccessType,
+			}
+			_, err = q.AddCredentialAccess(ctx, accessListParams)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	return err
 }

@@ -15,18 +15,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const addCredential = `-- name: AddCredential :one
-SELECT
-    add_credential_with_access($1 :: JSONB)
-`
-
-func (q *Queries) AddCredential(ctx context.Context, dollar_1 json.RawMessage) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, addCredential, dollar_1)
-	var add_credential_with_access interface{}
-	err := row.Scan(&add_credential_with_access)
-	return add_credential_with_access, err
-}
-
 const createCredential = `-- name: CreateCredential :one
 INSERT INTO
     credentials (NAME, description, credential_type, folder_id, created_by)
@@ -56,44 +44,32 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 	return id, err
 }
 
-const fetchCredentialDataByID = `-- name: FetchCredentialDataByID :one
-SELECT
-    id,
-    created_at,
-    updated_at,
-    name,
-    description,
-    folder_id,
-    created_by
-FROM
+const editCredentialDetails = `-- name: EditCredentialDetails :exec
+UPDATE
     credentials
+SET
+    name = $2,
+    description = $3,
+    credential_type = $4
 WHERE
     id = $1
 `
 
-type FetchCredentialDataByIDRow struct {
-	ID          uuid.UUID      `json:"id"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	FolderID    uuid.UUID      `json:"folderId"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+type EditCredentialDetailsParams struct {
+	ID             uuid.UUID      `json:"id"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	CredentialType string         `json:"credentialType"`
 }
 
-func (q *Queries) FetchCredentialDataByID(ctx context.Context, id uuid.UUID) (FetchCredentialDataByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, fetchCredentialDataByID, id)
-	var i FetchCredentialDataByIDRow
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Name,
-		&i.Description,
-		&i.FolderID,
-		&i.CreatedBy,
+func (q *Queries) EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, editCredentialDetails,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.CredentialType,
 	)
-	return i, err
+	return err
 }
 
 const fetchCredentialDetailsForUserByFolderId = `-- name: FetchCredentialDetailsForUserByFolderId :many
@@ -108,7 +84,7 @@ SELECT
     A.access_type AS "accessType"
 FROM
     credentials AS C,
-    access_list AS A
+    credential_access AS A
 WHERE
     C.id = A .credential_id
     AND C.folder_id = $1
@@ -163,70 +139,13 @@ func (q *Queries) FetchCredentialDetailsForUserByFolderId(ctx context.Context, a
 	return items, nil
 }
 
-const fetchCredentialFieldsForUserByCredentialIds = `-- name: FetchCredentialFieldsForUserByCredentialIds :many
-SELECT
-    credential_id AS "credentialID",
-    id AS "fieldID",
-    field_name as "fieldName",
-    field_value as "fieldValue",
-    field_type as "fieldType"
-FROM
-    encrypted_data
-WHERE
-    field_type != 'sensitive'
-    AND credential_id = ANY($1::UUID[])
-    AND user_id = $2
-`
-
-type FetchCredentialFieldsForUserByCredentialIdsParams struct {
-	Column1 []uuid.UUID `json:"column1"`
-	UserID  uuid.UUID   `json:"userId"`
-}
-
-type FetchCredentialFieldsForUserByCredentialIdsRow struct {
-	CredentialID uuid.UUID `json:"credentialID"`
-	FieldID      uuid.UUID `json:"fieldID"`
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	FieldType    string    `json:"fieldType"`
-}
-
-func (q *Queries) FetchCredentialFieldsForUserByCredentialIds(ctx context.Context, arg FetchCredentialFieldsForUserByCredentialIdsParams) ([]FetchCredentialFieldsForUserByCredentialIdsRow, error) {
-	rows, err := q.db.QueryContext(ctx, fetchCredentialFieldsForUserByCredentialIds, pq.Array(arg.Column1), arg.UserID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []FetchCredentialFieldsForUserByCredentialIdsRow{}
-	for rows.Next() {
-		var i FetchCredentialFieldsForUserByCredentialIdsRow
-		if err := rows.Scan(
-			&i.CredentialID,
-			&i.FieldID,
-			&i.FieldName,
-			&i.FieldValue,
-			&i.FieldType,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getAccessTypeAndGroupsByCredentialId = `-- name: GetAccessTypeAndGroupsByCredentialId :many
     SELECT DISTINCT
         al.group_id, 
         g.name,
         al.access_type
     FROM 
-        access_list al
+        credential_access al
     JOIN 
         groupings g ON al.group_id = g.id
     WHERE 
@@ -267,9 +186,9 @@ SELECT
     al.user_id as "id",
     u.name, 
     al.access_type,
-    COALESCE(u.rsa_pub_key, '') AS "publicKey"
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM 
-    access_list al
+    credential_access al
 JOIN 
     users u ON al.user_id = u.id
 WHERE 
@@ -315,7 +234,7 @@ const getAllUrlsForUser = `-- name: GetAllUrlsForUser :many
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"
 FROM 
-    encrypted_data
+    fields
 WHERE 
     user_id = $1 AND field_name = 'Domain'
 `
@@ -346,6 +265,49 @@ func (q *Queries) GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]Ge
 		return nil, err
 	}
 	return items, nil
+}
+
+const getCredentialDataByID = `-- name: GetCredentialDataByID :one
+SELECT
+    id,
+    created_at,
+    updated_at,
+    name,
+    description,
+    folder_id,
+    credential_type,
+    created_by
+FROM
+    credentials
+WHERE
+    id = $1
+`
+
+type GetCredentialDataByIDRow struct {
+	ID             uuid.UUID      `json:"id"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	FolderID       uuid.UUID      `json:"folderId"`
+	CredentialType string         `json:"credentialType"`
+	CreatedBy      uuid.UUID      `json:"createdBy"`
+}
+
+func (q *Queries) GetCredentialDataByID(ctx context.Context, id uuid.UUID) (GetCredentialDataByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getCredentialDataByID, id)
+	var i GetCredentialDataByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Description,
+		&i.FolderID,
+		&i.CredentialType,
+		&i.CreatedBy,
+	)
+	return i, err
 }
 
 const getCredentialDetails = `-- name: GetCredentialDetails :one
@@ -385,7 +347,7 @@ SELECT
     ) AS "fields"
 FROM
     credentials C
-LEFT JOIN encrypted_data ED ON C.id = ED.credential_id AND ED.user_id = $2
+LEFT JOIN fields ED ON C.id = ED.credential_id AND ED.user_id = $2
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id
@@ -437,7 +399,7 @@ SELECT
 FROM 
     credentials c
 JOIN 
-    access_list a ON c.id = a.credential_id
+    credential_access a ON c.id = a.credential_id
 WHERE 
     a.user_id = $1
     AND c.folder_id = $2
@@ -471,44 +433,6 @@ func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentia
 	return items, nil
 }
 
-const getCredentialUnencryptedData = `-- name: GetCredentialUnencryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    unencrypted_data
-WHERE
-    credential_id = $1
-`
-
-type GetCredentialUnencryptedDataRow struct {
-	FieldName  string `json:"fieldName"`
-	FieldValue string `json:"fieldValue"`
-}
-
-func (q *Queries) GetCredentialUnencryptedData(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUnencryptedDataRow, error) {
-	rows, err := q.db.QueryContext(ctx, getCredentialUnencryptedData, credentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetCredentialUnencryptedDataRow{}
-	for rows.Next() {
-		var i GetCredentialUnencryptedDataRow
-		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getCredentialsFieldsByIds = `-- name: GetCredentialsFieldsByIds :many
 SELECT
     e.credential_id AS "credentialId",
@@ -521,7 +445,7 @@ SELECT
         )
     ) AS "fields"
 FROM
-    encrypted_data e
+    fields e
 WHERE
     e.credential_id = ANY($1 :: uuid [ ])
     AND e.user_id = $2
@@ -577,7 +501,7 @@ SELECT
     ) AS "encryptedFields"
 FROM
     credentials C
-    JOIN encrypted_data e ON C .id = e.credential_id
+    JOIN fields e ON C .id = e.credential_id
 WHERE
     C .folder_id = $1
     AND e.user_id = $2
@@ -607,95 +531,6 @@ func (q *Queries) GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEn
 	for rows.Next() {
 		var i GetEncryptedCredentialsByFolderRow
 		if err := rows.Scan(&i.CredentialId, &i.EncryptedFields); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getSensitiveFields = `-- name: GetSensitiveFields :many
-SELECT 
-    field_name as "fieldName", 
-    field_value as "fieldValue", 
-    credential_id as "credentialId"
-FROM 
-    encrypted_data
-WHERE 
-    user_id = $1 AND credential_id = $2 AND field_type = 'sensitive'
-`
-
-type GetSensitiveFieldsParams struct {
-	UserID       uuid.UUID `json:"userId"`
-	CredentialID uuid.UUID `json:"credentialId"`
-}
-
-type GetSensitiveFieldsRow struct {
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	CredentialId uuid.UUID `json:"credentialId"`
-}
-
-func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getSensitiveFields, arg.UserID, arg.CredentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetSensitiveFieldsRow{}
-	for rows.Next() {
-		var i GetSensitiveFieldsRow
-		if err := rows.Scan(&i.FieldName, &i.FieldValue, &i.CredentialId); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUserEncryptedData = `-- name: GetUserEncryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    encrypted_data
-WHERE
-    user_id = $1
-    AND credential_id = $2
-`
-
-type GetUserEncryptedDataParams struct {
-	UserID       uuid.UUID `json:"userId"`
-	CredentialID uuid.UUID `json:"credentialId"`
-}
-
-type GetUserEncryptedDataRow struct {
-	FieldName  string `json:"fieldName"`
-	FieldValue string `json:"fieldValue"`
-}
-
-func (q *Queries) GetUserEncryptedData(ctx context.Context, arg GetUserEncryptedDataParams) ([]GetUserEncryptedDataRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserEncryptedData, arg.UserID, arg.CredentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetUserEncryptedDataRow{}
-	for rows.Next() {
-		var i GetUserEncryptedDataRow
-		if err := rows.Scan(&i.FieldName, &i.FieldValue); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

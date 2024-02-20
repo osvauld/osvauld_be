@@ -13,7 +13,7 @@ import (
 
 const addCredentialAccess = `-- name: AddCredentialAccess :one
 
-INSERT INTO access_list (credential_id, user_id, access_type, group_id, folder_id)
+INSERT INTO credential_access (credential_id, user_id, access_type, group_id, folder_id)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
@@ -42,7 +42,7 @@ func (q *Queries) AddCredentialAccess(ctx context.Context, arg AddCredentialAcce
 const checkCredentialAccessEntryExists = `-- name: CheckCredentialAccessEntryExists :one
 SELECT EXISTS (
     SELECT 1
-    FROM access_list
+    FROM credential_access
     WHERE user_id = $1 AND credential_id = $2 
     AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
     AND ((folder_id IS NOT NULL AND folder_id = $4) OR (folder_id is null and $4 is null))
@@ -70,7 +70,7 @@ func (q *Queries) CheckCredentialAccessEntryExists(ctx context.Context, arg Chec
 
 const getCredentialAccessForUser = `-- name: GetCredentialAccessForUser :many
 SELECT id, user_id, credential_id, group_id, access_type
-FROM access_list
+FROM credential_access
 WHERE user_id = $1 AND credential_id = $2
 `
 
@@ -117,7 +117,7 @@ func (q *Queries) GetCredentialAccessForUser(ctx context.Context, arg GetCredent
 }
 
 const getCredentialIDsByUserID = `-- name: GetCredentialIDsByUserID :many
-SELECT credential_id FROM access_list WHERE user_id = $1
+SELECT credential_id FROM credential_access WHERE user_id = $1
 `
 
 func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
@@ -144,10 +144,10 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 }
 
 const getUsersByCredential = `-- name: GetUsersByCredential :many
-SELECT users.id, users.username, users.name, COALESCE(users.rsa_pub_key, '') as "publicKey", access_list.access_type as "accessType"
-FROM access_list
-JOIN users ON access_list.user_id = users.id
-WHERE access_list.credential_id = $1
+SELECT users.id, users.username, users.name, COALESCE(users.encryption_key, '') as "publicKey", credential_access.access_type as "accessType"
+FROM credential_access
+JOIN users ON credential_access.user_id = users.id
+WHERE credential_access.credential_id = $1
 `
 
 type GetUsersByCredentialRow struct {
@@ -173,49 +173,6 @@ func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UU
 			&i.Name,
 			&i.PublicKey,
 			&i.AccessType,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUsersByFolder = `-- name: GetUsersByFolder :many
-SELECT DISTINCT u.id, u.username, u.name, COALESCE(u.rsa_pub_key, '') as "publicKey"
-FROM users u
-JOIN access_list al ON u.id = al.user_id
-JOIN credentials c ON al.credential_id = c.id
-WHERE c.folder_id = $1
-`
-
-type GetUsersByFolderRow struct {
-	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Name      string    `json:"name"`
-	PublicKey string    `json:"publicKey"`
-}
-
-func (q *Queries) GetUsersByFolder(ctx context.Context, folderID uuid.UUID) ([]GetUsersByFolderRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUsersByFolder, folderID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetUsersByFolderRow{}
-	for rows.Next() {
-		var i GetUsersByFolderRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Username,
-			&i.Name,
-			&i.PublicKey,
 		); err != nil {
 			return nil, err
 		}

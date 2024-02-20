@@ -80,7 +80,7 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Creat
 }
 
 const fetchCredentialAccessTypeForGroup = `-- name: FetchCredentialAccessTypeForGroup :one
-SELECT access_type FROM access_list
+SELECT access_type FROM credential_access
 WHERE group_id = $1 AND credential_id = $2
 `
 
@@ -97,7 +97,7 @@ func (q *Queries) FetchCredentialAccessTypeForGroup(ctx context.Context, arg Fet
 }
 
 const fetchCredentialIDsWithGroupAccess = `-- name: FetchCredentialIDsWithGroupAccess :many
-SELECT distinct(credential_id) from access_list
+SELECT distinct(credential_id) from credential_access
 WHERE group_id = $1 and user_id = $2
 `
 
@@ -191,7 +191,7 @@ func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]Fetc
 const fetchUsersByGroupIds = `-- name: FetchUsersByGroupIds :many
 SELECT 
     g.id AS "groupId",
-    json_agg(json_build_object('id', gl.user_id, 'publicKey', u.rsa_pub_key)) AS "userDetails"
+    json_agg(json_build_object('id', gl.user_id, 'publicKey', u.encryption_key)) AS "userDetails"
 FROM 
     group_list gl
 JOIN 
@@ -236,7 +236,7 @@ const getCredentialAccessDetailsWithGroupAccess = `-- name: GetCredentialAccessD
 
 
 SELECT DISTINCT credential_id, access_type, folder_id
-FROM access_list
+FROM credential_access
 WHERE group_id = $1
 `
 
@@ -305,7 +305,7 @@ func (q *Queries) GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key, '') as "publicKey"
+SELECT users.id, users.name, users.username, COALESCE(users.encryption_key, '') as "publicKey"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1

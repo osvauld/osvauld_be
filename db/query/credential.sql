@@ -6,7 +6,7 @@ VALUES
     ($1, $2, $3, $4, $5) RETURNING id;
 
 
--- name: FetchCredentialDataByID :one
+-- name: GetCredentialDataByID :one
 SELECT
     id,
     created_at,
@@ -14,25 +14,12 @@ SELECT
     name,
     description,
     folder_id,
+    credential_type,
     created_by
 FROM
     credentials
 WHERE
     id = $1;
-
--- name: FetchCredentialFieldsForUserByCredentialIds :many
-SELECT
-    credential_id AS "credentialID",
-    id AS "fieldID",
-    field_name as "fieldName",
-    field_value as "fieldValue",
-    field_type as "fieldType"
-FROM
-    encrypted_data
-WHERE
-    field_type != 'sensitive'
-    AND credential_id = ANY($1::UUID[])
-    AND user_id = $2;
 
 
 -- name: FetchCredentialDetailsForUserByFolderId :many
@@ -47,7 +34,7 @@ SELECT
     A.access_type AS "accessType"
 FROM
     credentials AS C,
-    access_list AS A
+    credential_access AS A
 WHERE
     C.id = A .credential_id
     AND C.folder_id = $1
@@ -64,28 +51,6 @@ FROM
 WHERE
     id = $1;
 
--- name: GetUserEncryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    encrypted_data
-WHERE
-    user_id = $1
-    AND credential_id = $2;
-
--- name: GetCredentialUnencryptedData :many
-SELECT
-    field_name AS "fieldName",
-    field_value AS "fieldValue"
-FROM
-    unencrypted_data
-WHERE
-    credential_id = $1;
-
--- name: AddCredential :one
-SELECT
-    add_credential_with_access($1 :: JSONB);
 
 -- name: GetEncryptedCredentialsByFolder :many
 SELECT
@@ -100,7 +65,7 @@ SELECT
     ) AS "encryptedFields"
 FROM
     credentials C
-    JOIN encrypted_data e ON C .id = e.credential_id
+    JOIN fields e ON C .id = e.credential_id
 WHERE
     C .folder_id = $1
     AND e.user_id = $2
@@ -121,7 +86,7 @@ SELECT
         )
     ) AS "fields"
 FROM
-    encrypted_data e
+    fields e
 WHERE
     e.credential_id = ANY($1 :: uuid [ ])
     AND e.user_id = $2
@@ -135,7 +100,7 @@ ORDER BY
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"
 FROM 
-    encrypted_data
+    fields
 WHERE 
     user_id = $1 AND field_name = 'Domain';
 
@@ -153,20 +118,11 @@ SELECT
     ) AS "fields"
 FROM
     credentials C
-LEFT JOIN encrypted_data ED ON C.id = ED.credential_id AND ED.user_id = $2
+LEFT JOIN fields ED ON C.id = ED.credential_id AND ED.user_id = $2
 WHERE
     C.id = ANY($1::UUID[])
 GROUP BY C.id;
 
--- name: GetSensitiveFields :many
-SELECT 
-    field_name as "fieldName", 
-    field_value as "fieldValue", 
-    credential_id as "credentialId"
-FROM 
-    encrypted_data
-WHERE 
-    user_id = $1 AND credential_id = $2 AND field_type = 'sensitive';
 
 -- name: GetCredentialIdsByFolder :many
 SELECT 
@@ -174,7 +130,7 @@ SELECT
 FROM 
     credentials c
 JOIN 
-    access_list a ON c.id = a.credential_id
+    credential_access a ON c.id = a.credential_id
 WHERE 
     a.user_id = $1
     AND c.folder_id = $2;
@@ -184,9 +140,9 @@ SELECT
     al.user_id as "id",
     u.name, 
     al.access_type,
-    COALESCE(u.rsa_pub_key, '') AS "publicKey"
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM 
-    access_list al
+    credential_access al
 JOIN 
     users u ON al.user_id = u.id
 WHERE 
@@ -198,8 +154,19 @@ WHERE
         g.name,
         al.access_type
     FROM 
-        access_list al
+        credential_access al
     JOIN 
         groupings g ON al.group_id = g.id
     WHERE 
         al.credential_id = $1;
+
+
+-- name: EditCredentialDetails :exec
+UPDATE
+    credentials
+SET
+    name = $2,
+    description = $3,
+    credential_type = $4
+WHERE
+    id = $1;

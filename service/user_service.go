@@ -29,21 +29,6 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	return users, nil
 }
 
-// func Login(ctx *gin.Context, userData dto.Login) (dto.LoginReturn, error) {
-// 	user, _ := repository.GetUser(ctx, userData)
-// 	// if err != nil {
-// 	// 	return dto.LoginReturn{}, err
-// 	// }
-// 	token, _ := auth.GenerateToken(user.Username, user.ID)
-// 	fmt.Println(token)
-// 	loginReturn := dto.LoginReturn{
-// 		User:  user.ID.String(),
-// 		Token: token,
-// 	}
-
-// 	return loginReturn, nil
-// }
-
 func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error) {
 	challengeStr := utils.CreateRandomString(12)
 	logger.Debugf("challenge string: %s", challengeStr)
@@ -88,7 +73,7 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 		return false, errors.New("password not matched")
 	}
 
-	err = repository.UpdateKeys(ctx, registerData.UserName, registerData.RsaKey, registerData.EccKey)
+	err = repository.UpdateKeys(ctx, registerData.UserName, registerData.EncryptionKey, registerData.DeviceKey)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return false, err

@@ -9,8 +9,8 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     username VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL, 
-    rsa_pub_key TEXT,
-    ecc_pub_key TEXT,
+    encryption_key TEXT,
+    device_key TEXT,
     temp_password VARCHAR(255) NOT NULL,
     signed_up BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -20,7 +20,7 @@ CREATE TABLE folders (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2048),
     created_by UUID NOT NULL REFERENCES users(id)
 );
 
@@ -30,51 +30,39 @@ CREATE TABLE credentials (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2048),
     credential_type VARCHAR(255) NOT NULL,
     folder_id UUID NOT NULL REFERENCES folders(id),
     created_by UUID NOT NULL REFERENCES users(id)
 );
 
-
--- SQL Definition for AccessList
-CREATE TABLE access_list (
+-- SQL Definition for Fields
+CREATE TABLE fields (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    credential_id UUID NOT NULL REFERENCES credentials(id),
-    user_id UUID NOT NULL REFERENCES users(id),
-    access_type VARCHAR(255) NOT NULL,
-    group_id UUID REFERENCES groupings(id),
-    folder_id UUID REFERENCES folders(id)
-);
-
-
--- SQL Definition for EncryptedData
-CREATE TABLE encrypted_data (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     field_name VARCHAR(255) NOT NULL,
-    credential_id UUID NOT NULL REFERENCES credentials(id),
     field_value TEXT NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id),
-    field_type VARCHAR(255) NOT NULL
-);
-
--- SQL Definition for UnencryptedData
-CREATE TABLE unencrypted_data (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    field_name VARCHAR(255) NOT NULL,
+    field_type VARCHAR(255) NOT NULL,
     credential_id UUID NOT NULL REFERENCES credentials(id),
-    is_url BOOLEAN NOT NULL DEFAULT FALSE,
-    url VARCHAR(255),
-    field_value VARCHAR(255) NOT NULL
+    user_id UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by UUID REFERENCES users(id)
 );
 
-
+-- SQL Definition for Fields
+CREATE TABLE field_archive (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    field_id UUID NOT NULL REFERENCES fields(id),
+    field_name VARCHAR(255) NOT NULL,
+    field_value TEXT NOT NULL,
+    field_type VARCHAR(255) NOT NULL,
+    create_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by UUID NOT NULL REFERENCES users(id),
+    version INTEGER NOT NULL DEFAULT 1
+);
 
 -- SQL Definition for Group
 CREATE TABLE groupings (
@@ -94,6 +82,19 @@ CREATE TABLE group_list (
     access_type VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(grouping_id, user_id)
+);
+
+
+-- SQL Definition for AccessList
+CREATE TABLE credential_access (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    credential_id UUID NOT NULL REFERENCES credentials(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    access_type VARCHAR(255) NOT NULL,
+    group_id UUID REFERENCES groupings(id),
+    folder_id UUID REFERENCES folders(id)
 );
 
 
