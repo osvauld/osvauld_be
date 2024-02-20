@@ -186,7 +186,7 @@ SELECT
     al.user_id as "id",
     u.name, 
     al.access_type,
-    COALESCE(u.rsa_pub_key, '') AS "publicKey"
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM 
     credential_access al
 JOIN 

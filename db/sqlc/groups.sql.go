@@ -191,7 +191,7 @@ func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]Fetc
 const fetchUsersByGroupIds = `-- name: FetchUsersByGroupIds :many
 SELECT 
     g.id AS "groupId",
-    json_agg(json_build_object('id', gl.user_id, 'publicKey', u.rsa_pub_key)) AS "userDetails"
+    json_agg(json_build_object('id', gl.user_id, 'publicKey', u.encryption_key)) AS "userDetails"
 FROM 
     group_list gl
 JOIN 
@@ -305,7 +305,7 @@ func (q *Queries) GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key, '') as "publicKey"
+SELECT users.id, users.name, users.username, COALESCE(users.encryption_key, '') as "publicKey"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1

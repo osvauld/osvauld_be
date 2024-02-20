@@ -29,7 +29,6 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	return users, nil
 }
 
-
 func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error) {
 	challengeStr := utils.CreateRandomString(12)
 	logger.Debugf("challenge string: %s", challengeStr)
@@ -74,7 +73,7 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 		return false, errors.New("password not matched")
 	}
 
-	err = repository.UpdateKeys(ctx, registerData.UserName, registerData.RsaKey, registerData.EccKey)
+	err = repository.UpdateKeys(ctx, registerData.UserName, registerData.EncryptionKey, registerData.DeviceKey)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return false, err
