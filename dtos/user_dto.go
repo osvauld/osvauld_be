@@ -7,10 +7,10 @@ type CreateUser struct {
 }
 
 type Register struct {
-	UserName string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	EccKey   string `json:"eccKey" binding:"required"`
-	RsaKey   string `json:"rsaKey" binding:"required"`
+	UserName      string `json:"username" binding:"required"`
+	Password      string `json:"password" binding:"required"`
+	DeviceKey     string `json:"eccKey" binding:"required"`
+	EncryptionKey string `json:"rsaKey" binding:"required"`
 }
 
 type LoginReturn struct {

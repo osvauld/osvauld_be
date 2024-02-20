@@ -144,7 +144,7 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 }
 
 const getUsersByCredential = `-- name: GetUsersByCredential :many
-SELECT users.id, users.username, users.name, COALESCE(users.rsa_pub_key, '') as "publicKey", credential_access.access_type as "accessType"
+SELECT users.id, users.username, users.name, COALESCE(users.encryption_key, '') as "publicKey", credential_access.access_type as "accessType"
 FROM credential_access
 JOIN users ON credential_access.user_id = users.id
 WHERE credential_access.credential_id = $1

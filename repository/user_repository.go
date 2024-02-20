@@ -25,7 +25,6 @@ func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
 	return id, err
 }
 
-
 func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	user, err := database.Store.GetAllUsers(ctx)
 	if err != nil {
@@ -81,13 +80,13 @@ func CheckTempPassword(ctx *gin.Context, password string, username string) (bool
 	return true, nil
 }
 
-func UpdateKeys(ctx *gin.Context, username string, rsaKey string, eccKey string) error {
-	rsaKeyNull := sql.NullString{String: rsaKey, Valid: true}
-	eccKeyNull := sql.NullString{String: eccKey, Valid: true}
+func UpdateKeys(ctx *gin.Context, username string, encryptionKey string, deviceKey string) error {
+	encryptionKeyNull := sql.NullString{String: encryptionKey, Valid: true}
+	deviceKeyNull := sql.NullString{String: deviceKey, Valid: true}
 	arg := db.UpdateKeysParams{
-		Username:  username,
-		RsaPubKey: rsaKeyNull,
-		EccPubKey: eccKeyNull,
+		Username:      username,
+		EncryptionKey: encryptionKeyNull,
+		DeviceKey:     deviceKeyNull,
 	}
 	err := database.Store.UpdateKeys(ctx, arg)
 	if err != nil {

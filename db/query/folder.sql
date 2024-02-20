@@ -42,7 +42,7 @@ SELECT EXISTS (
 
 
 -- name: GetSharedUsersForFolder :many
-SELECT users.id, users.name, users.username, COALESCE(users.rsa_pub_key,'') as "publicKey", folder_access.access_type as "accessType"
+SELECT users.id, users.name, users.username, COALESCE(users.encryption_key,'') as "publicKey", folder_access.access_type as "accessType"
 FROM folder_access
 JOIN users ON folder_access.user_id = users.id
 WHERE folder_access.folder_id = $1;
