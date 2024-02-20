@@ -103,7 +103,7 @@ func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid
 		return dto.CredentialForUser{}, err
 	}
 
-	fieldDtos := make([]dto.Field, len(fields))
+	fieldDtos := []dto.Field{}
 	for _, field := range fields {
 		fieldDtos = append(fieldDtos, dto.Field{
 			ID:         field.ID,

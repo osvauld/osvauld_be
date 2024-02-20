@@ -76,11 +76,11 @@ WHERE
 `
 
 type EditFieldParams struct {
-	FieldName  string    `json:"fieldName"`
-	FieldValue string    `json:"fieldValue"`
-	FieldType  string    `json:"fieldType"`
-	UpdatedBy  uuid.UUID `json:"updatedBy"`
-	ID         uuid.UUID `json:"id"`
+	FieldName  string        `json:"fieldName"`
+	FieldValue string        `json:"fieldValue"`
+	FieldType  string        `json:"fieldType"`
+	UpdatedBy  uuid.NullUUID `json:"updatedBy"`
+	ID         uuid.UUID     `json:"id"`
 }
 
 func (q *Queries) EditField(ctx context.Context, arg EditFieldParams) error {
@@ -103,8 +103,7 @@ SELECT
     f.field_type
 FROM fields as f
 WHERE
-field_type != 'sensitive' 
-AND f.user_id = $1 
+f.user_id = $1 
 AND f.credential_id = ANY($2::UUID[])
 `
 

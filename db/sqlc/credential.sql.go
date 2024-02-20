@@ -84,7 +84,7 @@ SELECT
     A.access_type AS "accessType"
 FROM
     credentials AS C,
-    access_list AS A
+    credential_access AS A
 WHERE
     C.id = A .credential_id
     AND C.folder_id = $1
@@ -145,7 +145,7 @@ const getAccessTypeAndGroupsByCredentialId = `-- name: GetAccessTypeAndGroupsByC
         g.name,
         al.access_type
     FROM 
-        access_list al
+        credential_access al
     JOIN 
         groupings g ON al.group_id = g.id
     WHERE 
@@ -188,7 +188,7 @@ SELECT
     al.access_type,
     COALESCE(u.rsa_pub_key, '') AS "publicKey"
 FROM 
-    access_list al
+    credential_access al
 JOIN 
     users u ON al.user_id = u.id
 WHERE 
@@ -399,7 +399,7 @@ SELECT
 FROM 
     credentials c
 JOIN 
-    access_list a ON c.id = a.credential_id
+    credential_access a ON c.id = a.credential_id
 WHERE 
     a.user_id = $1
     AND c.folder_id = $2

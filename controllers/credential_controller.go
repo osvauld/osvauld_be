@@ -39,7 +39,8 @@ func AddCredential(ctx *gin.Context) {
 		return
 	}
 
-	SendResponse(ctx, 200, nil, credentialID.String(), nil)
+	response := map[string]uuid.UUID{"credentialId": credentialID}
+	SendResponse(ctx, 200, response, "Added credential", nil)
 }
 
 func GetCredentialDataByID(ctx *gin.Context) {

@@ -92,13 +92,6 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 
 			}
 
-			credentialAccessRecord := db.AddCredentialAccessParams{
-				CredentialID: credential.CredentialID,
-				UserID:       userData.UserID,
-				AccessType:   userData.AccessType,
-			}
-			credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
-
 			///////////////////////////////////////////////////////////////////////////////////////////
 			// Check Fields already shared for user
 

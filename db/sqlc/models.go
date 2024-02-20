@@ -11,17 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AccessList struct {
-	ID           uuid.UUID     `json:"id"`
-	CreatedAt    time.Time     `json:"createdAt"`
-	UpdatedAt    time.Time     `json:"updatedAt"`
-	CredentialID uuid.UUID     `json:"credentialId"`
-	UserID       uuid.UUID     `json:"userId"`
-	AccessType   string        `json:"accessType"`
-	GroupID      uuid.NullUUID `json:"groupId"`
-	FolderID     uuid.NullUUID `json:"folderId"`
-}
-
 type Credential struct {
 	ID             uuid.UUID      `json:"id"`
 	CreatedAt      time.Time      `json:"createdAt"`
@@ -33,17 +22,28 @@ type Credential struct {
 	CreatedBy      uuid.UUID      `json:"createdBy"`
 }
 
+type CredentialAccess struct {
+	ID           uuid.UUID     `json:"id"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
+	AccessType   string        `json:"accessType"`
+	GroupID      uuid.NullUUID `json:"groupId"`
+	FolderID     uuid.NullUUID `json:"folderId"`
+}
+
 type Field struct {
-	ID           uuid.UUID `json:"id"`
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	FieldType    string    `json:"fieldType"`
-	CredentialID uuid.UUID `json:"credentialId"`
-	UserID       uuid.UUID `json:"userId"`
-	CreatedAt    time.Time `json:"createdAt"`
-	CreatedBy    uuid.UUID `json:"createdBy"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	UpdatedBy    uuid.UUID `json:"updatedBy"`
+	ID           uuid.UUID     `json:"id"`
+	FieldName    string        `json:"fieldName"`
+	FieldValue   string        `json:"fieldValue"`
+	FieldType    string        `json:"fieldType"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	CreatedBy    uuid.UUID     `json:"createdBy"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
 }
 
 type FieldArchive struct {

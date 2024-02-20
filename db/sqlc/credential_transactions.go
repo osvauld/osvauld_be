@@ -58,7 +58,10 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 				UserID:       userFields.UserID,
 				AccessType:   userFields.AccessType,
 			}
-			q.AddCredentialAccess(ctx, accessListParams)
+			_, err := q.AddCredentialAccess(ctx, accessListParams)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -130,7 +133,10 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 				UserID:       userFields.UserID,
 				AccessType:   userFields.AccessType,
 			}
-			q.AddCredentialAccess(ctx, accessListParams)
+			_, err = q.AddCredentialAccess(ctx, accessListParams)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
