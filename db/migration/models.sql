@@ -12,7 +12,9 @@ CREATE TABLE users (
     encryption_key TEXT,
     device_key TEXT,
     temp_password VARCHAR(255) NOT NULL,
-    signed_up BOOLEAN NOT NULL DEFAULT FALSE
+    registration_challenge VARCHAR(255),
+    signed_up BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(255) NOT NULL DEFAULT 'created'
 );
 -- SQL Definition for Folder
 CREATE TABLE folders (

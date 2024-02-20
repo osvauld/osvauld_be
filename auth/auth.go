@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Claims struct {
@@ -26,7 +27,6 @@ func GenerateToken(username string, id uuid.UUID) (string, error) {
 	jwtSecret := config.GetJWTSecret()
 	expirationTime := time.Now().Add(10 * time.Hour)
 	claims := &Claims{
-		Username: username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -42,35 +42,36 @@ func GenerateToken(username string, id uuid.UUID) (string, error) {
 	return tokenString, nil
 }
 
-func VerifySignature(signatureStr string, publicKeyStr string, challengeStr string, userId uuid.UUID) (string, error) {
+func VerifySignature(signatureStr string, publicKeyStr string, challengeStr string) (bool, error) {
 	// Decode the base64 encoded public key
 	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKeyStr)
 	if err != nil {
 		logger.Errorf("Failed to decode base64 public key: %v", err)
+		return false, err
 	}
 
 	// Parse the ECDSA public key
 	pubKey, err := x509.ParsePKIXPublicKey(publicKeyBytes)
 	if err != nil {
-		logger.Errorf("Failed to parse ECDSA public key: %v", err)
+		return false, err
 	}
 	ecdsaPubKey, ok := pubKey.(*ecdsa.PublicKey)
 	if !ok {
-		logger.Errorf("Public key is not of type *ecdsa.PublicKey")
+		return false, errors.New("public key is not of type *ecdsa.PublicKey")
 	}
 
 	// Decode the base64 encoded signature
 	signatureBytes, err := base64.StdEncoding.DecodeString(signatureStr)
 	if err != nil {
 		logger.Errorf("Failed to decode base64 signature: %v", err)
+		return false, err
 	}
 	if len(signatureBytes) != 64 {
-		return "",errors.New("invalid signature length")
+		return false, errors.New("invalid signature length")
 	}
 	r := new(big.Int).SetBytes(signatureBytes[:32])
 	s := new(big.Int).SetBytes(signatureBytes[32:])
 	// Assuming the signature is in ASN.1 DER format
-
 
 	// Hash the challenge text
 	hashed := sha256.Sum256([]byte(challengeStr))
@@ -78,8 +79,19 @@ func VerifySignature(signatureStr string, publicKeyStr string, challengeStr stri
 	// Verify the signature
 	valid := ecdsa.Verify(ecdsaPubKey, hashed[:], r, s)
 	logger.Debugf("Signature verification result: %v", valid)
-	if valid {
-		return GenerateToken("test", userId)
-	}
-	return "", nil
+
+	return valid, nil
+}
+
+func HashPassword(password string) (string, error) {
+	// The second argument is the cost of hashing, which determines how much time is needed to calculate the hash.
+	// The higher the cost, the more secure the hash, but the longer it will take to generate.
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+// CheckPasswordHash compares a hashed password with a plain password to check if they match.
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

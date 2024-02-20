@@ -15,6 +15,7 @@ func RegisterRoutes(route *gin.Engine) {
 	})
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/user/", controllers.CreateUser)
+	route.POST("/user/temp-login", controllers.TempLogin)
 	route.POST("/user/register", controllers.Register)
 	route.POST("/user/challenge", controllers.GetChallenge)
 	route.POST("/user/verify", controllers.VerifyChallenge)
@@ -40,7 +41,6 @@ func RegisterRoutes(route *gin.Engine) {
 	// route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialByID)
 	route.POST("/group", middleware.JWTAuthMiddleware(), controllers.CreateGroup)
 	route.GET("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.GetGroupMembers)
-
 
 	// TODO: change to /user/:id/groups
 	route.GET("/groups", middleware.JWTAuthMiddleware(), controllers.GetUserGroups)

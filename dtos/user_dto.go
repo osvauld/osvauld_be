@@ -8,9 +8,14 @@ type CreateUser struct {
 
 type Register struct {
 	UserName      string `json:"username" binding:"required"`
-	Password      string `json:"password" binding:"required"`
-	DeviceKey     string `json:"eccKey" binding:"required"`
-	EncryptionKey string `json:"rsaKey" binding:"required"`
+	Signature     string `json:"signature" binding:"required"`
+	DeviceKey     string `json:"deviceKey" binding:"required"`
+	EncryptionKey string `json:"encryptionKey" binding:"required"`
+}
+
+type TempLogin struct {
+	UserName     string `json:"username" binding:"required"`
+	TempPassword string `json:"tempPassword" binding:"required"`
 }
 
 type LoginReturn struct {

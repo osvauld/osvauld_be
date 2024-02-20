@@ -15,11 +15,80 @@ import (
 )
 
 func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
+
+	hashedPassword, err := auth.HashPassword(user.TempPassword)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
 	return repository.CreateUser(ctx, db.CreateUserParams{
 		Username:     user.UserName,
 		Name:         user.Name,
-		TempPassword: user.TempPassword,
+		TempPassword: hashedPassword,
 	})
+
+}
+
+func TempLogin(ctx *gin.Context, req dto.TempLogin) (string, error) {
+	user, err := repository.GetTempPassword(ctx, req.UserName)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return "", errors.New("user not found")
+	}
+
+	if user.Status != "created" {
+		return "", errors.New("temp login not allowed")
+	}
+
+	tempPasswordHash := user.TempPassword
+	passwordMatched := auth.CheckPasswordHash(req.TempPassword, tempPasswordHash)
+	if !passwordMatched {
+		return "", errors.New("incorrect password")
+	}
+
+	challengeStr := utils.CreateRandomString(12)
+
+	err = repository.UpdateRegistrationChallenge(ctx, db.UpdateRegistrationChallengeParams{
+		Username:              req.UserName,
+		RegistrationChallenge: sql.NullString{String: challengeStr, Valid: true},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return challengeStr, nil
+}
+
+func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
+
+	registrationChallenge, err := repository.GetRegistrationChallenge(ctx, registerData.UserName)
+	if err != nil {
+		return false, err
+	}
+
+	if registrationChallenge.Status != "temp_login" {
+		return false, errors.New("registration not allowed")
+	}
+
+	valid, err := auth.VerifySignature(registerData.Signature, registerData.DeviceKey, registrationChallenge.RegistrationChallenge.String)
+	if err != nil {
+		return false, err
+	}
+	if !valid {
+		return false, errors.New("invalid signature")
+	}
+
+	err = repository.UpdateKeys(ctx, db.UpdateKeysParams{
+		Username:      registerData.UserName,
+		EncryptionKey: sql.NullString{String: registerData.EncryptionKey, Valid: true},
+		DeviceKey:     sql.NullString{String: registerData.DeviceKey, Valid: true},
+	})
+
+	if err != nil {
+		logger.Errorf(err.Error())
+		return false, err
+	}
+	return true, nil
 
 }
 
@@ -49,7 +118,7 @@ func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error)
 
 func VerifyChallenge(ctx *gin.Context, challenge dto.VerifyChallenge) (string, error) {
 	userId, err := repository.GetUserByPubKey(ctx, sql.NullString{String: challenge.PublicKey, Valid: true})
-	if err != nil || userId == uuid.Nil {
+	if err != nil {
 		logger.Errorf(err.Error())
 		return "", err
 	}
@@ -58,40 +127,21 @@ func VerifyChallenge(ctx *gin.Context, challenge dto.VerifyChallenge) (string, e
 		logger.Errorf(err.Error())
 		return "", err
 	}
-	resp, err := auth.VerifySignature(challenge.Signature, challenge.PublicKey, challengeStr, userId)
-	if err != nil || userId == uuid.Nil {
+	valid, err := auth.VerifySignature(challenge.Signature, challenge.PublicKey, challengeStr)
+	if err != nil {
 		return "", err
 	}
-	return resp, nil
 
-}
+	if !valid {
+		return "", errors.New("invalid signature")
+	}
 
-func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
-
-	pass, err := repository.CheckTempPassword(ctx, db.CheckTempPasswordParams{
-		Username:     registerData.UserName,
-		TempPassword: registerData.Password,
-	})
+	token, err := auth.GenerateToken("test", userId)
 	if err != nil {
-		logger.Errorf(err.Error())
-		return false, err
-	}
-	if !pass {
-		logger.Errorf("password not matched")
-		return false, errors.New("password not matched")
+		return "", err
 	}
 
-	err = repository.UpdateKeys(ctx, db.UpdateKeysParams{
-		Username:      registerData.UserName,
-		EncryptionKey: sql.NullString{String: registerData.EncryptionKey, Valid: true},
-		DeviceKey:     sql.NullString{String: registerData.DeviceKey, Valid: true},
-	})
-
-	if err != nil {
-		logger.Errorf(err.Error())
-		return false, err
-	}
-	return true, nil
+	return token, nil
 
 }
 
