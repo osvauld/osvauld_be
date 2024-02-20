@@ -35,7 +35,7 @@ RETURNING *;
 SELECT challenge FROM session_table WHERE user_id = $1;
 
 -- name: CheckTempPassword :one
-SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2;
+SELECT EXISTS (SELECT 1 FROM users WHERE username = $1 AND temp_password = $2);
 
 
 -- name: UpdateKeys :exec

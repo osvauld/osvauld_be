@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"osvauld/auth"
 	db "osvauld/db/sqlc"
@@ -14,29 +15,32 @@ import (
 )
 
 func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
-	id, err := repository.CreateUser(ctx, user)
-	if err != nil {
-		return uuid.Nil, err
-	}
-	return id, nil
+	return repository.CreateUser(ctx, db.CreateUserParams{
+		Username:     user.UserName,
+		Name:         user.Name,
+		TempPassword: user.TempPassword,
+	})
+
 }
 
 func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
-	users, err := repository.GetAllUsers(ctx)
-	if err != nil {
-		return users, err
-	}
-	return users, nil
+
+	return repository.GetAllUsers(ctx)
 }
 
 func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error) {
 	challengeStr := utils.CreateRandomString(12)
-	logger.Debugf("challenge string: %s", challengeStr)
-	userId, err := repository.GetUserByPubKey(ctx, user.PublicKey)
+
+	userId, err := repository.GetUserByPubKey(ctx, sql.NullString{String: user.PublicKey, Valid: true})
 	if err != nil || userId == uuid.Nil {
 		return "", err
 	}
-	challenge, err := repository.CreateChallenge(ctx, user.PublicKey, challengeStr, userId)
+
+	challenge, err := repository.CreateChallenge(ctx, db.CreateChallengeParams{
+		UserID:    userId,
+		PublicKey: user.PublicKey,
+		Challenge: challengeStr,
+	})
 	if err != nil {
 		return challenge.Challenge, err
 	}
@@ -44,7 +48,7 @@ func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error)
 }
 
 func VerifyChallenge(ctx *gin.Context, challenge dto.VerifyChallenge) (string, error) {
-	userId, err := repository.GetUserByPubKey(ctx, challenge.PublicKey)
+	userId, err := repository.GetUserByPubKey(ctx, sql.NullString{String: challenge.PublicKey, Valid: true})
 	if err != nil || userId == uuid.Nil {
 		logger.Errorf(err.Error())
 		return "", err
@@ -63,7 +67,11 @@ func VerifyChallenge(ctx *gin.Context, challenge dto.VerifyChallenge) (string, e
 }
 
 func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
-	pass, err := repository.CheckTempPassword(ctx, registerData.Password, registerData.UserName)
+
+	pass, err := repository.CheckTempPassword(ctx, db.CheckTempPasswordParams{
+		Username:     registerData.UserName,
+		TempPassword: registerData.Password,
+	})
 	if err != nil {
 		logger.Errorf(err.Error())
 		return false, err
@@ -73,7 +81,12 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 		return false, errors.New("password not matched")
 	}
 
-	err = repository.UpdateKeys(ctx, registerData.UserName, registerData.EncryptionKey, registerData.DeviceKey)
+	err = repository.UpdateKeys(ctx, db.UpdateKeysParams{
+		Username:      registerData.UserName,
+		EncryptionKey: sql.NullString{String: registerData.EncryptionKey, Valid: true},
+		DeviceKey:     sql.NullString{String: registerData.DeviceKey, Valid: true},
+	})
+
 	if err != nil {
 		logger.Errorf(err.Error())
 		return false, err
@@ -83,10 +96,6 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 }
 
 func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndUsersByCredentialIdRow, error) {
-	users, err := repository.GetCredentialUsers(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return users, err
-	}
-	return users, nil
+
+	return repository.GetCredentialUsers(ctx, credentialID)
 }

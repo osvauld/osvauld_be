@@ -13,7 +13,7 @@ import (
 )
 
 const checkTempPassword = `-- name: CheckTempPassword :one
-SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2
+SELECT EXISTS (SELECT 1 FROM users WHERE username = $1 AND temp_password = $2)
 `
 
 type CheckTempPasswordParams struct {
@@ -21,11 +21,11 @@ type CheckTempPasswordParams struct {
 	TempPassword string `json:"tempPassword"`
 }
 
-func (q *Queries) CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error) {
+func (q *Queries) CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, checkTempPassword, arg.Username, arg.TempPassword)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const createChallenge = `-- name: CreateChallenge :one
