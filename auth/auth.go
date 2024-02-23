@@ -78,7 +78,7 @@ func VerifySignature(armoredSignature string, armoredPublicKey string, challenge
 func HashPassword(password string) (string, error) {
 	// The second argument is the cost of hashing, which determines how much time is needed to calculate the hash.
 	// The higher the cost, the more secure the hash, but the longer it will take to generate.
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	return string(bytes), err
 }
 
