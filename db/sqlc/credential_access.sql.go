@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const addCredentialAccess = `-- name: AddCredentialAccess :one
@@ -185,4 +186,19 @@ func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UU
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeCredentialAccessForUsers = `-- name: RemoveCredentialAccessForUsers :exec
+DELETE FROM credential_access WHERE group_id IS NULL AND folder_id IS NULL 
+AND credential_id = $1 AND user_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialAccessForUsersParams struct {
+	CredentialID uuid.UUID   `json:"credentialId"`
+	UserIds      []uuid.UUID `json:"userIds"`
+}
+
+func (q *Queries) RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialAccessForUsers, arg.CredentialID, pq.Array(arg.UserIds))
+	return err
 }

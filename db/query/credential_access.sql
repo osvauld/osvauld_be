@@ -30,3 +30,8 @@ SELECT EXISTS (
     AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
     AND ((folder_id IS NOT NULL AND folder_id = $4) OR (folder_id is null and $4 is null))
 );
+
+
+-- name: RemoveCredentialAccessForUsers :exec
+DELETE FROM credential_access WHERE group_id IS NULL AND folder_id IS NULL 
+AND credential_id = $1 AND user_id = ANY(@user_ids::UUID[]);

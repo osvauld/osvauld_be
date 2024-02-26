@@ -250,3 +250,17 @@ func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFields
 	}
 	return items, nil
 }
+
+const removeCredentialFieldsForUsers = `-- name: RemoveCredentialFieldsForUsers :exec
+DELETE FROM fields WHERE credential_id = $1 AND user_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialFieldsForUsersParams struct {
+	CredentialID uuid.UUID   `json:"credentialId"`
+	UserIds      []uuid.UUID `json:"userIds"`
+}
+
+func (q *Queries) RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialFieldsForUsers, arg.CredentialID, pq.Array(arg.UserIds))
+	return err
+}

@@ -59,3 +59,8 @@ func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialA
 	return database.Store.CheckCredentialAccessEntryExists(ctx, args)
 
 }
+
+func RemoveCredentialAccessForUser(ctx *gin.Context, args db.RemoveCredentialAccessForUsersParams) error {
+
+	return database.Store.RemoveCredentialAccessForUsersTransactions(ctx, args)
+}

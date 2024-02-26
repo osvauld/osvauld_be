@@ -55,6 +55,8 @@ func RegisterRoutes(route *gin.Engine) {
 
 	route.GET("/group/:groupId/credential-fields", middleware.JWTAuthMiddleware(), controllers.GetAllCredentialsByGroupID)
 
+	route.POST("/credential/remove-access", middleware.JWTAuthMiddleware(), controllers.RemoveCredentialAccessForUsers)
+
 	//Add All route
 	//TestRoutes(route)
 }

@@ -64,3 +64,7 @@ WHERE
 field_type = 'sensitive'
 AND f.credential_id = $1
 AND f.user_id = $2;
+
+
+-- name: RemoveCredentialFieldsForUsers :exec
+DELETE FROM fields WHERE credential_id = $1 AND user_id = ANY(@user_ids::UUID[]);

@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 	"osvauld/customerrors"
+	db "osvauld/db/sqlc"
+	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -84,5 +86,30 @@ func HasOwnerAccessForCredentials(ctx *gin.Context, credentialIDs []uuid.UUID, u
 	}
 
 	return true, nil
+
+}
+
+func RemoveCredentialAccessForUsers(ctx *gin.Context, payload dto.RemoveCredentialAccessForUsers, caller uuid.UUID) error {
+
+	// Check caller has owner access for credential
+	isOwner, err := HasOwnerAccessForCredentials(ctx, []uuid.UUID{payload.CredentialID}, caller)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		errMsg := fmt.Sprintf("user %s does not have owner access for credential %s", caller, payload.CredentialID)
+		return &customerrors.UserNotAnOwnerOfCredentialError{Message: errMsg}
+	}
+
+	err = repository.RemoveCredentialAccessForUser(ctx, db.RemoveCredentialAccessForUsersParams{
+		UserIds:      payload.UserIDs,
+		CredentialID: payload.CredentialID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }

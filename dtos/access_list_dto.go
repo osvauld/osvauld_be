@@ -9,3 +9,8 @@ type AccessListResult struct {
 	GroupID      uuid.NullUUID `json:"group_id"`
 	AccessType   string        `json:"access_type"`
 }
+
+type RemoveCredentialAccessForUsers struct {
+	CredentialID uuid.UUID   `json:"credential_id"`
+	UserIDs      []uuid.UUID `json:"user_ids"`
+}
