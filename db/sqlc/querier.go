@@ -20,7 +20,6 @@ type Querier interface {
 	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
 	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
 	CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error)
-	CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
 	// sql/create_credential.sql
@@ -58,15 +57,18 @@ type Querier interface {
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
 	GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID) ([]GetGroupsWithoutAccessRow, error)
 	GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error)
+	GetRegistrationChallenge(ctx context.Context, username string) (GetRegistrationChallengeRow, error)
 	GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error)
 	GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedGroupsForFolderRow, error)
 	GetSharedUsersForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersForFolderRow, error)
 	GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
+	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }
 
 var _ Querier = (*Queries)(nil)

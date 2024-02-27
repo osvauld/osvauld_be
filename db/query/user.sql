@@ -11,6 +11,15 @@ WHERE username = $1
 LIMIT 1;
 
 
+-- name: GetUserTempPassword :one
+SELECT temp_password, status FROM users WHERE username = $1;
+
+-- name: UpdateRegistrationChallenge :exec
+UPDATE users
+SET registration_challenge = $1, status = 'temp_login'
+WHERE username = $2;
+
+
 -- name: GetAllUsers :many
 SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true;
 
@@ -34,11 +43,12 @@ RETURNING *;
 -- name: FetchChallenge :one
 SELECT challenge FROM session_table WHERE user_id = $1;
 
--- name: CheckTempPassword :one
-SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2;
-
 
 -- name: UpdateKeys :exec
 UPDATE users
-SET encryption_key = $1, device_key = $2, signed_up = TRUE
+SET encryption_key = $1, device_key = $2, signed_up = TRUE, status = 'active'
 WHERE username = $3;
+
+
+-- name: GetRegistrationChallenge :one
+SELECT registration_challenge, status FROM users WHERE username = $1;
