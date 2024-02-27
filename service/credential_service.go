@@ -239,9 +239,9 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUs
 	return urls, nil
 }
 
-func EditCredential(ctx *gin.Context, request dto.EditCredentialRequest, caller uuid.UUID) error {
+func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCredentialRequest, caller uuid.UUID) error {
 
-	isOwner, err := HasOwnerAccessForCredential(ctx, request.CredentialID, caller)
+	isOwner, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
 	if err != nil {
 		return err
 	}
@@ -250,13 +250,13 @@ func EditCredential(ctx *gin.Context, request dto.EditCredentialRequest, caller 
 	}
 
 	err = repository.EditCredential(ctx, db.EditCredentialTransactionParams{
-		CredentialID:   request.CredentialID,
+		CredentialID:   credentialID,
 		Name:           request.Name,
 		Description:    sql.NullString{String: request.Description, Valid: true},
 		CredentialType: request.CredentialType,
 		EditFields:     request.EditFields,
 		AddFields:      request.AddFields,
-		UpdatedBy:      caller,
+		EditedBy:       caller,
 	})
 
 	if err != nil {
