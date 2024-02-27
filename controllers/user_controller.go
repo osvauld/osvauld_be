@@ -41,6 +41,24 @@ func CreateUser(ctx *gin.Context) {
 
 }
 
+func TempLogin(ctx *gin.Context) {
+
+	var req dto.TempLogin
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	challenge, err := service.TempLogin(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	response := map[string]string{"challenge": challenge}
+
+	SendResponse(ctx, 200, response, "login successfull", nil)
+}
+
 // single use api per user to register their public keys
 func Register(ctx *gin.Context) {
 	var req dto.Register
@@ -50,6 +68,7 @@ func Register(ctx *gin.Context) {
 	}
 	user, err := service.Register(ctx, req)
 	if err != nil {
+		logger.Errorf(err.Error())
 		SendResponse(ctx, 400, nil, "failed to register user", errors.New("failed to register user"))
 		return
 	}

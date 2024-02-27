@@ -106,13 +106,15 @@ type SessionTable struct {
 }
 
 type User struct {
-	ID            uuid.UUID      `json:"id"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	UpdatedAt     time.Time      `json:"updatedAt"`
-	Username      string         `json:"username"`
-	Name          string         `json:"name"`
-	EncryptionKey sql.NullString `json:"encryptionKey"`
-	DeviceKey     sql.NullString `json:"deviceKey"`
-	TempPassword  string         `json:"tempPassword"`
-	SignedUp      bool           `json:"signedUp"`
+	ID                    uuid.UUID      `json:"id"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
+	Username              string         `json:"username"`
+	Name                  string         `json:"name"`
+	EncryptionKey         sql.NullString `json:"encryptionKey"`
+	DeviceKey             sql.NullString `json:"deviceKey"`
+	TempPassword          string         `json:"tempPassword"`
+	RegistrationChallenge sql.NullString `json:"registrationChallenge"`
+	SignedUp              bool           `json:"signedUp"`
+	Status                string         `json:"status"`
 }

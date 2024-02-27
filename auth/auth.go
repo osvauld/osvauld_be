@@ -1,18 +1,16 @@
 package auth
 
 import (
-	"crypto/ecdsa"
-	"crypto/sha256"
-	"crypto/x509"
 	"encoding/base64"
-	"math/big"
 	"osvauld/config"
 	"osvauld/infra/logger"
 	"time"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Claims struct {
@@ -26,7 +24,6 @@ func GenerateToken(username string, id uuid.UUID) (string, error) {
 	jwtSecret := config.GetJWTSecret()
 	expirationTime := time.Now().Add(10 * time.Hour)
 	claims := &Claims{
-		Username: username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -42,44 +39,51 @@ func GenerateToken(username string, id uuid.UUID) (string, error) {
 	return tokenString, nil
 }
 
-func VerifySignature(signatureStr string, publicKeyStr string, challengeStr string, userId uuid.UUID) (string, error) {
-	// Decode the base64 encoded public key
-	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKeyStr)
+func VerifySignature(armoredSignature string, armoredPublicKey string, challenge string) (bool, error) {
+	decodedBytes, _ := base64.StdEncoding.DecodeString(armoredPublicKey)
+	key, err := crypto.NewKeyFromArmored(string(decodedBytes))
 	if err != nil {
-		logger.Errorf("Failed to decode base64 public key: %v", err)
+		logger.Debugf("Error: reading key %v", err)
+		return false, err
 	}
 
-	// Parse the ECDSA public key
-	pubKey, err := x509.ParsePKIXPublicKey(publicKeyBytes)
+	// Create a KeyRing from the Key
+	pubKeyRing, err := crypto.NewKeyRing(key)
 	if err != nil {
-		logger.Errorf("Failed to parse ECDSA public key: %v", err)
-	}
-	ecdsaPubKey, ok := pubKey.(*ecdsa.PublicKey)
-	if !ok {
-		logger.Errorf("Public key is not of type *ecdsa.PublicKey")
+		logger.Debugf("Error: creating key ring %v", err)
+		return false, err
 	}
 
-	// Decode the base64 encoded signature
-	signatureBytes, err := base64.StdEncoding.DecodeString(signatureStr)
+	// // Convert the challenge string to a *crypto.PlainMessage
+	message := crypto.NewPlainMessageFromString(challenge)
+
+	// Decode the armored signature
+	decodedSig, _ := base64.StdEncoding.DecodeString(armoredSignature)
+
+	signature, err := crypto.NewPGPSignatureFromArmored(string(decodedSig))
 	if err != nil {
-		logger.Errorf("Failed to decode base64 signature: %v", err)
+		logger.Debugf("Error: decoding signature %v", err)
+		return false, err
 	}
-	if len(signatureBytes) != 64 {
-		return "",errors.New("invalid signature length")
-	}
-	r := new(big.Int).SetBytes(signatureBytes[:32])
-	s := new(big.Int).SetBytes(signatureBytes[32:])
-	// Assuming the signature is in ASN.1 DER format
-
-
-	// Hash the challenge text
-	hashed := sha256.Sum256([]byte(challengeStr))
-
 	// Verify the signature
-	valid := ecdsa.Verify(ecdsaPubKey, hashed[:], r, s)
-	logger.Debugf("Signature verification result: %v", valid)
-	if valid {
-		return GenerateToken("test", userId)
+	err = pubKeyRing.VerifyDetached(message, signature, crypto.GetUnixTime())
+	if err != nil {
+		logger.Debugf("Error: verifying signature %v", err)
+		return false, err
 	}
-	return "", nil
+
+	return true, nil
+}
+
+func HashPassword(password string) (string, error) {
+	// The second argument is the cost of hashing, which determines how much time is needed to calculate the hash.
+	// The higher the cost, the more secure the hash, but the longer it will take to generate.
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	return string(bytes), err
+}
+
+// CheckPasswordHash compares a hashed password with a plain password to check if they match.
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

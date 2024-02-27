@@ -34,12 +34,22 @@ func FetchChallenge(ctx *gin.Context, userId uuid.UUID) (string, error) {
 	return database.Store.FetchChallenge(ctx, userId)
 }
 
-func CheckTempPassword(ctx *gin.Context, args db.CheckTempPasswordParams) (bool, error) {
-
-	return database.Store.CheckTempPassword(ctx, args)
-}
-
 func UpdateKeys(ctx *gin.Context, args db.UpdateKeysParams) error {
 
 	return database.Store.UpdateKeys(ctx, args)
+}
+
+func GetTempPassword(ctx *gin.Context, userName string) (db.GetUserTempPasswordRow, error) {
+
+	return database.Store.GetUserTempPassword(ctx, userName)
+}
+
+func UpdateRegistrationChallenge(ctx *gin.Context, args db.UpdateRegistrationChallengeParams) error {
+
+	return database.Store.UpdateRegistrationChallenge(ctx, args)
+}
+
+func GetRegistrationChallenge(ctx *gin.Context, userName string) (db.GetRegistrationChallengeRow, error) {
+
+	return database.Store.GetRegistrationChallenge(ctx, userName)
 }
