@@ -185,7 +185,14 @@ func EditCredential(ctx *gin.Context) {
 		return
 	}
 
-	err = service.EditCredential(ctx, req, caller)
+	credentialIDStr := ctx.Param("id")
+	credentailID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "Invalid credential id", errors.New("invalid credential id"))
+		return
+	}
+
+	err = service.EditCredential(ctx, credentailID, req, caller)
 	if err != nil {
 		logger.Errorf(err.Error())
 

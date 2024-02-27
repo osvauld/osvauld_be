@@ -139,14 +139,10 @@ func AddMemberToGroup(ctx *gin.Context) {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	if err != nil {
 		SendResponse(ctx, 500, nil, "failed to add members to group", nil)
 		return
 	}
+
 	SendResponse(ctx, 200, nil, "Added members to group", nil)
 }
 
