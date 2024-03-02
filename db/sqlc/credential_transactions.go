@@ -98,15 +98,9 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 		}
 
 		// Delete existing field records
-		for _, userFields := range args.UserFields {
-
-			err = q.DeleteFields(ctx, DeleteFieldsParams{
-				CredentialID: args.CredentialID,
-				UserID:       userFields.UserID,
-			})
-			if err != nil {
-				return err
-			}
+		err = q.DeleteCredentialFields(ctx, args.CredentialID)
+		if err != nil {
+			return err
 		}
 
 		// Create field records

@@ -62,18 +62,13 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	return exists, err
 }
 
-const deleteFields = `-- name: DeleteFields :exec
+const deleteCredentialFields = `-- name: DeleteCredentialFields :exec
 DELETE FROM fields
-WHERE credential_id = $1 AND user_id = $2
+WHERE credential_id = $1
 `
 
-type DeleteFieldsParams struct {
-	CredentialID uuid.UUID `json:"credentialId"`
-	UserID       uuid.UUID `json:"userId"`
-}
-
-func (q *Queries) DeleteFields(ctx context.Context, arg DeleteFieldsParams) error {
-	_, err := q.db.ExecContext(ctx, deleteFields, arg.CredentialID, arg.UserID)
+func (q *Queries) DeleteCredentialFields(ctx context.Context, credentialID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteCredentialFields, credentialID)
 	return err
 }
 

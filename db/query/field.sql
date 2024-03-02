@@ -7,9 +7,9 @@ VALUES
     ($1, $2, $3, $4, $5, $6) RETURNING id;
 
 
--- name: DeleteFields :exec
+-- name: DeleteCredentialFields :exec
 DELETE FROM fields
-WHERE credential_id = $1 AND user_id = $2;
+WHERE credential_id = $1;
 
 -- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT
