@@ -196,7 +196,7 @@ func GetUsersWithoutGroupAccess(ctx *gin.Context) {
 		return
 	}
 
-	users, err := service.GetUsersWithoutGroupAccess(ctx, userID, groupID)
+	users, err := service.GetUsersWithoutGroupAccess(ctx, groupID, userID)
 
 	if err != nil {
 		logger.Errorf(err.Error())
