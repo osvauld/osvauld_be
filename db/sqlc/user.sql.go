@@ -12,22 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const checkTempPassword = `-- name: CheckTempPassword :one
-SELECT COUNT(*) FROM users WHERE username = $1 AND temp_password = $2
-`
-
-type CheckTempPasswordParams struct {
-	Username     string `json:"username"`
-	TempPassword string `json:"tempPassword"`
-}
-
-func (q *Queries) CheckTempPassword(ctx context.Context, arg CheckTempPasswordParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, checkTempPassword, arg.Username, arg.TempPassword)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const createChallenge = `-- name: CreateChallenge :one
 INSERT INTO session_table (user_id, public_key, challenge)
 VALUES ($1, $2, $3)
@@ -90,7 +74,7 @@ func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string,
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id,name,username, COALESCE(rsa_pub_key, '') AS "publicKey" FROM users where signed_up = true
+SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true
 `
 
 type GetAllUsersRow struct {
@@ -128,22 +112,38 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 	return items, nil
 }
 
+const getRegistrationChallenge = `-- name: GetRegistrationChallenge :one
+SELECT registration_challenge, status FROM users WHERE username = $1
+`
+
+type GetRegistrationChallengeRow struct {
+	RegistrationChallenge sql.NullString `json:"registrationChallenge"`
+	Status                string         `json:"status"`
+}
+
+func (q *Queries) GetRegistrationChallenge(ctx context.Context, username string) (GetRegistrationChallengeRow, error) {
+	row := q.db.QueryRowContext(ctx, getRegistrationChallenge, username)
+	var i GetRegistrationChallengeRow
+	err := row.Scan(&i.RegistrationChallenge, &i.Status)
+	return i, err
+}
+
 const getUserByPublicKey = `-- name: GetUserByPublicKey :one
 SELECT id
 FROM users
-WHERE ecc_pub_key = $1
+WHERE device_key = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserByPublicKey(ctx context.Context, eccPubKey sql.NullString) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, getUserByPublicKey, eccPubKey)
+func (q *Queries) GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getUserByPublicKey, deviceKey)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id,name,username, COALESCE(rsa_pub_key,'') as "publicKey"
+SELECT id,name,username, COALESCE(encryption_key,'') as "publicKey"
 FROM users
 WHERE username = $1
 LIMIT 1
@@ -168,19 +168,51 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 	return i, err
 }
 
+const getUserTempPassword = `-- name: GetUserTempPassword :one
+SELECT temp_password, status FROM users WHERE username = $1
+`
+
+type GetUserTempPasswordRow struct {
+	TempPassword string `json:"tempPassword"`
+	Status       string `json:"status"`
+}
+
+func (q *Queries) GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserTempPassword, username)
+	var i GetUserTempPasswordRow
+	err := row.Scan(&i.TempPassword, &i.Status)
+	return i, err
+}
+
 const updateKeys = `-- name: UpdateKeys :exec
 UPDATE users
-SET rsa_pub_key = $1, ecc_pub_key = $2, signed_up = TRUE
+SET encryption_key = $1, device_key = $2, signed_up = TRUE, status = 'active'
 WHERE username = $3
 `
 
 type UpdateKeysParams struct {
-	RsaPubKey sql.NullString `json:"rsaPubKey"`
-	EccPubKey sql.NullString `json:"eccPubKey"`
-	Username  string         `json:"username"`
+	EncryptionKey sql.NullString `json:"encryptionKey"`
+	DeviceKey     sql.NullString `json:"deviceKey"`
+	Username      string         `json:"username"`
 }
 
 func (q *Queries) UpdateKeys(ctx context.Context, arg UpdateKeysParams) error {
-	_, err := q.db.ExecContext(ctx, updateKeys, arg.RsaPubKey, arg.EccPubKey, arg.Username)
+	_, err := q.db.ExecContext(ctx, updateKeys, arg.EncryptionKey, arg.DeviceKey, arg.Username)
+	return err
+}
+
+const updateRegistrationChallenge = `-- name: UpdateRegistrationChallenge :exec
+UPDATE users
+SET registration_challenge = $1, status = 'temp_login'
+WHERE username = $2
+`
+
+type UpdateRegistrationChallengeParams struct {
+	RegistrationChallenge sql.NullString `json:"registrationChallenge"`
+	Username              string         `json:"username"`
+}
+
+func (q *Queries) UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error {
+	_, err := q.db.ExecContext(ctx, updateRegistrationChallenge, arg.RegistrationChallenge, arg.Username)
 	return err
 }

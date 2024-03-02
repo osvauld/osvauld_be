@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"net/http"
-	"osvauld/auth"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	service "osvauld/service"
@@ -42,25 +41,39 @@ func CreateUser(ctx *gin.Context) {
 
 }
 
-// func Login(ctx *gin.Context) {
-// 	var req dto.Login
+func TempLogin(ctx *gin.Context) {
 
-// 	if err := ctx.ShouldBindJSON(&req); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	user, err := service.Login(ctx, req)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	var req dto.TempLogin
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	challenge, err := service.TempLogin(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
 
-// 	SendResponse(ctx, 200, user, "Login successfull", nil)
-// }
+	response := map[string]string{"challenge": challenge}
 
-func GetAllUsers(ctx *gin.Context) {
-	users, _ := service.GetAllUsers(ctx)
-	SendResponse(ctx, 200, users, "fetched users", nil)
+	SendResponse(ctx, 200, response, "login successfull", nil)
+}
+
+// single use api per user to register their public keys
+func Register(ctx *gin.Context) {
+	var req dto.Register
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := service.Register(ctx, req)
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 400, nil, "failed to register user", errors.New("failed to register user"))
+		return
+	}
+
+	SendResponse(ctx, 200, user, "registration successfull", nil)
 }
 
 func GetChallenge(ctx *gin.Context) {
@@ -69,7 +82,11 @@ func GetChallenge(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	challenge, _ := service.CreateChallenge(ctx, req)
+	challenge, err := service.CreateChallenge(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
 	type ChallengeResponse struct {
 		Challenge string `json:"challenge"`
 	}
@@ -82,49 +99,20 @@ func VerifyChallenge(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	token, _ := service.VerifyChallenge(ctx, req)
+	token, err := service.VerifyChallenge(ctx, req)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
 	type TokenResponse struct {
 		Token string `json:"token"`
 	}
 	SendResponse(ctx, 200, TokenResponse{Token: token}, "verified challenge", nil)
 }
 
-// single use api per user to register their public keys
-func Register(ctx *gin.Context) {
-	var req dto.Register
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	user, err := service.Register(ctx, req)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "failed to register user", errors.New("failed to register user"))
-		return
-	}
-
-	SendResponse(ctx, 200, user, "registration successfull", nil)
-}
-
-type TestLogin struct {
-	UserName string    `json:"username" binding:"required"`
-	UserID   uuid.UUID `json:"userId" binding:"required"`
-}
-
-func TestLoginController(ctx *gin.Context) {
-	var req TestLogin
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	token, _ := auth.GenerateToken(req.UserName, req.UserID)
-
-	type TokenResponse struct {
-		Token string `json:"token"`
-	}
-
-	SendResponse(ctx, 200, TokenResponse{Token: token}, "Login successfull", nil)
+func GetAllUsers(ctx *gin.Context) {
+	users, _ := service.GetAllUsers(ctx)
+	SendResponse(ctx, 200, users, "fetched users", nil)
 }
 
 func GetCredentialUsers(ctx *gin.Context) {

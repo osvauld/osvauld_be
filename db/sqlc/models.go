@@ -11,7 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type AccessList struct {
+type Credential struct {
+	ID             uuid.UUID      `json:"id"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	CredentialType string         `json:"credentialType"`
+	FolderID       uuid.UUID      `json:"folderId"`
+	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+}
+
+type CredentialAccess struct {
 	ID           uuid.UUID     `json:"id"`
 	CreatedAt    time.Time     `json:"createdAt"`
 	UpdatedAt    time.Time     `json:"updatedAt"`
@@ -22,26 +34,30 @@ type AccessList struct {
 	FolderID     uuid.NullUUID `json:"folderId"`
 }
 
-type Credential struct {
-	ID             uuid.UUID      `json:"id"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
-	Name           string         `json:"name"`
-	Description    sql.NullString `json:"description"`
-	CredentialType string         `json:"credentialType"`
-	FolderID       uuid.UUID      `json:"folderId"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+type Field struct {
+	ID           uuid.UUID     `json:"id"`
+	FieldName    string        `json:"fieldName"`
+	FieldValue   string        `json:"fieldValue"`
+	FieldType    string        `json:"fieldType"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	UserID       uuid.UUID     `json:"userId"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	CreatedBy    uuid.UUID     `json:"createdBy"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
 }
 
-type EncryptedDatum struct {
-	ID           uuid.UUID `json:"id"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	FieldName    string    `json:"fieldName"`
-	CredentialID uuid.UUID `json:"credentialId"`
-	FieldValue   string    `json:"fieldValue"`
-	UserID       uuid.UUID `json:"userId"`
-	FieldType    string    `json:"fieldType"`
+type FieldArchive struct {
+	ID         uuid.UUID `json:"id"`
+	FieldID    uuid.UUID `json:"fieldId"`
+	FieldName  string    `json:"fieldName"`
+	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
+	CreateAt   time.Time `json:"createAt"`
+	CreatedBy  uuid.UUID `json:"createdBy"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	UpdatedBy  uuid.UUID `json:"updatedBy"`
+	Version    int32     `json:"version"`
 }
 
 type Folder struct {
@@ -90,25 +106,16 @@ type SessionTable struct {
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 
-type UnencryptedDatum struct {
-	ID           uuid.UUID      `json:"id"`
-	CreatedAt    time.Time      `json:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt"`
-	FieldName    string         `json:"fieldName"`
-	CredentialID uuid.UUID      `json:"credentialId"`
-	IsUrl        bool           `json:"isUrl"`
-	Url          sql.NullString `json:"url"`
-	FieldValue   string         `json:"fieldValue"`
-}
-
 type User struct {
-	ID           uuid.UUID      `json:"id"`
-	CreatedAt    time.Time      `json:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt"`
-	Username     string         `json:"username"`
-	Name         string         `json:"name"`
-	RsaPubKey    sql.NullString `json:"rsaPubKey"`
-	EccPubKey    sql.NullString `json:"eccPubKey"`
-	TempPassword string         `json:"tempPassword"`
-	SignedUp     bool           `json:"signedUp"`
+	ID                    uuid.UUID      `json:"id"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
+	Username              string         `json:"username"`
+	Name                  string         `json:"name"`
+	EncryptionKey         sql.NullString `json:"encryptionKey"`
+	DeviceKey             sql.NullString `json:"deviceKey"`
+	TempPassword          string         `json:"tempPassword"`
+	RegistrationChallenge sql.NullString `json:"registrationChallenge"`
+	SignedUp              bool           `json:"signedUp"`
+	Status                string         `json:"status"`
 }

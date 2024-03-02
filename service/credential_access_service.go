@@ -17,7 +17,7 @@ var CredentialAccessLevels = map[string]int{
 	"owner":        99,
 }
 
-func GetAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (string, error) {
+func GetAccessTypeForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (string, error) {
 
 	accessRows, err := repository.GetCredentialAccessForUser(ctx, credentialID, userID)
 	if err != nil {
@@ -38,7 +38,7 @@ func GetAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uui
 }
 
 func HasReadAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
-	access, err := GetAccessForCredential(ctx, credentialID, userID)
+	access, err := GetAccessTypeForCredential(ctx, credentialID, userID)
 	logger.Debugf("access level for credential %s, user: %s is %s", credentialID, userID, access)
 	if err != nil {
 		return false, err
@@ -49,9 +49,14 @@ func HasReadAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID
 	return false, nil
 }
 
+func CheckHasReadAccessForCredential(ctx *gin.Context, access string) bool {
+	return CredentialAccessLevels[access] > 0
+
+}
+
 func HasOwnerAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
 
-	access, err := GetAccessForCredential(ctx, credentialID, userID)
+	access, err := GetAccessTypeForCredential(ctx, credentialID, userID)
 	logger.Debugf("access level for credential %s, user: %s is %s", credentialID, userID, access)
 	if err != nil {
 		return false, err

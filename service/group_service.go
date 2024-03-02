@@ -111,7 +111,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 		return err
 	}
 
-	userFieldRecords := []db.AddFieldDataParams{}
+	userFieldRecords := []db.AddFieldParams{}
 	for _, credential := range payload.Credentials {
 
 		fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
