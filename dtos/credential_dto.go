@@ -81,6 +81,5 @@ type EditCredentialRequest struct {
 	Name           string       `json:"name"`
 	Description    string       `json:"description"`
 	CredentialType string       `json:"credentialType"`
-	EditFields     []UserFields `json:"editFields"`
-	AddFields      []UserFields `json:"addFields"`
+	UserFields     []UserFields `json:"userFields"`
 }
