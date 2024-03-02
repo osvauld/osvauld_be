@@ -385,16 +385,16 @@ func (q *Queries) GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID
 }
 
 const getUsersWithoutGroupAccess = `-- name: GetUsersWithoutGroupAccess :many
-SELECT u.id, u.username, u.name, COALESCE(u.rsa_pub_key,'') as "publicKey"
+SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "encryptionKey"
 FROM users u
 LEFT JOIN group_list gl ON u.id = gl.user_id AND gl.grouping_id = $1
 `
 
 type GetUsersWithoutGroupAccessRow struct {
-	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Name      string    `json:"name"`
-	PublicKey string    `json:"publicKey"`
+	ID            uuid.UUID `json:"id"`
+	Username      string    `json:"username"`
+	Name          string    `json:"name"`
+	EncryptionKey string    `json:"encryptionKey"`
 }
 
 func (q *Queries) GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error) {
@@ -410,7 +410,7 @@ func (q *Queries) GetUsersWithoutGroupAccess(ctx context.Context, groupingID uui
 			&i.ID,
 			&i.Username,
 			&i.Name,
-			&i.PublicKey,
+			&i.EncryptionKey,
 		); err != nil {
 			return nil, err
 		}

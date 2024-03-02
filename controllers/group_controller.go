@@ -190,16 +190,9 @@ func GetUsersWithoutGroupAccess(ctx *gin.Context) {
 
 	groupIDStr := ctx.Param("groupId")
 	groupID, err := uuid.Parse(groupIDStr)
-
 	if err != nil {
 		logger.Errorf(err.Error())
 		SendResponse(ctx, 400, nil, "Invalid group id", errors.New("invalid group id"))
-		return
-	}
-
-	if err != nil {
-		logger.Errorf(err.Error())
-		SendResponse(ctx, 500, nil, "Failed to fetch Group members", errors.New("failed to fetch group members"))
 		return
 	}
 
@@ -207,7 +200,7 @@ func GetUsersWithoutGroupAccess(ctx *gin.Context) {
 
 	if err != nil {
 		logger.Errorf(err.Error())
-		SendResponse(ctx, 500, nil, "failed to fetch users without", errors.New("failed to fetch users that are not group members"))
+		SendResponse(ctx, 500, nil, "", err)
 		return
 	}
 	SendResponse(ctx, 200, users, "Fetched users not in group", nil)

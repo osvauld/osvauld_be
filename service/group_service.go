@@ -196,13 +196,13 @@ func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAcce
 	return groups, nil
 }
 
-func GetUsersWithoutGroupAccess(ctx *gin.Context, userId uuid.UUID, groupId uuid.UUID) ([]db.GetUsersWithoutGroupAccessRow, error) {
+func GetUsersWithoutGroupAccess(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]db.GetUsersWithoutGroupAccessRow, error) {
 	// Check user is can to see members of that are not in the group
-	isMember, err := CheckUserMemberOfGroup(ctx, userId, groupId)
+	isMember, err := CheckUserMemberOfGroup(ctx, caller, groupID)
 	if !isMember {
 		return nil, err
 	}
-	users, err := repository.GetUsersWithoutGroupAccess(ctx, groupId)
+	users, err := repository.GetUsersWithoutGroupAccess(ctx, groupID)
 	if err != nil {
 		return []db.GetUsersWithoutGroupAccessRow{}, err
 	}
