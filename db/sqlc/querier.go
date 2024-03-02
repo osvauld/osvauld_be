@@ -65,6 +65,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
+	GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
