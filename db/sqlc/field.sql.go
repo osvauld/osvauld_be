@@ -62,35 +62,18 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	return exists, err
 }
 
-const editField = `-- name: EditField :exec
-UPDATE
-    fields
-SET
-    field_name = $1,
-    field_value = $2,
-    field_type = $3,
-    updated_by = $4,
-    updated_at = NOW()
-WHERE
-    id = $5
+const deleteFields = `-- name: DeleteFields :exec
+DELETE FROM fields
+WHERE credential_id = $1 AND user_id = $2
 `
 
-type EditFieldParams struct {
-	FieldName  string        `json:"fieldName"`
-	FieldValue string        `json:"fieldValue"`
-	FieldType  string        `json:"fieldType"`
-	UpdatedBy  uuid.NullUUID `json:"updatedBy"`
-	ID         uuid.UUID     `json:"id"`
+type DeleteFieldsParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
 }
 
-func (q *Queries) EditField(ctx context.Context, arg EditFieldParams) error {
-	_, err := q.db.ExecContext(ctx, editField,
-		arg.FieldName,
-		arg.FieldValue,
-		arg.FieldType,
-		arg.UpdatedBy,
-		arg.ID,
-	)
+func (q *Queries) DeleteFields(ctx context.Context, arg DeleteFieldsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteFields, arg.CredentialID, arg.UserID)
 	return err
 }
 
