@@ -9,7 +9,8 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData d
 
 	var createGroupResult CreateGroupRow
 	err := store.execTx(ctx, func(q *Queries) error {
-		createGroupResult, err := q.CreateGroup(ctx, CreateGroupParams{
+		var err error
+		createGroupResult, err = q.CreateGroup(ctx, CreateGroupParams{
 			Name:      groupData.Name,
 			CreatedBy: groupData.CreatedBy,
 		})
