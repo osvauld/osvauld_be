@@ -383,3 +383,45 @@ func (q *Queries) GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID
 	}
 	return items, nil
 }
+
+const getUsersWithoutGroupAccess = `-- name: GetUsersWithoutGroupAccess :many
+SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "encryptionKey"
+FROM users u
+LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
+WHERE gl.grouping_id IS NULL
+`
+
+type GetUsersWithoutGroupAccessRow struct {
+	ID            uuid.UUID `json:"id"`
+	Username      string    `json:"username"`
+	Name          string    `json:"name"`
+	EncryptionKey string    `json:"encryptionKey"`
+}
+
+func (q *Queries) GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersWithoutGroupAccess, groupingID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetUsersWithoutGroupAccessRow{}
+	for rows.Next() {
+		var i GetUsersWithoutGroupAccessRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Name,
+			&i.EncryptionKey,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -13,13 +13,14 @@ import (
 
 type Credential struct {
 	ID             uuid.UUID      `json:"id"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
 	Name           string         `json:"name"`
 	Description    sql.NullString `json:"description"`
 	CredentialType string         `json:"credentialType"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type CredentialAccess struct {

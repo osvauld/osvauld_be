@@ -26,8 +26,8 @@ type Querier interface {
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
+	DeleteCredentialFields(ctx context.Context, credentialID uuid.UUID) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
-	EditField(ctx context.Context, arg EditFieldParams) error
 	FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)
@@ -65,6 +65,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
+	GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error)
 	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error

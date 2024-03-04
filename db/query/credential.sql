@@ -167,6 +167,8 @@ UPDATE
 SET
     name = $2,
     description = $3,
-    credential_type = $4
+    credential_type = $4,
+    updated_at = NOW(),
+    updated_by = $5
 WHERE
     id = $1;

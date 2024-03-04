@@ -139,14 +139,10 @@ func AddMemberToGroup(ctx *gin.Context) {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	if err != nil {
 		SendResponse(ctx, 500, nil, "failed to add members to group", nil)
 		return
 	}
+
 	SendResponse(ctx, 200, nil, "Added members to group", nil)
 }
 
@@ -183,4 +179,29 @@ func GetCredentialGroups(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, 200, users, "fetched credential users", nil)
+}
+
+func GetUsersWithoutGroupAccess(ctx *gin.Context) {
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		return
+	}
+
+	groupIDStr := ctx.Param("groupId")
+	groupID, err := uuid.Parse(groupIDStr)
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 400, nil, "Invalid group id", errors.New("invalid group id"))
+		return
+	}
+
+	users, err := service.GetUsersWithoutGroupAccess(ctx, groupID, userID)
+
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 500, nil, "", err)
+		return
+	}
+	SendResponse(ctx, 200, users, "Fetched users not in group", nil)
 }

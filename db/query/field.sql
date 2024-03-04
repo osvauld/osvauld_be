@@ -7,18 +7,9 @@ VALUES
     ($1, $2, $3, $4, $5, $6) RETURNING id;
 
 
--- name: EditField :exec
-UPDATE
-    fields
-SET
-    field_name = $1,
-    field_value = $2,
-    field_type = $3,
-    updated_by = $4,
-    updated_at = NOW()
-WHERE
-    id = $5;
-
+-- name: DeleteCredentialFields :exec
+DELETE FROM fields
+WHERE credential_id = $1;
 
 -- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT

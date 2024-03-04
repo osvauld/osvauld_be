@@ -27,16 +27,9 @@ func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID) ([]db.GetGroupMembersR
 
 }
 
-func CheckUserMemberOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
-	args := db.CheckUserMemberOfGroupParams{
-		UserID:     userID,
-		GroupingID: groupID,
-	}
-	isMember, err := database.Store.CheckUserMemberOfGroup(ctx, args)
-	if err != nil {
-		return false, err
-	}
-	return isMember, nil
+func CheckUserMemberOfGroup(ctx *gin.Context, args db.CheckUserMemberOfGroupParams) (bool, error) {
+
+	return database.Store.CheckUserMemberOfGroup(ctx, args)
 }
 
 func CheckUserManagerOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
@@ -87,4 +80,8 @@ func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersBy
 		return []db.FetchUsersByGroupIdsRow{}, err
 	}
 	return users, nil
+}
+
+func GetUsersWithoutGroupAccess(ctx *gin.Context, groupId uuid.UUID) ([]db.GetUsersWithoutGroupAccessRow, error) {
+	return database.Store.GetUsersWithoutGroupAccess(ctx, groupId)
 }

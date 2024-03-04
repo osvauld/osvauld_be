@@ -75,9 +75,7 @@ type EditCredentialTransactionParams struct {
 	Name           string
 	Description    sql.NullString
 	CredentialType string
-	UpdatedBy      uuid.UUID
-	EditFields     []dto.UserFields
-	AddFields      []dto.UserFieldsWithAccessType
+	UserFields     []dto.UserFields
 	EditedBy       uuid.UUID
 }
 
@@ -92,29 +90,21 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 			Name:           args.Name,
 			Description:    args.Description,
 			CredentialType: args.CredentialType,
+			UpdatedBy:      uuid.NullUUID{UUID: args.EditedBy, Valid: true},
 		}
 		err = q.EditCredentialDetails(ctx, editCredentialDetailsParams)
 		if err != nil {
 			return err
 		}
 
-		// Edit field records
-		for _, userFields := range args.EditFields {
-			for _, field := range userFields.Fields {
-				err = q.EditField(ctx, EditFieldParams{
-					ID:         field.ID,
-					FieldName:  field.FieldName,
-					FieldValue: field.FieldValue,
-					FieldType:  field.FieldType,
-				})
-				if err != nil {
-					return err
-				}
-			}
+		// Delete existing field records
+		err = q.DeleteCredentialFields(ctx, args.CredentialID)
+		if err != nil {
+			return err
 		}
 
 		// Create field records
-		for _, userFields := range args.AddFields {
+		for _, userFields := range args.UserFields {
 			for _, field := range userFields.Fields {
 				_, err = q.AddField(ctx, AddFieldParams{
 					FieldName:    field.FieldName,
@@ -122,20 +112,11 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 					CredentialID: args.CredentialID,
 					UserID:       userFields.UserID,
 					FieldType:    field.FieldType,
+					CreatedBy:    args.EditedBy,
 				})
 				if err != nil {
 					return err
 				}
-			}
-
-			accessListParams := AddCredentialAccessParams{
-				CredentialID: args.CredentialID,
-				UserID:       userFields.UserID,
-				AccessType:   userFields.AccessType,
-			}
-			_, err = q.AddCredentialAccess(ctx, accessListParams)
-			if err != nil {
-				return err
 			}
 		}
 
