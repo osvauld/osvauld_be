@@ -75,8 +75,7 @@ type EditCredentialTransactionParams struct {
 	Name           string
 	Description    sql.NullString
 	CredentialType string
-	EditFields     []dto.UserFields
-	AddFields      []dto.UserFields
+	UserFields     []dto.UserFields
 	EditedBy       uuid.UUID
 }
 
@@ -98,24 +97,14 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 			return err
 		}
 
-		// Edit field records
-		for _, userFields := range args.EditFields {
-			for _, field := range userFields.Fields {
-				err = q.EditField(ctx, EditFieldParams{
-					ID:         field.ID,
-					FieldName:  field.FieldName,
-					FieldValue: field.FieldValue,
-					FieldType:  field.FieldType,
-					UpdatedBy:  uuid.NullUUID{UUID: args.EditedBy, Valid: true},
-				})
-				if err != nil {
-					return err
-				}
-			}
+		// Delete existing field records
+		err = q.DeleteCredentialFields(ctx, args.CredentialID)
+		if err != nil {
+			return err
 		}
 
 		// Create field records
-		for _, userFields := range args.AddFields {
+		for _, userFields := range args.UserFields {
 			for _, field := range userFields.Fields {
 				_, err = q.AddField(ctx, AddFieldParams{
 					FieldName:    field.FieldName,
