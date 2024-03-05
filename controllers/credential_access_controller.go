@@ -8,6 +8,7 @@ import (
 	"osvauld/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // controller for remove credential access for user
@@ -24,7 +25,14 @@ func RemoveCredentialAccessForUsers(ctx *gin.Context) {
 		return
 	}
 
-	err = service.RemoveCredentialAccessForUsers(ctx, req, caller)
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	err = service.RemoveCredentialAccessForUsers(ctx, credentialID, req, caller)
 	if err != nil {
 
 		if _, ok := err.(*customerrors.UserNotAnOwnerOfCredentialError); ok {

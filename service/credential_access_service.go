@@ -89,22 +89,22 @@ func HasOwnerAccessForCredentials(ctx *gin.Context, credentialIDs []uuid.UUID, u
 
 }
 
-func RemoveCredentialAccessForUsers(ctx *gin.Context, payload dto.RemoveCredentialAccessForUsers, caller uuid.UUID) error {
+func RemoveCredentialAccessForUsers(ctx *gin.Context, credentialID uuid.UUID, payload dto.RemoveCredentialAccessForUsers, caller uuid.UUID) error {
 
 	// Check caller has owner access for credential
-	isOwner, err := HasOwnerAccessForCredentials(ctx, []uuid.UUID{payload.CredentialID}, caller)
+	isOwner, err := HasOwnerAccessForCredentials(ctx, []uuid.UUID{credentialID}, caller)
 	if err != nil {
 		return err
 	}
 
 	if !isOwner {
-		errMsg := fmt.Sprintf("user %s does not have owner access for credential %s", caller, payload.CredentialID)
+		errMsg := fmt.Sprintf("user %s does not have owner access for credential %s", caller, credentialID)
 		return &customerrors.UserNotAnOwnerOfCredentialError{Message: errMsg}
 	}
 
 	err = repository.RemoveCredentialAccessForUser(ctx, db.RemoveCredentialAccessForUsersParams{
 		UserIds:      payload.UserIDs,
-		CredentialID: payload.CredentialID,
+		CredentialID: credentialID,
 	})
 	if err != nil {
 		return err

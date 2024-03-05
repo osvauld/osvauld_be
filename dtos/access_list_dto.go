@@ -11,6 +11,5 @@ type AccessListResult struct {
 }
 
 type RemoveCredentialAccessForUsers struct {
-	CredentialID uuid.UUID   `json:"credential_id"`
-	UserIDs      []uuid.UUID `json:"user_ids"`
+	UserIDs []uuid.UUID `json:"userIds"`
 }
