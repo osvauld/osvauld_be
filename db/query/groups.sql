@@ -25,6 +25,14 @@ SELECT EXISTS (
   WHERE user_id = $1 AND grouping_id = $2
 ) as "exists";
 
+
+-- name: CheckUserManagerOfGroup :one
+SELECT EXISTS (
+  SELECT 1 FROM group_list
+  WHERE user_id = $1 AND grouping_id = $2 AND access_type = 'manager'
+) as "exists";
+
+
 -------------------------------------------------------------------------------------------------------
 
 
@@ -38,10 +46,6 @@ WHERE group_id = $1;
 SELECT DISTINCT folder_id, access_type
 FROM folder_access
 WHERE group_id = $1;
-
--- name: FetchGroupAccessType :one
-SELECT access_type FROM group_list
-WHERE user_id = $1 AND grouping_id = $2;
 
 -- name: FetchCredentialIDsWithGroupAccess :many
 SELECT distinct(credential_id) from credential_access

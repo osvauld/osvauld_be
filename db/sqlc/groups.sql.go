@@ -30,6 +30,25 @@ func (q *Queries) AddGroupMember(ctx context.Context, arg AddGroupMemberParams) 
 	return err
 }
 
+const checkUserManagerOfGroup = `-- name: CheckUserManagerOfGroup :one
+SELECT EXISTS (
+  SELECT 1 FROM group_list
+  WHERE user_id = $1 AND grouping_id = $2 AND access_type = 'manager'
+) as "exists"
+`
+
+type CheckUserManagerOfGroupParams struct {
+	UserID     uuid.UUID `json:"userId"`
+	GroupingID uuid.UUID `json:"groupingId"`
+}
+
+func (q *Queries) CheckUserManagerOfGroup(ctx context.Context, arg CheckUserManagerOfGroupParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserManagerOfGroup, arg.UserID, arg.GroupingID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkUserMemberOfGroup = `-- name: CheckUserMemberOfGroup :one
 SELECT EXISTS (
   SELECT 1 FROM group_list
@@ -127,23 +146,6 @@ func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, arg Fet
 		return nil, err
 	}
 	return items, nil
-}
-
-const fetchGroupAccessType = `-- name: FetchGroupAccessType :one
-SELECT access_type FROM group_list
-WHERE user_id = $1 AND grouping_id = $2
-`
-
-type FetchGroupAccessTypeParams struct {
-	UserID     uuid.UUID `json:"userId"`
-	GroupingID uuid.UUID `json:"groupingId"`
-}
-
-func (q *Queries) FetchGroupAccessType(ctx context.Context, arg FetchGroupAccessTypeParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, fetchGroupAccessType, arg.UserID, arg.GroupingID)
-	var access_type string
-	err := row.Scan(&access_type)
-	return access_type, err
 }
 
 const fetchUserGroups = `-- name: FetchUserGroups :many

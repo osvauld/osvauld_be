@@ -173,20 +173,12 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 					credentialAccessRecord := db.AddCredentialAccessParams{
 						CredentialID: credential.CredentialID,
 						UserID:       userData.UserID,
-						AccessType:   userData.AccessType,
+						AccessType:   groupData.AccessType,
 						GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
 					}
 					credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 
 				}
-
-				credentialAccessRecord := db.AddCredentialAccessParams{
-					CredentialID: credential.CredentialID,
-					UserID:       userData.UserID,
-					AccessType:   userData.AccessType,
-					GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
-				}
-				credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 
 				fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
 					UserID:       userData.UserID,
