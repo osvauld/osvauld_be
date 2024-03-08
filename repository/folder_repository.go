@@ -19,19 +19,9 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	return database.Store.FetchAccessibleFoldersForUser(ctx, userID)
 }
 
+func HasOwnerAccessForFolder(ctx *gin.Context, args *db.HasOwnerAccessForFolderParams) (bool, error) {
 
-func CheckFolderAccess(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
-
-	arg := db.IsFolderOwnerParams{
-		UserID:   userID,
-		FolderID: folderID,
-	}
-	access, err := database.Store.IsFolderOwner(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return false, err
-	}
-	return access, nil
+	return database.Store.HasOwnerAccessForFolder(ctx, *args)
 }
 
 func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {

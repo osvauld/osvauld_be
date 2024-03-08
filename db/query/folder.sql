@@ -34,7 +34,7 @@ SELECT EXISTS (
 
 
 
--- name: IsFolderOwner :one
+-- name: HasOwnerAccessForFolder :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access
   WHERE folder_id = $1 AND user_id = $2 AND access_type = 'owner'
