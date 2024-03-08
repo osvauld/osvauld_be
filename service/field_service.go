@@ -47,3 +47,7 @@ func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, user
 	}
 	return credentials, nil
 }
+
+func DeleteAccessRemovedFields(ctx *gin.Context) error {
+	return repository.DeleteAccessRemovedFields(ctx)
+}

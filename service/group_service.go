@@ -56,6 +56,13 @@ func CheckUserMemberOfGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUI
 	})
 }
 
+func CheckUserManagerOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
+	return repository.CheckUserManagerOfGroup(ctx, db.CheckUserManagerOfGroupParams{
+		UserID:     userID,
+		GroupingID: groupID,
+	})
+}
+
 func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]uuid.UUID, error) {
 
 	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID, caller)
@@ -87,12 +94,12 @@ func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uu
 
 func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, caller uuid.UUID) error {
 
-	isManager, err := repository.CheckUserManagerOfGroup(ctx, caller, payload.GroupID)
-	if !isManager {
-		return &customerrors.UserNotAuthenticatedError{Message: "caller is not an owner of the group"}
-	}
+	isManager, err := CheckUserManagerOfGroup(ctx, caller, payload.GroupID)
 	if err != nil {
 		return err
+	}
+	if !isManager {
+		return &customerrors.UserNotAuthenticatedError{Message: "caller is not an manager of the group"}
 	}
 
 	isMember, err := CheckUserMemberOfGroup(ctx, payload.GroupID, payload.MemberID)

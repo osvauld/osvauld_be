@@ -32,21 +32,9 @@ func CheckUserMemberOfGroup(ctx *gin.Context, args db.CheckUserMemberOfGroupPara
 	return database.Store.CheckUserMemberOfGroup(ctx, args)
 }
 
-func CheckUserManagerOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
-	args := db.FetchGroupAccessTypeParams{
-		UserID:     userID,
-		GroupingID: groupID,
-	}
-	role, err := database.Store.FetchGroupAccessType(ctx, args)
-	if err != nil {
-		return false, err
-	}
+func CheckUserManagerOfGroup(ctx *gin.Context, args db.CheckUserManagerOfGroupParams) (bool, error) {
 
-	if role == "manager" {
-		return true, nil
-	}
-
-	return false, nil
+	return database.Store.CheckUserManagerOfGroup(ctx, args)
 }
 
 func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]uuid.UUID, error) {

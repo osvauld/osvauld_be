@@ -108,7 +108,7 @@ func GetAllCredentialsByGroupID(ctx *gin.Context) {
 	}
 
 	if len(credentialFields) == 0 {
-		SendResponse(ctx, 204, nil, "No credentials found", nil)
+		SendResponse(ctx, 200, []uuid.UUID{}, "No credentials found", nil)
 		return
 	}
 
