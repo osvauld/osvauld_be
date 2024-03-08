@@ -118,6 +118,12 @@ func RemoveCredentialAccessForUsers(ctx *gin.Context, credentialID uuid.UUID, pa
 		return err
 	}
 
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
@@ -139,6 +145,12 @@ func RemoveFolderAccessForUsers(ctx *gin.Context, folderID uuid.UUID, payload dt
 		UserIds:  payload.UserIDs,
 		FolderID: folderID,
 	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
 	if err != nil {
 		return err
 	}
@@ -168,10 +180,15 @@ func RemoveCredentialAccessForGroups(ctx *gin.Context, credentialID uuid.UUID, p
 		return err
 	}
 
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
-
 
 func RemoveFolderAccessForGroups(ctx *gin.Context, folderID uuid.UUID, payload dto.RemoveFolderAccessForGroups, caller uuid.UUID) error {
 
@@ -190,6 +207,12 @@ func RemoveFolderAccessForGroups(ctx *gin.Context, folderID uuid.UUID, payload d
 		GroupIds: payload.GroupIDs,
 		FolderID: folderID,
 	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
 	if err != nil {
 		return err
 	}

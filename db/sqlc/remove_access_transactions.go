@@ -15,29 +15,6 @@ func (store *SQLStore) RemoveCredentialAccessForUsersTransactions(ctx context.Co
 			return err
 		}
 
-		for _, userID := range args.UserIds {
-
-			exists, err := q.CheckCredentialAccessEntryExists(ctx, CheckCredentialAccessEntryExistsParams{
-				UserID:       userID,
-				CredentialID: args.CredentialID,
-			})
-			if err != nil {
-				return err
-			}
-
-			// delete the fields if the user has no other access to the credential
-			if !exists {
-
-				err = q.RemoveCredentialFieldsForUsers(ctx, RemoveCredentialFieldsForUsersParams{
-					UserIds:      []uuid.UUID{userID},
-					CredentialID: args.CredentialID,
-				})
-				if err != nil {
-					return err
-				}
-			}
-		}
-
 		return nil
 
 	})
@@ -62,7 +39,6 @@ func (store *SQLStore) RemoveFolderAccessForUsersTransactions(ctx context.Contex
 			return err
 		}
 
-		// TODO: field cleanup
 		return nil
 	})
 }
@@ -75,8 +51,6 @@ func (store *SQLStore) RemoveCredentialAccessForGroupsTransactions(ctx context.C
 		if err != nil {
 			return err
 		}
-
-		// TODO: field cleanup
 
 		return nil
 
@@ -100,8 +74,6 @@ func (store *SQLStore) RemoveFolderAccessForGroupsTransactions(ctx context.Conte
 		if err != nil {
 			return err
 		}
-
-		// TODO: field cleanup
 
 		return nil
 

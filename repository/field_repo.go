@@ -26,3 +26,8 @@ func GetSensitiveFields(ctx *gin.Context, args db.GetSensitiveFieldsParams) ([]d
 
 	return database.Store.GetSensitiveFields(ctx, args)
 }
+
+func DeleteAccessRemovedFields(ctx *gin.Context) error {
+
+	return database.Store.DeleteAccessRemovedFields(ctx)
+}
