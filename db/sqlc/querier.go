@@ -27,6 +27,7 @@ type Querier interface {
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
+	DeleteAccessRemovedFields(ctx context.Context) error
 	DeleteCredentialFields(ctx context.Context, credentialID uuid.UUID) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
 	FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error)
@@ -66,10 +67,15 @@ type Querier interface {
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error)
-	IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error)
+	HasOwnerAccessForFolder(ctx context.Context, arg HasOwnerAccessForFolderParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
+	RemoveCredentialAccessForGroups(ctx context.Context, arg RemoveCredentialAccessForGroupsParams) error
+	RemoveCredentialAccessForGroupsWithFolderID(ctx context.Context, arg RemoveCredentialAccessForGroupsWithFolderIDParams) error
 	RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error
+	RemoveCredentialAccessForUsersWithFolderID(ctx context.Context, arg RemoveCredentialAccessForUsersWithFolderIDParams) error
 	RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error
+	RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error
+	RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }

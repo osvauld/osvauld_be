@@ -35,3 +35,23 @@ SELECT EXISTS (
 -- name: RemoveCredentialAccessForUsers :exec
 DELETE FROM credential_access WHERE group_id IS NULL AND folder_id IS NULL 
 AND credential_id = $1 AND user_id = ANY(@user_ids::UUID[]);
+
+-- name: RemoveFolderAccessForUsers :exec
+DELETE FROM folder_access WHERE group_id IS NULL 
+AND folder_id = $1 AND user_id = ANY(@user_ids::UUID[]);
+
+-- name: RemoveCredentialAccessForUsersWithFolderID :exec
+DELETE FROM credential_access WHERE group_id IS NULL
+AND folder_id = $1 AND user_id = ANY(@user_ids::UUID[]);
+
+
+-- name: RemoveCredentialAccessForGroups :exec
+DELETE FROM credential_access WHERE folder_id IS NULL 
+AND credential_id = $1 AND group_id = ANY(@group_ids::UUID[]);
+
+
+-- name: RemoveFolderAccessForGroups :exec
+DELETE FROM folder_access WHERE folder_id = $1 AND group_id = ANY(@group_ids::UUID[]);
+
+-- name: RemoveCredentialAccessForGroupsWithFolderID :exec
+DELETE FROM credential_access WHERE folder_id = $1 AND group_id = ANY(@group_ids::UUID[]);

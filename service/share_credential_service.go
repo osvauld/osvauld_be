@@ -387,7 +387,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 					credentialAccessRecord := db.AddCredentialAccessParams{
 						CredentialID: credential.CredentialID,
 						UserID:       userData.UserID,
-						AccessType:   userData.AccessType,
+						AccessType:   groupData.AccessType,
 						GroupID:      uuid.NullUUID{UUID: groupData.GroupID, Valid: true},
 						FolderID:     uuid.NullUUID{UUID: payload.FolderID, Valid: true},
 					}

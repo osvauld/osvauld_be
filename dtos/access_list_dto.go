@@ -13,3 +13,15 @@ type AccessListResult struct {
 type RemoveCredentialAccessForUsers struct {
 	UserIDs []uuid.UUID `json:"userIds"`
 }
+
+type RemoveFolderAccessForUsers struct {
+	UserIDs []uuid.UUID `json:"userIds"`
+}
+
+type RemoveCredentialAccessForGroups struct {
+	GroupIDs []uuid.UUID `json:"groupIds"`
+}
+
+type RemoveFolderAccessForGroups struct {
+	GroupIDs []uuid.UUID `json:"groupIds"`
+}

@@ -56,6 +56,14 @@ func CheckHasReadAccessForCredential(ctx *gin.Context, access string) bool {
 
 }
 
+func HasOwnerAccessForFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
+
+	return repository.HasOwnerAccessForFolder(ctx, &db.HasOwnerAccessForFolderParams{
+		UserID:   userID,
+		FolderID: folderID,
+	})
+}
+
 func HasOwnerAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
 
 	access, err := GetAccessTypeForCredential(ctx, credentialID, userID)
@@ -102,10 +110,109 @@ func RemoveCredentialAccessForUsers(ctx *gin.Context, credentialID uuid.UUID, pa
 		return &customerrors.UserNotAnOwnerOfCredentialError{Message: errMsg}
 	}
 
-	err = repository.RemoveCredentialAccessForUser(ctx, db.RemoveCredentialAccessForUsersParams{
+	err = repository.RemoveCredentialAccessForUsers(ctx, db.RemoveCredentialAccessForUsersParams{
 		UserIds:      payload.UserIDs,
 		CredentialID: credentialID,
 	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func RemoveFolderAccessForUsers(ctx *gin.Context, folderID uuid.UUID, payload dto.RemoveFolderAccessForUsers, caller uuid.UUID) error {
+
+	// Check caller has owner access for folder
+	isOwner, err := HasOwnerAccessForFolder(ctx, folderID, caller)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		errMsg := fmt.Sprintf("user %s does not have owner access for folder %s", caller, folderID)
+		return &customerrors.UserNotAnOwnerOfFolderError{Message: errMsg}
+	}
+
+	err = repository.RemoveFolderAccessForUser(ctx, db.RemoveFolderAccessForUsersParams{
+		UserIds:  payload.UserIDs,
+		FolderID: folderID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func RemoveCredentialAccessForGroups(ctx *gin.Context, credentialID uuid.UUID, payload dto.RemoveCredentialAccessForGroups, caller uuid.UUID) error {
+
+	// Check caller has owner access for credential
+	isOwner, err := HasOwnerAccessForCredentials(ctx, []uuid.UUID{credentialID}, caller)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		errMsg := fmt.Sprintf("user %s does not have owner access for credential %s", caller, credentialID)
+		return &customerrors.UserNotAnOwnerOfCredentialError{Message: errMsg}
+	}
+
+	err = repository.RemoveCredentialAccessForGroups(ctx, db.RemoveCredentialAccessForGroupsParams{
+		GroupIds:     payload.GroupIDs,
+		CredentialID: credentialID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func RemoveFolderAccessForGroups(ctx *gin.Context, folderID uuid.UUID, payload dto.RemoveFolderAccessForGroups, caller uuid.UUID) error {
+
+	// Check caller has owner access for folder
+	isOwner, err := HasOwnerAccessForFolder(ctx, folderID, caller)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		errMsg := fmt.Sprintf("user %s does not have owner access for folder %s", caller, folderID)
+		return &customerrors.UserNotAnOwnerOfFolderError{Message: errMsg}
+	}
+
+	err = repository.RemoveFolderAccessForGroups(ctx, db.RemoveFolderAccessForGroupsParams{
+		GroupIds: payload.GroupIDs,
+		FolderID: folderID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: Remove extact fields from fields table
+	err = DeleteAccessRemovedFields(ctx)
 	if err != nil {
 		return err
 	}
