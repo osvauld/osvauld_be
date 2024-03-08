@@ -88,3 +88,4 @@ func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID) ([]db.GetGroup
 	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
 	return groups, err
 }
+

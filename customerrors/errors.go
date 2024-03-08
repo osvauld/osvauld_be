@@ -23,3 +23,11 @@ type UserNotAnOwnerOfCredentialError struct {
 func (e *UserNotAnOwnerOfCredentialError) Error() string {
 	return e.Message
 }
+
+type UserNotAnOwnerOfFolderError struct {
+	Message string
+}
+
+func (e *UserNotAnOwnerOfFolderError) Error() string {
+	return e.Message
+}

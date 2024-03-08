@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const addCredentialAccess = `-- name: AddCredentialAccess :one
@@ -185,4 +186,92 @@ func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UU
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeCredentialAccessForGroups = `-- name: RemoveCredentialAccessForGroups :exec
+DELETE FROM credential_access WHERE folder_id IS NULL 
+AND credential_id = $1 AND group_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialAccessForGroupsParams struct {
+	CredentialID uuid.UUID   `json:"credentialId"`
+	GroupIds     []uuid.UUID `json:"groupIds"`
+}
+
+func (q *Queries) RemoveCredentialAccessForGroups(ctx context.Context, arg RemoveCredentialAccessForGroupsParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialAccessForGroups, arg.CredentialID, pq.Array(arg.GroupIds))
+	return err
+}
+
+const removeCredentialAccessForGroupsWithFolderID = `-- name: RemoveCredentialAccessForGroupsWithFolderID :exec
+DELETE FROM credential_access WHERE folder_id = $1 AND group_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialAccessForGroupsWithFolderIDParams struct {
+	FolderID uuid.NullUUID `json:"folderId"`
+	GroupIds []uuid.UUID   `json:"groupIds"`
+}
+
+func (q *Queries) RemoveCredentialAccessForGroupsWithFolderID(ctx context.Context, arg RemoveCredentialAccessForGroupsWithFolderIDParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialAccessForGroupsWithFolderID, arg.FolderID, pq.Array(arg.GroupIds))
+	return err
+}
+
+const removeCredentialAccessForUsers = `-- name: RemoveCredentialAccessForUsers :exec
+DELETE FROM credential_access WHERE group_id IS NULL AND folder_id IS NULL 
+AND credential_id = $1 AND user_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialAccessForUsersParams struct {
+	CredentialID uuid.UUID   `json:"credentialId"`
+	UserIds      []uuid.UUID `json:"userIds"`
+}
+
+func (q *Queries) RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialAccessForUsers, arg.CredentialID, pq.Array(arg.UserIds))
+	return err
+}
+
+const removeCredentialAccessForUsersWithFolderID = `-- name: RemoveCredentialAccessForUsersWithFolderID :exec
+DELETE FROM credential_access WHERE group_id IS NULL
+AND folder_id = $1 AND user_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialAccessForUsersWithFolderIDParams struct {
+	FolderID uuid.NullUUID `json:"folderId"`
+	UserIds  []uuid.UUID   `json:"userIds"`
+}
+
+func (q *Queries) RemoveCredentialAccessForUsersWithFolderID(ctx context.Context, arg RemoveCredentialAccessForUsersWithFolderIDParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialAccessForUsersWithFolderID, arg.FolderID, pq.Array(arg.UserIds))
+	return err
+}
+
+const removeFolderAccessForGroups = `-- name: RemoveFolderAccessForGroups :exec
+DELETE FROM folder_access WHERE folder_id = $1 AND group_id = ANY($2::UUID[])
+`
+
+type RemoveFolderAccessForGroupsParams struct {
+	FolderID uuid.UUID   `json:"folderId"`
+	GroupIds []uuid.UUID `json:"groupIds"`
+}
+
+func (q *Queries) RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error {
+	_, err := q.db.ExecContext(ctx, removeFolderAccessForGroups, arg.FolderID, pq.Array(arg.GroupIds))
+	return err
+}
+
+const removeFolderAccessForUsers = `-- name: RemoveFolderAccessForUsers :exec
+DELETE FROM folder_access WHERE group_id IS NULL 
+AND folder_id = $1 AND user_id = ANY($2::UUID[])
+`
+
+type RemoveFolderAccessForUsersParams struct {
+	FolderID uuid.UUID   `json:"folderId"`
+	UserIds  []uuid.UUID `json:"userIds"`
+}
+
+func (q *Queries) RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error {
+	_, err := q.db.ExecContext(ctx, removeFolderAccessForUsers, arg.FolderID, pq.Array(arg.UserIds))
+	return err
 }

@@ -59,3 +59,23 @@ func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialA
 	return database.Store.CheckCredentialAccessEntryExists(ctx, args)
 
 }
+
+func RemoveCredentialAccessForUsers(ctx *gin.Context, args db.RemoveCredentialAccessForUsersParams) error {
+
+	return database.Store.RemoveCredentialAccessForUsersTransactions(ctx, args)
+}
+
+func RemoveFolderAccessForUser(ctx *gin.Context, args db.RemoveFolderAccessForUsersParams) error {
+
+	return database.Store.RemoveFolderAccessForUsersTransactions(ctx, args)
+}
+
+func RemoveCredentialAccessForGroups(ctx *gin.Context, args db.RemoveCredentialAccessForGroupsParams) error {
+
+	return database.Store.RemoveCredentialAccessForGroupsTransactions(ctx, args)
+}
+
+func RemoveFolderAccessForGroups(ctx *gin.Context, args db.RemoveFolderAccessForGroupsParams) error {
+
+	return database.Store.RemoveFolderAccessForGroupsTransactions(ctx, args)
+}

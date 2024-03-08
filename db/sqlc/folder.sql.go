@@ -280,20 +280,20 @@ func (q *Queries) GetSharedUsersForFolder(ctx context.Context, folderID uuid.UUI
 	return items, nil
 }
 
-const isFolderOwner = `-- name: IsFolderOwner :one
+const hasOwnerAccessForFolder = `-- name: HasOwnerAccessForFolder :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access
   WHERE folder_id = $1 AND user_id = $2 AND access_type = 'owner'
 )
 `
 
-type IsFolderOwnerParams struct {
+type HasOwnerAccessForFolderParams struct {
 	FolderID uuid.UUID `json:"folderId"`
 	UserID   uuid.UUID `json:"userId"`
 }
 
-func (q *Queries) IsFolderOwner(ctx context.Context, arg IsFolderOwnerParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, isFolderOwner, arg.FolderID, arg.UserID)
+func (q *Queries) HasOwnerAccessForFolder(ctx context.Context, arg HasOwnerAccessForFolderParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasOwnerAccessForFolder, arg.FolderID, arg.UserID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

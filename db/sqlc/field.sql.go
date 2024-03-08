@@ -62,6 +62,32 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 	return exists, err
 }
 
+const deleteAccessRemovedFields = `-- name: DeleteAccessRemovedFields :exec
+DELETE FROM fields
+WHERE
+    EXISTS (
+        -- Select fields rows that don't have a corresponding entry in credential_access
+        SELECT 1
+        FROM fields f
+        WHERE
+            NOT EXISTS (
+                -- Look for a matching entry in credential_access
+                SELECT 1
+                FROM credential_access ca
+                WHERE
+                    ca.credential_id = f.credential_id
+                    AND ca.user_id = f.user_id
+            )
+            AND f.credential_id = fields.credential_id
+            AND f.user_id = fields.user_id
+    )
+`
+
+func (q *Queries) DeleteAccessRemovedFields(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAccessRemovedFields)
+	return err
+}
+
 const deleteCredentialFields = `-- name: DeleteCredentialFields :exec
 DELETE FROM fields
 WHERE credential_id = $1
@@ -227,4 +253,18 @@ func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFields
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeCredentialFieldsForUsers = `-- name: RemoveCredentialFieldsForUsers :exec
+DELETE FROM fields WHERE credential_id = $1 AND user_id = ANY($2::UUID[])
+`
+
+type RemoveCredentialFieldsForUsersParams struct {
+	CredentialID uuid.UUID   `json:"credentialId"`
+	UserIds      []uuid.UUID `json:"userIds"`
+}
+
+func (q *Queries) RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialFieldsForUsers, arg.CredentialID, pq.Array(arg.UserIds))
+	return err
 }
