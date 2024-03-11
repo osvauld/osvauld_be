@@ -106,7 +106,7 @@ func GetCredentialsFieldsByIds(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	credentials, err := service.GetCredentialsFieldsByIds(ctx, req.CredentialIds, userID)
+	credentials, err := service.GetFieldsByCredentialIds(ctx, req.CredentialIds, userID)
 	if err != nil {
 		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
@@ -114,6 +114,7 @@ func GetCredentialsFieldsByIds(ctx *gin.Context) {
 	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
 }
 
+// This is used by search to get credentials by ids
 func GetCredentialsByIDs(ctx *gin.Context) {
 	userIdInterface, _ := ctx.Get("userId")
 	userID, _ := userIdInterface.(uuid.UUID)

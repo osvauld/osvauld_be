@@ -32,16 +32,20 @@ func GetSensitiveFields(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UU
 	return sensitiveFields, err
 }
 
-func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
-	credentialsIds, err := repository.GetCredentialIdsByFolderAndUserId(ctx, folderID, userID)
+
+func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialFields, error) {
+	credentialsIds, err := repository.GetCredentialIdsByFolderAndUserId(ctx, db.GetCredentialIdsByFolderParams{
+		FolderID: folderID,
+		UserID:   userID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	credentials, _ := repository.GetCredentialsFieldsByIds(ctx, credentialsIds, userID)
+	credentials, _ := GetFieldsByCredentialIds(ctx, credentialsIds, userID)
 	return credentials, nil
 }
 
-func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+func GetFieldsByCredentialIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]dto.CredentialFields, error) {
 
 	fields, err := repository.GetAllFieldsForCredentialIDs(ctx, db.GetAllFieldsForCredentialIDsParams{
 		Credentials: credentialIds,
@@ -52,15 +56,22 @@ func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, user
 		return nil, err
 	}
 
-	credentialMap := make(map[uuid.UUID][]db.GetAllFieldsForCredentialIDsRow)
+	credentialMap := make(map[uuid.UUID][]dto.Field)
 
 	for _, field := range fields {
-		credentialMap[field.CredentialID] = append(credentialMap[field.CredentialID], field)
+
+		fieldObj := dto.Field{
+			ID:         field.ID,
+			FieldName:  field.FieldName,
+			FieldValue: field.FieldValue,
+			FieldType:  field.FieldType,
+		}
+
+		credentialMap[field.CredentialID] = append(credentialMap[field.CredentialID], fieldObj)
+
 	}
 
 	credentialFieldDtos := []dto.CredentialFields{}
-
-	fields 
 
 	for _, credentialID := range credentialIds {
 		credentialFieldDtos = append(credentialFieldDtos, dto.CredentialFields{

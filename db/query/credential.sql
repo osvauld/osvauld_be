@@ -9,13 +9,14 @@ VALUES
 -- name: GetCredentialDataByID :one
 SELECT
     id,
-    created_at,
-    updated_at,
     name,
     description,
     folder_id,
     credential_type,
-    created_by
+    created_by,
+    created_at,
+    updated_at,
+    updated_by
 FROM
     credentials
 WHERE
@@ -31,6 +32,7 @@ SELECT
     C.created_at AS "createdAt",
     C.updated_at AS "updatedAt",
     C.created_by AS "createdBy",
+    C.updated_by AS "updatedBy",
     A.access_type AS "accessType"
 FROM
     credentials AS C,
@@ -39,40 +41,6 @@ WHERE
     C.id = A .credential_id
     AND C.folder_id = $1
     AND A.user_id = $2;
-
-
--- name: GetCredentialDetails :one
-SELECT
-    id,
-    NAME,
-    COALESCE(description, '') AS "description"
-FROM
-    credentials
-WHERE
-    id = $1;
-
-
--- name: GetEncryptedCredentialsByFolder :many
-SELECT
-    C .id as "credentialId",
-    json_agg(
-        json_build_object(
-            'fieldName',
-            e.field_name,
-            'fieldValue',
-            e.field_value
-        )
-    ) AS "encryptedFields"
-FROM
-    credentials C
-    JOIN fields e ON C .id = e.credential_id
-WHERE
-    C .folder_id = $1
-    AND e.user_id = $2
-GROUP BY
-    C .id
-ORDER BY
-    C .id;
 
 
 -- name: GetAllUrlsForUser :many
@@ -84,23 +52,22 @@ WHERE
     user_id = $1 AND field_name = 'Domain';
 
 
--- name: GetCredentialDetailsByIds :many
+-- name: GetCredentialDetailsByIDs :many
 SELECT
-    C.id AS "credentialId",
-    C.name,
-    COALESCE(C.description, '') AS description,
-    json_agg(
-        json_build_object(
-            'fieldName', COALESCE(ED.field_name, ''),
-            'fieldValue', ED.field_value
-        )
-    ) AS "fields"
+    id,
+    name,
+    description,
+    folder_id,
+    credential_type,
+    created_by,
+    created_at,
+    updated_at,
+    updated_by
 FROM
-    credentials C
-LEFT JOIN fields ED ON C.id = ED.credential_id AND ED.user_id = $2
+    credentials
 WHERE
-    C.id = ANY($1::UUID[])
-GROUP BY C.id;
+    id = ANY(@credentialIDs::UUID[]);
+
 
 
 -- name: GetCredentialIdsByFolder :many
