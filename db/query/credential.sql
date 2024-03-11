@@ -74,27 +74,6 @@ GROUP BY
 ORDER BY
     C .id;
 
--- name: GetCredentialsFieldsByIds :many
-SELECT
-    e.credential_id AS "credentialId",
-    json_agg(
-        json_build_object(
-            'fieldId',
-            e.id,
-            'fieldValue',
-            e.field_value
-        )
-    ) AS "fields"
-FROM
-    fields e
-WHERE
-    e.credential_id = ANY($1 :: uuid [ ])
-    AND e.user_id = $2
-GROUP BY
-    e.credential_id
-ORDER BY
-    e.credential_id;
-
 
 -- name: GetAllUrlsForUser :many
 SELECT DISTINCT

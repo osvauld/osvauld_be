@@ -24,3 +24,8 @@ type ShareField struct {
 	ID         uuid.UUID `json:"fieldId"`
 	FieldValue string    `json:"fieldValue"`
 }
+
+type CredentialFields struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	Fields       []Field   `json:"fields"`
+}

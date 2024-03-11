@@ -3,6 +3,7 @@ package service
 import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
+	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -41,11 +42,34 @@ func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID
 }
 
 func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
-	credentials, err := repository.GetCredentialsFieldsByIds(ctx, credentialIds, userID)
+
+	fields, err := repository.GetAllFieldsForCredentialIDs(ctx, db.GetAllFieldsForCredentialIDsParams{
+		Credentials: credentialIds,
+		UserID:      userID,
+	})
+
 	if err != nil {
 		return nil, err
 	}
-	return credentials, nil
+
+	credentialMap := make(map[uuid.UUID][]db.GetAllFieldsForCredentialIDsRow)
+
+	for _, field := range fields {
+		credentialMap[field.CredentialID] = append(credentialMap[field.CredentialID], field)
+	}
+
+	credentialFieldDtos := []dto.CredentialFields{}
+
+	fields 
+
+	for _, credentialID := range credentialIds {
+		credentialFieldDtos = append(credentialFieldDtos, dto.CredentialFields{
+			CredentialID: credentialID,
+			Fields:       credentialMap[credentialID],
+		})
+	}
+
+	return credentialFieldDtos, nil
 }
 
 func DeleteAccessRemovedFields(ctx *gin.Context) error {

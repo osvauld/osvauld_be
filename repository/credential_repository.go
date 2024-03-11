@@ -32,18 +32,6 @@ func EditCredential(ctx *gin.Context, args db.EditCredentialTransactionParams) e
 
 }
 
-func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
-	arg := db.GetCredentialsFieldsByIdsParams{
-		Column1: credentialIds,
-		UserID:  userID,
-	}
-	encryptedData, err := database.Store.GetCredentialsFieldsByIds(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return encryptedData, err
-}
 
 func GetCredentialsByIDs(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
 	credentials, err := database.Store.GetCredentialDetailsByIds(ctx, db.GetCredentialDetailsByIdsParams{
