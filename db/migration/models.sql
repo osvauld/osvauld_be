@@ -128,3 +128,23 @@ CREATE TABLE session_table (
 CREATE INDEX idx_user_id ON session_table(user_id);
 CREATE INDEX idx_session_id ON session_table(session_id);
 
+
+-- SQL Definition for Combined Fields
+CREATE TABLE combined_fields (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    combined_field TEXT,
+    user_id UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- SQL Definition for Cache Refresh
+CREATE TABLE cache_refresh (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    folder_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id),
+    credential_id UUID NOT NULL REFERENCES credentials(id),
+    type VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -78,12 +78,12 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 		return false, errors.New("invalid signature")
 	}
 
-	err = repository.UpdateKeys(ctx, db.UpdateKeysParams{
+	userId, err := repository.UpdateKeys(ctx, db.UpdateKeysParams{
 		Username:      registerData.UserName,
 		EncryptionKey: sql.NullString{String: registerData.EncryptionKey, Valid: true},
 		DeviceKey:     sql.NullString{String: registerData.DeviceKey, Valid: true},
 	})
-
+	err = repository.GenerateCombinedFieldEntry(ctx, userId)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return false, err

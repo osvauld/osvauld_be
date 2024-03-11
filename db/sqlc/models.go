@@ -11,6 +11,24 @@ import (
 	"github.com/google/uuid"
 )
 
+type CacheRefresh struct {
+	ID           uuid.UUID `json:"id"`
+	FolderID     uuid.UUID `json:"folderId"`
+	UserID       uuid.UUID `json:"userId"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	Type         string    `json:"type"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type CombinedField struct {
+	ID            uuid.UUID      `json:"id"`
+	CombinedField sql.NullString `json:"combinedField"`
+	UserID        uuid.UUID      `json:"userId"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+}
+
 type Credential struct {
 	ID             uuid.UUID      `json:"id"`
 	Name           string         `json:"name"`

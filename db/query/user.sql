@@ -44,10 +44,12 @@ RETURNING *;
 SELECT challenge FROM session_table WHERE user_id = $1;
 
 
--- name: UpdateKeys :exec
+-- name: UpdateKeys :one
 UPDATE users
 SET encryption_key = $1, device_key = $2, signed_up = TRUE, status = 'active'
-WHERE username = $3;
+WHERE username = $3
+RETURNING id as "userId";
+
 
 
 -- name: GetRegistrationChallenge :one
