@@ -241,7 +241,7 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUs
 
 func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCredentialRequest, caller uuid.UUID) error {
 
-	isOwner, err := HasOwnerAccessForCredential(ctx, credentialID, caller)
+	isOwner, err := HasWriteAccessForCredential(ctx, credentialID, caller)
 	if err != nil {
 		return err
 	}
