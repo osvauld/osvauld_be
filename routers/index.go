@@ -55,7 +55,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/urls", middleware.JWTAuthMiddleware(), controllers.GetAllUrlsForUser)
 
 	route.GET("/group/:groupId/credential-fields", middleware.JWTAuthMiddleware(), controllers.GetAllCredentialsByGroupID)
-	route.GET("/group/:groupId/users/without-access", middleware.JWTAuthMiddleware(), controllers.GetUsersWithoutGroupAccess)
+	route.GET("/groups/:groupId/users/without-access", middleware.JWTAuthMiddleware(), controllers.GetUsersWithoutGroupAccess)
 
 	route.POST("/credential/:id/remove-user-access", middleware.JWTAuthMiddleware(), controllers.RemoveCredentialAccessForUsers)
 	route.POST("/credential/:id/remove-group-access", middleware.JWTAuthMiddleware(), controllers.RemoveCredentialAccessForGroups)
