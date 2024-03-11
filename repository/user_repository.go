@@ -34,7 +34,7 @@ func FetchChallenge(ctx *gin.Context, userId uuid.UUID) (string, error) {
 	return database.Store.FetchChallenge(ctx, userId)
 }
 
-func UpdateKeys(ctx *gin.Context, args db.UpdateKeysParams) error {
+func UpdateKeys(ctx *gin.Context, args db.UpdateKeysParams) (uuid.UUID, error) {
 
 	return database.Store.UpdateKeys(ctx, args)
 }

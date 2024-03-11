@@ -184,10 +184,11 @@ func (q *Queries) GetUserTempPassword(ctx context.Context, username string) (Get
 	return i, err
 }
 
-const updateKeys = `-- name: UpdateKeys :exec
+const updateKeys = `-- name: UpdateKeys :one
 UPDATE users
 SET encryption_key = $1, device_key = $2, signed_up = TRUE, status = 'active'
 WHERE username = $3
+RETURNING id as "userId"
 `
 
 type UpdateKeysParams struct {
@@ -196,9 +197,11 @@ type UpdateKeysParams struct {
 	Username      string         `json:"username"`
 }
 
-func (q *Queries) UpdateKeys(ctx context.Context, arg UpdateKeysParams) error {
-	_, err := q.db.ExecContext(ctx, updateKeys, arg.EncryptionKey, arg.DeviceKey, arg.Username)
-	return err
+func (q *Queries) UpdateKeys(ctx context.Context, arg UpdateKeysParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, updateKeys, arg.EncryptionKey, arg.DeviceKey, arg.Username)
+	var userId uuid.UUID
+	err := row.Scan(&userId)
+	return userId, err
 }
 
 const updateRegistrationChallenge = `-- name: UpdateRegistrationChallenge :exec

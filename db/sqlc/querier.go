@@ -23,6 +23,7 @@ type Querier interface {
 	CheckUserManagerOfGroup(ctx context.Context, arg CheckUserManagerOfGroupParams) (bool, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
+	CreateCombinedField(ctx context.Context, userID uuid.UUID) error
 	// sql/create_credential.sql
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
@@ -76,7 +77,7 @@ type Querier interface {
 	RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error
 	RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error
 	RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error
-	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
+	UpdateKeys(ctx context.Context, arg UpdateKeysParams) (uuid.UUID, error)
 	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }
 
