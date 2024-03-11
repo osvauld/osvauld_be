@@ -78,6 +78,19 @@ func HasOwnerAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userI
 
 }
 
+
+func HasWriteAccessForCredential(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (bool, error) {
+	access, err := GetAccessTypeForCredential(ctx, credentialID, userID)
+	if err != nil {
+		return false, err
+	}
+	if CredentialAccessLevels[access] > 1 {
+		return true, nil
+	}
+	return false, nil
+}
+
+
 func HasOwnerAccessForCredentials(ctx *gin.Context, credentialIDs []uuid.UUID, userID uuid.UUID) (bool, error) {
 
 	// TODO: optimize this
