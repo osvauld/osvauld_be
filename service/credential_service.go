@@ -5,7 +5,6 @@ import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
-	"osvauld/infra/database"
 	"osvauld/infra/logger"
 	"osvauld/repository"
 
@@ -171,7 +170,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		credentialIDs = append(credentialIDs, credential.CredentialID)
 	}
 
-	FieldsData, err := database.Store.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
+	FieldsData, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
 		Credentials: credentialIDs,
 		UserID:      userID,
 	})
@@ -183,23 +182,12 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 
 	for _, field := range FieldsData {
 		// if credential.CredentialID does not exist add it to the map and add the field to the array
-		if _, ok := credentialFieldGroups[field.CredentialID]; ok {
-			credentialFieldGroups[field.CredentialID] = append(credentialFieldGroups[field.CredentialID], dto.Field{
-				ID:         field.ID,
-				FieldName:  field.FieldName,
-				FieldValue: field.FieldValue,
-				FieldType:  field.FieldType,
-			})
-		} else {
-			credentialFieldGroups[field.CredentialID] = []dto.Field{
-				{
-					ID:         field.ID,
-					FieldName:  field.FieldName,
-					FieldValue: field.FieldValue,
-					FieldType:  field.FieldType,
-				},
-			}
-		}
+		credentialFieldGroups[field.CredentialID] = append(credentialFieldGroups[field.CredentialID], dto.Field{
+			ID:         field.ID,
+			FieldName:  field.FieldName,
+			FieldValue: field.FieldValue,
+			FieldType:  field.FieldType,
+		})
 	}
 
 	credentials := []dto.CredentialForUser{}
@@ -223,8 +211,48 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return credentials, nil
 }
 
-func GetCredentialsByIDs(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
-	credentials, err := repository.GetCredentialsByIDs(ctx, credentialIds, userID)
+func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
+
+	// TODO: Add access checks
+
+	FieldsData, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
+		Credentials: credentialIDs,
+		UserID:      userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	credentialFieldGroups := map[uuid.UUID][]dto.Field{}
+
+	for _, field := range FieldsData {
+		// if credential.CredentialID does not exist add it to the map and add the field to the array
+		credentialFieldGroups[field.CredentialID] = append(credentialFieldGroups[field.CredentialID], dto.Field{
+			ID:         field.ID,
+			FieldName:  field.FieldName,
+			FieldValue: field.FieldValue,
+			FieldType:  field.FieldType,
+		})
+	}
+
+	credentialDetails, err := repository.GetCredentialDetailsByIDs(ctx, credentialIDs)
+
+	credentials := []dto.CredentialForUser{}
+	for _, credential := range credentialDetails {
+		credentialForUser := dto.CredentialForUser{}
+
+		credentialForUser.CredentialID = credential.ID
+		credentialForUser.Name = credential.Name
+		credentialForUser.Description = credential.Description.String
+		credentialForUser.CredentialType = credential.CredentialType
+		credentialForUser.FolderID = credential.FolderID
+		credentialForUser.CreatedAt = credential.CreatedAt
+		credentialForUser.UpdatedAt = credential.UpdatedAt
+		credentialForUser.CreatedBy = credential.CreatedBy
+		credentialForUser.Fields = credentialFieldGroups[credential.ID]
+
+		credentials = append(credentials, credentialForUser)
+	}
+
 	if err != nil {
 		return nil, err
 	}
