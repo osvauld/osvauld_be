@@ -69,7 +69,7 @@ func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, group
 	return credentialIDs, err
 }
 
-func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
+func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]dto.CredentialFields, error) {
 
 	isMember, err := CheckUserMemberOfGroup(ctx, groupID, caller)
 	if !isMember {
@@ -84,7 +84,7 @@ func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uu
 		return nil, err
 	}
 
-	credentialFields, err := repository.GetCredentialsFieldsByIds(ctx, credentialIDs, caller)
+	credentialFields, err := GetFieldsByCredentialIds(ctx, credentialIDs, caller)
 	if err != nil {
 		return nil, err
 	}

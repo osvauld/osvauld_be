@@ -14,6 +14,7 @@ LIMIT 1;
 -- name: GetUserTempPassword :one
 SELECT temp_password, status FROM users WHERE username = $1;
 
+
 -- name: UpdateRegistrationChallenge :exec
 UPDATE users
 SET registration_challenge = $1, status = 'temp_login'
@@ -23,12 +24,12 @@ WHERE username = $2;
 -- name: GetAllUsers :many
 SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true;
 
+
 -- name: GetUserByPublicKey :one
 SELECT id
 FROM users
 WHERE device_key = $1
 LIMIT 1;
-
 
 
 -- name: CreateChallenge :one

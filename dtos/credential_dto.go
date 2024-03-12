@@ -70,12 +70,6 @@ type ShareFolderWithGroupsRequest struct {
 	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
 }
 
-type EditCredentialDetailsRequest struct {
-	CredentialID   uuid.UUID `json:"credentialId"`
-	Name           string    `json:"name"`
-	Description    string    `json:"description"`
-	CredentialType string    `json:"credentialType"`
-}
 
 type EditCredentialRequest struct {
 	Name           string       `json:"name"`

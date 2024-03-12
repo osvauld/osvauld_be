@@ -14,7 +14,7 @@ type UserFieldsWithAccessType struct {
 }
 
 type Field struct {
-	ID         uuid.UUID `json:"id"`
+	ID         uuid.UUID `json:"fieldId"`
 	FieldName  string    `json:"fieldName"`
 	FieldValue string    `json:"fieldValue"`
 	FieldType  string    `json:"fieldType"`
@@ -23,4 +23,9 @@ type Field struct {
 type ShareField struct {
 	ID         uuid.UUID `json:"fieldId"`
 	FieldValue string    `json:"fieldValue"`
+}
+
+type CredentialFields struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	Fields       []Field   `json:"fields"`
 }

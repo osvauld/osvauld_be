@@ -3,7 +3,6 @@ package repository
 import (
 	db "osvauld/db/sqlc"
 	"osvauld/infra/database"
-	"osvauld/infra/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -32,50 +31,21 @@ func EditCredential(ctx *gin.Context, args db.EditCredentialTransactionParams) e
 
 }
 
-func GetCredentialsFieldsByIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialsFieldsByIdsRow, error) {
-	arg := db.GetCredentialsFieldsByIdsParams{
-		Column1: credentialIds,
-		UserID:  userID,
-	}
-	encryptedData, err := database.Store.GetCredentialsFieldsByIds(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return encryptedData, err
-}
+func GetCredentialDetailsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID) ([]db.GetCredentialDetailsByIDsRow, error) {
 
-func GetCredentialsByIDs(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]db.GetCredentialDetailsByIdsRow, error) {
-	credentials, err := database.Store.GetCredentialDetailsByIds(ctx, db.GetCredentialDetailsByIdsParams{
-		UserID:  userID,
-		Column1: credentialIds,
-	})
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return credentials, err
+	return database.Store.GetCredentialDetailsByIDs(ctx, credentialIDs)
 }
 
 func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUserRow, error) {
-	urls, err := database.Store.GetAllUrlsForUser(ctx, userID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return urls, err
+
+	return database.Store.GetAllUrlsForUser(ctx, userID)
+
 }
 
-func GetCredentialIdsByFolderAndUserId(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]uuid.UUID, error) {
-	credentialIds, err := database.Store.GetCredentialIdsByFolder(ctx, db.GetCredentialIdsByFolderParams{
-		FolderID: folderID,
-		UserID:   userID,
-	})
-	if err != nil {
-		logger.Errorf(err.Error())
-		return nil, err
-	}
-	return credentialIds, err
+func GetCredentialIdsByFolderAndUserId(ctx *gin.Context, args db.GetCredentialIdsByFolderParams) ([]uuid.UUID, error) {
+
+	return database.Store.GetCredentialIdsByFolder(ctx, args)
+
 }
 
 func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndUsersByCredentialIdRow, error) {
