@@ -90,7 +90,8 @@ func (q *Queries) EditCredentialAccessForUser(ctx context.Context, arg EditCrede
 const editCredentialAccessForUserWithFolderID = `-- name: EditCredentialAccessForUserWithFolderID :exec
 UPDATE credential_access
 SET access_type = $1
-WHERE folder_id = $2 AND user_id = $3
+WHERE group_id IS NULL
+AND folder_id = $2 AND user_id = $3
 `
 
 type EditCredentialAccessForUserWithFolderIDParams struct {
