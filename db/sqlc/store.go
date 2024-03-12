@@ -16,10 +16,9 @@ type Store interface {
 	AddMembersToGroupTransaction(context.Context, AddMembersToGroupTransactionParams) error
 	ShareCredentialsTransaction(context.Context, ShareCredentialTransactionParams) error
 	EditCredentialTransaction(context.Context, EditCredentialTransactionParams) error
-	RemoveCredentialAccessForUsersTransactions(context.Context, RemoveCredentialAccessForUsersParams) error
 	RemoveFolderAccessForUsersTransactions(context.Context, RemoveFolderAccessForUsersParams) error
-	RemoveCredentialAccessForGroupsTransactions(context.Context, RemoveCredentialAccessForGroupsParams) error
 	RemoveFolderAccessForGroupsTransactions(context.Context, RemoveFolderAccessForGroupsParams) error
+	EditFolderAccessForUserTransaction(context.Context, EditFolderAccessForUserParams) error
 }
 
 type SQLStore struct {

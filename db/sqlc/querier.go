@@ -29,7 +29,10 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
 	DeleteAccessRemovedFields(ctx context.Context) error
 	DeleteCredentialFields(ctx context.Context, credentialID uuid.UUID) error
+	EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error
+	EditCredentialAccessForUserWithFolderID(ctx context.Context, arg EditCredentialAccessForUserWithFolderIDParams) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
+	EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error
 	FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)

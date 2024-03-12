@@ -69,6 +69,58 @@ func (q *Queries) CheckCredentialAccessEntryExists(ctx context.Context, arg Chec
 	return exists, err
 }
 
+const editCredentialAccessForUser = `-- name: EditCredentialAccessForUser :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE  group_id IS NULL AND folder_id IS NULL
+AND credential_id = $2 AND user_id = $3
+`
+
+type EditCredentialAccessForUserParams struct {
+	AccessType   string    `json:"accessType"`
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error {
+	_, err := q.db.ExecContext(ctx, editCredentialAccessForUser, arg.AccessType, arg.CredentialID, arg.UserID)
+	return err
+}
+
+const editCredentialAccessForUserWithFolderID = `-- name: EditCredentialAccessForUserWithFolderID :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE folder_id = $2 AND user_id = $3
+`
+
+type EditCredentialAccessForUserWithFolderIDParams struct {
+	AccessType string        `json:"accessType"`
+	FolderID   uuid.NullUUID `json:"folderId"`
+	UserID     uuid.UUID     `json:"userId"`
+}
+
+func (q *Queries) EditCredentialAccessForUserWithFolderID(ctx context.Context, arg EditCredentialAccessForUserWithFolderIDParams) error {
+	_, err := q.db.ExecContext(ctx, editCredentialAccessForUserWithFolderID, arg.AccessType, arg.FolderID, arg.UserID)
+	return err
+}
+
+const editFolderAccessForUser = `-- name: EditFolderAccessForUser :exec
+UPDATE folder_access
+SET access_type = $1
+WHERE folder_id = $2 AND user_id = $3
+`
+
+type EditFolderAccessForUserParams struct {
+	AccessType string    `json:"accessType"`
+	FolderID   uuid.UUID `json:"folderId"`
+	UserID     uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error {
+	_, err := q.db.ExecContext(ctx, editFolderAccessForUser, arg.AccessType, arg.FolderID, arg.UserID)
+	return err
+}
+
 const getCredentialAccessForUser = `-- name: GetCredentialAccessForUser :many
 SELECT id, user_id, credential_id, group_id, access_type
 FROM credential_access
