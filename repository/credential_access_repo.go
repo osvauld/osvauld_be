@@ -89,3 +89,13 @@ func EditFolderAccessForUser(ctx *gin.Context, args db.EditFolderAccessForUserPa
 
 	return database.Store.EditFolderAccessForUserTransaction(ctx, args)
 }
+
+func EditCredentialAccessForGroup(ctx *gin.Context, args db.EditCredentialAccessForGroupParams) error {
+
+	return database.Store.EditCredentialAccessForGroup(ctx, args)
+}
+
+func EditFolderAccessForGroup(ctx *gin.Context, args db.EditFolderAccessForGroupParams) error {
+
+	return database.Store.EditFolderAccessForGroupTransaction(ctx, args)
+}

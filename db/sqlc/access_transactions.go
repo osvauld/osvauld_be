@@ -79,3 +79,31 @@ func (store *SQLStore) EditFolderAccessForUserTransaction(ctx context.Context, a
 		return nil
 	})
 }
+
+// Edit folder access for group transaction
+func (store *SQLStore) EditFolderAccessForGroupTransaction(ctx context.Context, args EditFolderAccessForGroupParams) error {
+	return store.execTx(ctx, func(q *Queries) error {
+
+		// Remove folder access rows from folder_access table
+		err := q.EditFolderAccessForGroup(ctx, EditFolderAccessForGroupParams{
+			AccessType: args.AccessType,
+			GroupID:    args.GroupID,
+			FolderID:   args.FolderID,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Add folder access rows to folder_access table
+		err = q.EditCredentialAccessForGroupWithFolderID(ctx, EditCredentialAccessForGroupWithFolderIDParams{
+			AccessType: args.AccessType,
+			GroupID:    args.GroupID,
+			FolderID:   uuid.NullUUID{UUID: args.FolderID, Valid: true},
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}

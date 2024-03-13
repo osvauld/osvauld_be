@@ -220,3 +220,73 @@ func EditFolderAccessForUser(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, nil, "edited folder access", nil)
 }
+
+// controller for edit credential access for user
+func EditCredentialAccessForGroup(ctx *gin.Context) {
+	var req dto.EditCredentialAccessForGroup
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", err)
+		return
+	}
+
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	err = service.EditCredentialAccessForGroup(ctx, credentialID, req, caller)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserNotAnOwnerOfCredentialError); ok {
+			SendResponse(ctx, 401, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, 500, nil, "", err)
+		return
+	}
+	SendResponse(ctx, 200, nil, "edited credential access for group", nil)
+}
+
+// controller for edit folder access for group
+func EditFolderAccessForGroup(ctx *gin.Context) {
+	var req dto.EditFolderAccessForGroup
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", err)
+		return
+	}
+
+	folderIDStr := ctx.Param("id")
+	folderID, err := uuid.Parse(folderIDStr)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	err = service.EditFolderAccessForGroup(ctx, folderID, req, caller)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserNotAnOwnerOfFolderError); ok {
+			SendResponse(ctx, 401, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, 500, nil, "", err)
+		return
+	}
+	SendResponse(ctx, 200, nil, "edited folder access for group", nil)
+}

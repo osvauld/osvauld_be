@@ -69,6 +69,41 @@ func (q *Queries) CheckCredentialAccessEntryExists(ctx context.Context, arg Chec
 	return exists, err
 }
 
+const editCredentialAccessForGroup = `-- name: EditCredentialAccessForGroup :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE folder_id IS NULL
+AND credential_id = $2 AND group_id = $3
+`
+
+type EditCredentialAccessForGroupParams struct {
+	AccessType   string        `json:"accessType"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	GroupID      uuid.NullUUID `json:"groupId"`
+}
+
+func (q *Queries) EditCredentialAccessForGroup(ctx context.Context, arg EditCredentialAccessForGroupParams) error {
+	_, err := q.db.ExecContext(ctx, editCredentialAccessForGroup, arg.AccessType, arg.CredentialID, arg.GroupID)
+	return err
+}
+
+const editCredentialAccessForGroupWithFolderID = `-- name: EditCredentialAccessForGroupWithFolderID :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE folder_id = $2 AND group_id = $3
+`
+
+type EditCredentialAccessForGroupWithFolderIDParams struct {
+	AccessType string        `json:"accessType"`
+	FolderID   uuid.NullUUID `json:"folderId"`
+	GroupID    uuid.NullUUID `json:"groupId"`
+}
+
+func (q *Queries) EditCredentialAccessForGroupWithFolderID(ctx context.Context, arg EditCredentialAccessForGroupWithFolderIDParams) error {
+	_, err := q.db.ExecContext(ctx, editCredentialAccessForGroupWithFolderID, arg.AccessType, arg.FolderID, arg.GroupID)
+	return err
+}
+
 const editCredentialAccessForUser = `-- name: EditCredentialAccessForUser :exec
 UPDATE credential_access
 SET access_type = $1
@@ -105,10 +140,28 @@ func (q *Queries) EditCredentialAccessForUserWithFolderID(ctx context.Context, a
 	return err
 }
 
+const editFolderAccessForGroup = `-- name: EditFolderAccessForGroup :exec
+UPDATE folder_access
+SET access_type = $1
+WHERE folder_id = $2 AND group_id = $3
+`
+
+type EditFolderAccessForGroupParams struct {
+	AccessType string        `json:"accessType"`
+	FolderID   uuid.UUID     `json:"folderId"`
+	GroupID    uuid.NullUUID `json:"groupId"`
+}
+
+func (q *Queries) EditFolderAccessForGroup(ctx context.Context, arg EditFolderAccessForGroupParams) error {
+	_, err := q.db.ExecContext(ctx, editFolderAccessForGroup, arg.AccessType, arg.FolderID, arg.GroupID)
+	return err
+}
+
 const editFolderAccessForUser = `-- name: EditFolderAccessForUser :exec
 UPDATE folder_access
 SET access_type = $1
-WHERE folder_id = $2 AND user_id = $3
+WHERE group_id IS NULL
+AND folder_id = $2 AND user_id = $3
 `
 
 type EditFolderAccessForUserParams struct {

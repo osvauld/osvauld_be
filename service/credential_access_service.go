@@ -283,3 +283,55 @@ func EditFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, payload dto.E
 	return nil
 
 }
+
+func EditCredentialAccessForGroup(ctx *gin.Context, credentialID uuid.UUID, payload dto.EditCredentialAccessForGroup, caller uuid.UUID) error {
+
+	// Check caller has owner access for credential
+	isOwner, err := HasOwnerAccessForCredentials(ctx, []uuid.UUID{credentialID}, caller)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		errMsg := fmt.Sprintf("user %s does not have owner access for credential %s", caller, credentialID)
+		return &customerrors.UserNotAnOwnerOfCredentialError{Message: errMsg}
+	}
+
+	err = repository.EditCredentialAccessForGroup(ctx, db.EditCredentialAccessForGroupParams{
+		CredentialID: credentialID,
+		AccessType:   payload.AccessType,
+		GroupID:      uuid.NullUUID{Valid: true, UUID: payload.GroupID},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func EditFolderAccessForGroup(ctx *gin.Context, folderID uuid.UUID, payload dto.EditFolderAccessForGroup, caller uuid.UUID) error {
+
+	// Check caller has owner access for folder
+	isOwner, err := HasOwnerAccessForFolder(ctx, folderID, caller)
+	if err != nil {
+		return err
+	}
+
+	if !isOwner {
+		errMsg := fmt.Sprintf("user %s does not have owner access for folder %s", caller, folderID)
+		return &customerrors.UserNotAnOwnerOfFolderError{Message: errMsg}
+	}
+
+	err = repository.EditFolderAccessForGroup(ctx, db.EditFolderAccessForGroupParams{
+		FolderID:   folderID,
+		AccessType: payload.AccessType,
+		GroupID:    uuid.NullUUID{Valid: true, UUID: payload.GroupID},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
