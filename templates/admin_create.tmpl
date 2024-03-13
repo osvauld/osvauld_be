@@ -2,6 +2,154 @@
 <html>
 <head>
     <title>Create User</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: #C9D1D9;
+            background-color: #0D1117;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        h3 {
+            padding: 20px;
+            color: #89B4FA;
+        }
+
+        .main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 90%;       
+         }
+
+        form {
+            margin-top: 10vh;
+            display: flex;
+            width: 40vw;
+            flex-direction: column;
+        }
+
+        form>div {
+            margin: 10px;
+            width: 100%;
+        }
+
+        .input-container {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           background-color: #0D1117;
+        }
+
+        .input-container  input {
+            background-color: #0D1117;
+            color: #C9D1D9;
+            border: 1px solid #21262D;
+            border-radius: 4px;
+            padding: 5px;
+            padding-left: 15px;
+            font-size: 16px;
+            width: 50%;
+        }
+
+        .input-container input:nth-last-child(2){
+            border:0;
+        }
+
+        .with-icon {
+            border: 1px solid #21262D;
+            border-radius: 4px;
+        }
+
+     
+
+        .input-container div {
+            width: 50%;
+        }
+
+        .input-container div input {
+            width: 80%;
+        }
+
+        .input-container  input:focus {
+           outline: none;
+        }
+
+        #submit {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 40px;
+            padding: 10px 40px 10px 40px;
+            border-radius: 6px;
+            border-width: 0;
+            font-weight: 400;
+            font-size: 16px;
+            background-color: #89B4FA;
+        }
+        #submit:hover {
+            cursor: pointer;
+        }
+
+        #submit:active {
+            transform: scale(1.08);
+        }
+
+
+        .input-container i {
+            color: #21262D;
+            margin-left: 5px;
+        }
+        .input-container i:hover {
+            cursor: pointer;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <h3>osvauld</h3>
+<div class="main">
+    <h1>Create Super User</h1>
+    <form onsubmit="submitForm(event)">
+        <div class="input-container">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username"  autofocus autocomplete="off" required>
+        </div>
+        <div class="input-container">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" autocomplete="off">
+        </div>
+        <div class="input-container">
+            <label for="password">Password:</label>
+            <div class="with-icon">
+                <input type="password" id="password" name="password"  autocomplete="off" required>
+                <i id="passwordEye" class="fa fa-eye" onclick="togglePasswordVisibility('password')"></i>
+            </div>
+        </div>
+            
+        <div class="input-container ">
+            <label for="confirm_password">Confirm Password:</label>
+            <div class="with-icon">
+                <input type="password" id="confirm_password" name="confirm_password"   autocomplete="off" required>
+                <i id="confirmPasswordEye" class="fa fa-eye" onclick="togglePasswordVisibility('confirm_password')"></i>
+            </div>
+        </div>
+        <input id="submit" type="submit" value="Submit">
+    </form>
+</div>
+ 
     <script>
         function submitForm(event) {
             event.preventDefault();
@@ -54,22 +202,5 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-</head>
-<body>
-    <h1>Create User</h1>
-    <form onsubmit="submitForm(event)">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <i id="passwordEye" class="fa fa-eye" onclick="togglePasswordVisibility('password')"></i><br>
-        <label for="confirm_password">Confirm Password:</label>
-        <input type="password" id="confirm_password" name="confirm_password" required>
-        <i id="confirmPasswordEye" class="fa fa-eye" onclick="togglePasswordVisibility('confirm_password')"></i><br>
-        <input type="submit" value="Submit">
-    </form>
 </body>
 </html>
