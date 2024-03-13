@@ -133,8 +133,7 @@ func GetAdminPage(ctx *gin.Context) {
 		SendResponse(ctx, 400, nil, "failed to fetch page", err)
 		return
 	}
-
-	if !exists {
+	if exists {
 		ctx.HTML(http.StatusOK, "admin_exists.tmpl", nil)
 	} else {
 		ctx.HTML(http.StatusOK, "admin_create.tmpl", nil)
@@ -142,17 +141,17 @@ func GetAdminPage(ctx *gin.Context) {
 }
 
 func CreateFirstAdmin(ctx *gin.Context) {
-	// exists, err := service.CheckUserExists(ctx)
-	// if err != nil {
-	// 	SendResponse(ctx, 400, nil, "failed to check user existence", err)
-	// 	return
-	// }
+	exists, err := service.CheckUserExists(ctx)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to check user existence", err)
+		return
+	}
 
-	// if exists {
-	// 	// Admin user already exists, render the "user exists" template
-	// 	ctx.HTML(http.StatusOK, "admin_exists.tmpl", nil)
-	// 	return
-	// }
+	if exists {
+		// Admin user already exists, render the "user exists" template
+		ctx.HTML(http.StatusOK, "admin_exists.tmpl", nil)
+		return
+	}
 
 	var req dto.CreateUser
 
@@ -168,7 +167,7 @@ func CreateFirstAdmin(ctx *gin.Context) {
 		return
 	}
 
-	_, err := service.CreateUser(ctx, req)
+	_, err = service.CreateUser(ctx, req)
 	if err != nil {
 		logger.Errorf(err.Error())
 		SendResponse(ctx, 400, nil, "failed to create user", nil)
