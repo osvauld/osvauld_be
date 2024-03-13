@@ -1,34 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{if .UserExists}}Admin User Created{{else}}Create User{{end}}</title>
+    <title>Create User</title>
     <script>
         function submitForm(event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault();
 
-            // Get the form data
             const username = document.getElementById('username').value;
             const name = document.getElementById('name').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
 
-            // Check if passwords match
             if (password !== confirmPassword) {
                 alert('Password and Confirm Password do not match');
                 return;
             }
 
-            // Prepare the request data
             const formData = {
                 username: username,
                 name: name,
                 tempPassword: password
             };
 
-            // Get the current URL
             const currentUrl = window.location.href;
 
-            // Send the POST request
             fetch(currentUrl, {
                 method: 'POST',
                 headers: {
@@ -39,9 +34,6 @@
             .then(response => response.text())
             .then(html => {
                 document.documentElement.innerHTML = html;
-                // Handle the server response
-                console.log(data);
-                // You can replace this with your desired logic
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -65,24 +57,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-    {{if .UserExists}}
-        <h1>Admin User Already Created</h1>
-        <p>The admin user has already been created. You cannot create another admin user.</p>
-    {{else}}
-        <h1>Create User</h1>
-        <form onsubmit="submitForm(event)">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br>
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <i id="passwordEye" class="fa fa-eye" onclick="togglePasswordVisibility('password')"></i><br>
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-            <i id="confirmPasswordEye" class="fa fa-eye" onclick="togglePasswordVisibility('confirm_password')"></i><br>
-            <input type="submit" value="Submit">
-        </form>
-    {{end}}
+    <h1>Create User</h1>
+    <form onsubmit="submitForm(event)">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <i id="passwordEye" class="fa fa-eye" onclick="togglePasswordVisibility('password')"></i><br>
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" id="confirm_password" name="confirm_password" required>
+        <i id="confirmPasswordEye" class="fa fa-eye" onclick="togglePasswordVisibility('confirm_password')"></i><br>
+        <input type="submit" value="Submit">
+    </form>
 </body>
 </html>

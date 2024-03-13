@@ -133,11 +133,12 @@ func GetAdminPage(ctx *gin.Context) {
 		SendResponse(ctx, 400, nil, "failed to fetch page", err)
 		return
 	}
-	data := gin.H{
-		"UserExists": !exists,
-	}
 
-	ctx.HTML(http.StatusOK, "admin.tmpl", data)
+	if !exists {
+		ctx.HTML(http.StatusOK, "admin_exists.tmpl", nil)
+	} else {
+		ctx.HTML(http.StatusOK, "admin_create.tmpl", nil)
+	}
 }
 
 func CreateFirstAdmin(ctx *gin.Context) {
