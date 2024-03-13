@@ -149,3 +149,18 @@ func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAcces
 
 	return repository.GetCredentialUsers(ctx, credentialID)
 }
+
+func GetCacheRefresh(ctx *gin.Context, userID uuid.UUID) ([]db.GetNonSensitiveFieldsForCredentialIDsRow, error) {
+	credentialIds, err := repository.GetCredentialIdsForCacheRefresh(ctx, userID)
+	if err != nil {
+		logger.Errorf(err.Error())
+		return nil, err
+	}
+	logger.Debugf(
+		"credens %v", credentialIds,
+	)
+	return repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
+		Credentials: credentialIds,
+		UserID:      userID,
+	})
+}

@@ -22,6 +22,7 @@ type Querier interface {
 	CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error)
 	CheckUserManagerOfGroup(ctx context.Context, arg CheckUserManagerOfGroupParams) (bool, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
+	CreateCacheRefresh(ctx context.Context, arg CreateCacheRefreshParams) error
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
 	CreateCombinedField(ctx context.Context, userID uuid.UUID) error
 	// sql/create_credential.sql
@@ -52,6 +53,7 @@ type Querier interface {
 	GetCredentialDetailsByIds(ctx context.Context, arg GetCredentialDetailsByIdsParams) ([]GetCredentialDetailsByIdsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error)
+	GetCredentialIdsByUserIdForCacheRefresh(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialsFieldsByIds(ctx context.Context, arg GetCredentialsFieldsByIdsParams) ([]GetCredentialsFieldsByIdsRow, error)
 	GetEncryptedCredentialsByFolder(ctx context.Context, arg GetEncryptedCredentialsByFolderParams) ([]GetEncryptedCredentialsByFolderRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)

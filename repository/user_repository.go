@@ -53,3 +53,8 @@ func GetRegistrationChallenge(ctx *gin.Context, userName string) (db.GetRegistra
 
 	return database.Store.GetRegistrationChallenge(ctx, userName)
 }
+
+func GetCredentialIdsForCacheRefresh(ctx *gin.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+
+	return database.Store.GetCredentialIdsByUserIdForCacheRefresh(ctx, userID)
+}

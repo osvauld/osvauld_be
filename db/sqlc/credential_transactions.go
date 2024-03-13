@@ -62,6 +62,15 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 			if err != nil {
 				return err
 			}
+			err = q.CreateCacheRefresh(ctx, CreateCacheRefreshParams{
+				UserID:       userFields.UserID,
+				FolderID:     args.FolderID,
+				CredentialID: credentialID,
+				Type:         "ADD",
+			})
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

@@ -342,6 +342,7 @@ const getCredentialDetailsByIds = `-- name: GetCredentialDetailsByIds :many
 SELECT
     C.id AS "credentialId",
     C.name,
+    c.folder_id AS "folderId",
     COALESCE(C.description, '') AS description,
     json_agg(
         json_build_object(
@@ -365,6 +366,7 @@ type GetCredentialDetailsByIdsParams struct {
 type GetCredentialDetailsByIdsRow struct {
 	CredentialId uuid.UUID       `json:"credentialId"`
 	Name         string          `json:"name"`
+	FolderId     uuid.UUID       `json:"folderId"`
 	Description  string          `json:"description"`
 	Fields       json.RawMessage `json:"fields"`
 }
@@ -381,6 +383,7 @@ func (q *Queries) GetCredentialDetailsByIds(ctx context.Context, arg GetCredenti
 		if err := rows.Scan(
 			&i.CredentialId,
 			&i.Name,
+			&i.FolderId,
 			&i.Description,
 			&i.Fields,
 		); err != nil {

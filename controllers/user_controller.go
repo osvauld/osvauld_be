@@ -6,6 +6,7 @@ import (
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	service "osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
@@ -125,4 +126,15 @@ func GetCredentialUsers(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, 200, users, "fetched credential users", nil)
+}
+
+func GetCacheRefresh(ctx *gin.Context) {
+
+	userID, err := utils.FetchUserIDFromCtx(ctx)
+	cache, err := service.GetCacheRefresh(ctx, userID)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to get cache refresh", err)
+		return
+	}
+	SendResponse(ctx, 200, cache, "fetched cache refresh", nil)
 }

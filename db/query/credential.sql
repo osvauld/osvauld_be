@@ -109,6 +109,7 @@ WHERE
 SELECT
     C.id AS "credentialId",
     C.name,
+    c.folder_id AS "folderId",
     COALESCE(C.description, '') AS description,
     json_agg(
         json_build_object(
