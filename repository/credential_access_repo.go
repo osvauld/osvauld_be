@@ -62,7 +62,7 @@ func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialA
 
 func RemoveCredentialAccessForUsers(ctx *gin.Context, args db.RemoveCredentialAccessForUsersParams) error {
 
-	return database.Store.RemoveCredentialAccessForUsersTransactions(ctx, args)
+	return database.Store.RemoveCredentialAccessForUsers(ctx, args)
 }
 
 func RemoveFolderAccessForUser(ctx *gin.Context, args db.RemoveFolderAccessForUsersParams) error {
@@ -72,10 +72,30 @@ func RemoveFolderAccessForUser(ctx *gin.Context, args db.RemoveFolderAccessForUs
 
 func RemoveCredentialAccessForGroups(ctx *gin.Context, args db.RemoveCredentialAccessForGroupsParams) error {
 
-	return database.Store.RemoveCredentialAccessForGroupsTransactions(ctx, args)
+	return database.Store.RemoveCredentialAccessForGroups(ctx, args)
 }
 
 func RemoveFolderAccessForGroups(ctx *gin.Context, args db.RemoveFolderAccessForGroupsParams) error {
 
 	return database.Store.RemoveFolderAccessForGroupsTransactions(ctx, args)
+}
+
+func EditCredentialAccessForUsers(ctx *gin.Context, args db.EditCredentialAccessForUserParams) error {
+
+	return database.Store.EditCredentialAccessForUser(ctx, args)
+}
+
+func EditFolderAccessForUser(ctx *gin.Context, args db.EditFolderAccessForUserParams) error {
+
+	return database.Store.EditFolderAccessForUserTransaction(ctx, args)
+}
+
+func EditCredentialAccessForGroup(ctx *gin.Context, args db.EditCredentialAccessForGroupParams) error {
+
+	return database.Store.EditCredentialAccessForGroup(ctx, args)
+}
+
+func EditFolderAccessForGroup(ctx *gin.Context, args db.EditFolderAccessForGroupParams) error {
+
+	return database.Store.EditFolderAccessForGroupTransaction(ctx, args)
 }

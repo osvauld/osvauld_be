@@ -25,3 +25,23 @@ type RemoveCredentialAccessForGroups struct {
 type RemoveFolderAccessForGroups struct {
 	GroupIDs []uuid.UUID `json:"groupIds"`
 }
+
+type EditCredentialAccessForUser struct {
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
+}
+
+type EditFolderAccessForUser struct {
+	UserID     uuid.UUID `json:"userId"`
+	AccessType string    `json:"accessType"`
+}
+
+type EditCredentialAccessForGroup struct {
+	GroupID    uuid.UUID `json:"groupId"`
+	AccessType string    `json:"accessType"`
+}
+
+type EditFolderAccessForGroup struct {
+	GroupID    uuid.UUID `json:"groupId"`
+	AccessType string    `json:"accessType"`
+}

@@ -55,3 +55,43 @@ DELETE FROM folder_access WHERE folder_id = $1 AND group_id = ANY(@group_ids::UU
 
 -- name: RemoveCredentialAccessForGroupsWithFolderID :exec
 DELETE FROM credential_access WHERE folder_id = $1 AND group_id = ANY(@group_ids::UUID[]);
+
+
+-- name: EditCredentialAccessForUser :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE  group_id IS NULL AND folder_id IS NULL
+AND credential_id = $2 AND user_id = $3;
+
+
+-- name: EditFolderAccessForUser :exec
+UPDATE folder_access
+SET access_type = $1
+WHERE group_id IS NULL
+AND folder_id = $2 AND user_id = $3;
+
+
+-- name: EditCredentialAccessForUserWithFolderID :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE group_id IS NULL
+AND folder_id = $2 AND user_id = $3;
+
+
+-- name: EditCredentialAccessForGroup :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE folder_id IS NULL
+AND credential_id = $2 AND group_id = $3;
+
+
+-- name: EditFolderAccessForGroup :exec
+UPDATE folder_access
+SET access_type = $1
+WHERE folder_id = $2 AND group_id = $3;
+
+
+-- name: EditCredentialAccessForGroupWithFolderID :exec
+UPDATE credential_access
+SET access_type = $1
+WHERE folder_id = $2 AND group_id = $3;
