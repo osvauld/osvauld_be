@@ -52,3 +52,6 @@ WHERE username = $3;
 
 -- name: GetRegistrationChallenge :one
 SELECT registration_challenge, status FROM users WHERE username = $1;
+
+-- name: CheckIfUsersExist :one
+SELECT EXISTS(SELECT 1 FROM users);

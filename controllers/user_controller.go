@@ -126,3 +126,54 @@ func GetCredentialUsers(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, users, "fetched credential users", nil)
 }
+
+func GetAdminPage(ctx *gin.Context) {
+	exists, err := service.CheckUserExists(ctx)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to fetch page", err)
+		return
+	}
+	data := gin.H{
+		"UserExists": !exists,
+	}
+
+	ctx.HTML(http.StatusOK, "admin.tmpl", data)
+}
+
+func CreateFirstAdmin(ctx *gin.Context) {
+	// exists, err := service.CheckUserExists(ctx)
+	// if err != nil {
+	// 	SendResponse(ctx, 400, nil, "failed to check user existence", err)
+	// 	return
+	// }
+
+	// if exists {
+	// 	// Admin user already exists, render the "user exists" template
+	// 	ctx.HTML(http.StatusOK, "admin_exists.tmpl", nil)
+	// 	return
+	// }
+
+	var req dto.CreateUser
+
+	// Bind the request body to the struct
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate the requestBody using the validator
+	if err := validate.Struct(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := service.CreateUser(ctx, req)
+	if err != nil {
+		logger.Errorf(err.Error())
+		SendResponse(ctx, 400, nil, "failed to create user", nil)
+		return
+	}
+
+	// Admin user created successfully, render the "admin created" template
+	ctx.HTML(http.StatusOK, "admin_created.tmpl", nil)
+}

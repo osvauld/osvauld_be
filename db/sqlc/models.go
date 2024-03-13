@@ -117,5 +117,6 @@ type User struct {
 	TempPassword          string         `json:"tempPassword"`
 	RegistrationChallenge sql.NullString `json:"registrationChallenge"`
 	SignedUp              bool           `json:"signedUp"`
+	Type                  string         `json:"type"`
 	Status                string         `json:"status"`
 }

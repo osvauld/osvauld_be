@@ -13,6 +13,8 @@ func RegisterRoutes(route *gin.Engine) {
 	route.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Route Not Found"})
 	})
+	route.GET("/admin", controllers.GetAdminPage)
+	route.POST("/admin", controllers.CreateFirstAdmin)
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/user/", controllers.CreateUser)
 	route.POST("/user/temp-login", controllers.TempLogin)
