@@ -63,6 +63,12 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/folder/:id/remove-user-access", middleware.JWTAuthMiddleware(), controllers.RemoveFolderAccessForUsers)
 	route.POST("/folder/:id/remove-group-access", middleware.JWTAuthMiddleware(), controllers.RemoveFolderAccessForGroups)
 
+	route.POST("/credential/:id/edit-user-access", middleware.JWTAuthMiddleware(), controllers.EditCredentialAccessForUser)
+	route.POST("/credential/:id/edit-group-access", middleware.JWTAuthMiddleware(), controllers.EditCredentialAccessForGroup)
+
+	route.POST("/folder/:id/edit-user-access", middleware.JWTAuthMiddleware(), controllers.EditFolderAccessForUser)
+	route.POST("/folder/:id/edit-group-access", middleware.JWTAuthMiddleware(), controllers.EditFolderAccessForGroup)
+
 	//Add All route
 	//TestRoutes(route)
 }
