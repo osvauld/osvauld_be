@@ -53,3 +53,7 @@ func GetRegistrationChallenge(ctx *gin.Context, userName string) (db.GetRegistra
 
 	return database.Store.GetRegistrationChallenge(ctx, userName)
 }
+
+func CheckAnyUserExists(ctx *gin.Context) (bool, error) {
+	return database.Store.CheckIfUsersExist(ctx)
+}

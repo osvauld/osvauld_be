@@ -14,6 +14,7 @@ CREATE TABLE users (
     temp_password VARCHAR(255) NOT NULL,
     registration_challenge VARCHAR(255),
     signed_up BOOLEAN NOT NULL DEFAULT FALSE,
+    type VARCHAR(255) NOT NULL DEFAULT 'user',
     status VARCHAR(255) NOT NULL DEFAULT 'created'
 );
 -- SQL Definition for Folder

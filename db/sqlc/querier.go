@@ -20,6 +20,7 @@ type Querier interface {
 	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
 	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
 	CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error)
+	CheckIfUsersExist(ctx context.Context) (bool, error)
 	CheckUserManagerOfGroup(ctx context.Context, arg CheckUserManagerOfGroupParams) (bool, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)

@@ -18,6 +18,7 @@ func SetupRoute() *gin.Engine {
 
 	allowedHosts := viper.GetString("ALLOWED_HOSTS")
 	router := gin.New()
+	router.LoadHTMLGlob("templates/*")
 	router.SetTrustedProxies([]string{allowedHosts})
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
