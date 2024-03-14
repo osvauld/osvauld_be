@@ -149,3 +149,11 @@ func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAcces
 
 	return repository.GetCredentialUsers(ctx, credentialID)
 }
+
+func CheckUserExists(ctx *gin.Context) (bool, error) {
+	check, err := repository.CheckAnyUserExists(ctx)
+	if err != nil {
+		return false, err
+	}
+	return check, nil
+}

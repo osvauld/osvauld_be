@@ -16,9 +16,9 @@ import (
 
 const createCredential = `-- name: CreateCredential :one
 INSERT INTO
-    credentials (NAME, description, credential_type, folder_id, created_by)
+    credentials (NAME, description, credential_type, folder_id, created_by, domain)
 VALUES
-    ($1, $2, $3, $4, $5) RETURNING id
+    ($1, $2, $3, $4, $5, $6) RETURNING id
 `
 
 type CreateCredentialParams struct {
@@ -27,6 +27,7 @@ type CreateCredentialParams struct {
 	CredentialType string         `json:"credentialType"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	CreatedBy      uuid.UUID      `json:"createdBy"`
+	Domain         sql.NullString `json:"domain"`
 }
 
 // sql/create_credential.sql
@@ -37,6 +38,7 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 		arg.CredentialType,
 		arg.FolderID,
 		arg.CreatedBy,
+		arg.Domain,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -411,6 +413,63 @@ func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentia
 			return nil, err
 		}
 		items = append(items, credentialId)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCredentialsForSearchByUserID = `-- name: GetCredentialsForSearchByUserID :many
+SELECT 
+    c.id, 
+    c.name, 
+    COALESCE(c.description, '') AS description,
+    COALESCE(c.domain, '') AS domain,
+    c.folder_id, 
+    COALESCE(f.name, '') AS folder_name
+FROM 
+    credentials c
+JOIN 
+    credential_access ca ON c.id = ca.credential_id
+LEFT JOIN 
+    folders f ON c.folder_id = f.id
+WHERE 
+    ca.user_id = $1
+`
+
+type GetCredentialsForSearchByUserIDRow struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Domain      string    `json:"domain"`
+	FolderID    uuid.UUID `json:"folderId"`
+	FolderName  string    `json:"folderName"`
+}
+
+func (q *Queries) GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialsForSearchByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialsForSearchByUserIDRow{}
+	for rows.Next() {
+		var i GetCredentialsForSearchByUserIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Domain,
+			&i.FolderID,
+			&i.FolderName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

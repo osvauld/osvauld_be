@@ -67,8 +67,8 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 		CredentialType:           request.CredentialType,
 		CreatedBy:                caller,
 		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
+		Domain:                   request.Domain,
 	}
-
 	credentialID, err := repository.AddCredential(ctx, payload)
 	if err != nil {
 		return uuid.UUID{}, err
@@ -292,4 +292,12 @@ func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCr
 
 	return nil
 
+}
+
+func GetSearchData(ctx *gin.Context, userID uuid.UUID) ([]db.GetCredentialsForSearchByUserIDRow, error) {
+	credentials, err := repository.GetSearchData(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return credentials, nil
 }

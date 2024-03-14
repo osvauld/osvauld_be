@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const checkIfUsersExist = `-- name: CheckIfUsersExist :one
+SELECT EXISTS(SELECT 1 FROM users)
+`
+
+func (q *Queries) CheckIfUsersExist(ctx context.Context) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkIfUsersExist)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createChallenge = `-- name: CreateChallenge :one
 INSERT INTO session_table (user_id, public_key, challenge)
 VALUES ($1, $2, $3)

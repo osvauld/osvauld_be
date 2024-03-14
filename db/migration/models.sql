@@ -14,6 +14,7 @@ CREATE TABLE users (
     temp_password VARCHAR(255) NOT NULL,
     registration_challenge VARCHAR(255),
     signed_up BOOLEAN NOT NULL DEFAULT FALSE,
+    type VARCHAR(255) NOT NULL DEFAULT 'user',
     status VARCHAR(255) NOT NULL DEFAULT 'created'
 );
 -- SQL Definition for Folder
@@ -33,6 +34,7 @@ CREATE TABLE credentials (
     description VARCHAR(2048),
     credential_type VARCHAR(255) NOT NULL,
     folder_id UUID NOT NULL REFERENCES folders(id),
+    domain VARCHAR(2048),
     created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_by UUID REFERENCES users(id),

@@ -13,6 +13,8 @@ func RegisterRoutes(route *gin.Engine) {
 	route.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Route Not Found"})
 	})
+	route.GET("/admin", controllers.GetAdminPage)
+	route.POST("/admin", controllers.CreateFirstAdmin)
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/user/", controllers.CreateUser)
 	route.POST("/user/temp-login", controllers.TempLogin)
@@ -52,6 +54,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/credentials/fields/:folderId", middleware.JWTAuthMiddleware(), controllers.GetCredentialsFieldsByFolderID)
 	route.POST("/credentials/fields/", middleware.JWTAuthMiddleware(), controllers.GetCredentialsFieldsByIds)
 	route.POST("/credentials/by-ids", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByIDs)
+	route.GET("/credentials/search", middleware.JWTAuthMiddleware(), controllers.GetSearchData)
 	route.GET("/urls", middleware.JWTAuthMiddleware(), controllers.GetAllUrlsForUser)
 
 	route.GET("/group/:groupId/credential-fields", middleware.JWTAuthMiddleware(), controllers.GetAllCredentialsByGroupID)
