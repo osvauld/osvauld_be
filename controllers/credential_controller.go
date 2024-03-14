@@ -211,6 +211,10 @@ func EditCredential(ctx *gin.Context) {
 func GetSearchData(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+                  SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+                  return
+	}
 	credentials, err := service.GetSearchData(ctx, caller)
 	if err != nil {
 		SendResponse(ctx, 500, nil, "",  err)
