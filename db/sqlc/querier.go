@@ -57,6 +57,7 @@ type Querier interface {
 	GetCredentialDetailsByIDs(ctx context.Context, credentialids []uuid.UUID) ([]GetCredentialDetailsByIDsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error)
+	GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)
 	GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetFolderIDAndTypeWithGroupAccessRow, error)
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)

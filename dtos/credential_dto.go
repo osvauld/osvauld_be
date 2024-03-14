@@ -12,6 +12,7 @@ type AddCredentialRequest struct {
 	FolderID       uuid.UUID    `json:"folderId"`
 	CredentialType string       `json:"credentialType"`
 	UserFields     []UserFields `json:"userFields"`
+	Domain         string       `json:"domain"`
 }
 
 type CredentialForUser struct {
@@ -69,7 +70,6 @@ type ShareFolderWithGroupsRequest struct {
 	FolderID  uuid.UUID                     `json:"folderId" binding:"required"`
 	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
 }
-
 
 type EditCredentialRequest struct {
 	Name           string       `json:"name"`
