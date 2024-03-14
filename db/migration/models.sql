@@ -34,6 +34,7 @@ CREATE TABLE credentials (
     description VARCHAR(2048),
     credential_type VARCHAR(255) NOT NULL,
     folder_id UUID NOT NULL REFERENCES folders(id),
+    domain VARCHAR(2048),
     created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_by UUID REFERENCES users(id),

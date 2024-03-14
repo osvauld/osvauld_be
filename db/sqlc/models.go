@@ -17,6 +17,7 @@ type Credential struct {
 	Description    sql.NullString `json:"description"`
 	CredentialType string         `json:"credentialType"`
 	FolderID       uuid.UUID      `json:"folderId"`
+	Domain         sql.NullString `json:"domain"`
 	CreatedBy      uuid.UUID      `json:"createdBy"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`

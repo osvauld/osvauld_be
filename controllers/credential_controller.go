@@ -207,3 +207,14 @@ func EditCredential(ctx *gin.Context) {
 
 	SendResponse(ctx, 200, nil, "", nil)
 }
+
+func GetSearchData(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	credentials, err := service.GetSearchData(ctx, caller)
+	if err != nil {
+		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
+}

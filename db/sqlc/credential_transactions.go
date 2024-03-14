@@ -15,6 +15,7 @@ type AddCredentialTransactionParams struct {
 	CredentialType           string
 	CreatedBy                uuid.UUID
 	UserFieldsWithAccessType []dto.UserFieldsWithAccessType
+	Domain                   string
 }
 
 func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCredentialTransactionParams) (uuid.UUID, error) {
@@ -31,6 +32,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 			FolderID:       args.FolderID,
 			CreatedBy:      args.CreatedBy,
 			CredentialType: args.CredentialType,
+			Domain:         sql.NullString{String: args.Domain, Valid: true},
 		}
 		credentialID, err = q.CreateCredential(ctx, CreateCredentialParams)
 		if err != nil {

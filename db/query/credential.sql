@@ -1,9 +1,9 @@
 -- sql/create_credential.sql
 -- name: CreateCredential :one
 INSERT INTO
-    credentials (NAME, description, credential_type, folder_id, created_by)
+    credentials (NAME, description, credential_type, folder_id, created_by, domain)
 VALUES
-    ($1, $2, $3, $4, $5) RETURNING id;
+    ($1, $2, $3, $4, $5, $6) RETURNING id;
 
 
 -- name: GetCredentialDataByID :one
@@ -118,3 +118,20 @@ SET
     updated_by = $5
 WHERE
     id = $1;
+
+-- name: GetCredentialsForSearchByUserID :many
+SELECT 
+    c.id, 
+    c.name, 
+    COALESCE(c.description, '') AS description,
+    COALESCE(c.domain, '') AS domain,
+    c.folder_id, 
+    COALESCE(f.name, '') AS folder_name
+FROM 
+    credentials c
+JOIN 
+    credential_access ca ON c.id = ca.credential_id
+LEFT JOIN 
+    folders f ON c.folder_id = f.id
+WHERE 
+    ca.user_id = $1;
