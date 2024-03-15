@@ -204,6 +204,11 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		credentialForUser.UpdatedAt = credential.UpdatedAt
 		credentialForUser.CreatedBy = credential.CreatedBy
 		credentialForUser.Fields = credentialFieldGroups[credential.CredentialID]
+		if fields, ok := credentialFieldGroups[credential.CredentialID]; ok {
+			credentialForUser.Fields = fields
+		} else {
+			credentialForUser.Fields = []dto.Field{} // Add an empty array if fields are not found
+		}
 
 		credentials = append(credentials, credentialForUser)
 	}
