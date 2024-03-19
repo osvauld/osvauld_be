@@ -13,7 +13,7 @@ import (
 var CredentialAccessLevels = map[string]int{
 	"unauthorized": 0,
 	"reader":       1,
-	"editor":       2,
+	"manager":      2,
 }
 
 func GetCredentialAccessTypeForUser(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (string, error) {

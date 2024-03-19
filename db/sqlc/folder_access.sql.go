@@ -94,7 +94,7 @@ func (q *Queries) EditFolderAccessForUser(ctx context.Context, arg EditFolderAcc
 const hasManageAccessForFolder = `-- name: HasManageAccessForFolder :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access
-  WHERE folder_id = $1 AND user_id = $2 AND access_type = 'owner'
+  WHERE folder_id = $1 AND user_id = $2 AND access_type = 'manager'
 )
 `
 
@@ -113,7 +113,7 @@ func (q *Queries) HasManageAccessForFolder(ctx context.Context, arg HasManageAcc
 const hasReadAccessForFolder = `-- name: HasReadAccessForFolder :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access
-  WHERE folder_id = $1 AND user_id = $2 AND access_type = 'reader'
+  WHERE folder_id = $1 AND user_id = $2 AND access_type IN ('manager', 'reader')
 )
 `
 

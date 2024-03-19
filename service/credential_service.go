@@ -27,8 +27,10 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	for _, access := range accessList {
 
 		// Find the higest access level for a user
-		currentAccess := userFolderAccessType[access.UserID]
-		if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[currentAccess] {
+		currentAccess, exists := userFolderAccessType[access.UserID]
+		if !exists {
+			userFolderAccessType[access.UserID] = access.AccessType
+		} else if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[currentAccess] {
 			userFolderAccessType[access.UserID] = access.AccessType
 		}
 
