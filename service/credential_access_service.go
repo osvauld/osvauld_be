@@ -57,7 +57,7 @@ func GetCredentialAccessTypeForUser(ctx *gin.Context, credentialID uuid.UUID, us
 
 func VerifyCredentialManageAccessForUser(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) error {
 
-	hasAccess, err := repository.HasReadAccessForCredential(ctx, db.HasReadAccessForCredentialParams{
+	hasAccess, err := repository.HasManageAccessForCredential(ctx, db.HasManageAccessForCredentialParams{
 		CredentialID: credentialID,
 		UserID:       userID,
 	})
@@ -73,7 +73,7 @@ func VerifyCredentialManageAccessForUser(ctx *gin.Context, credentialID uuid.UUI
 
 func VerifyCredentialReadAccessForUser(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) error {
 
-	hasAccess, err := repository.HasManageAccessForCredential(ctx, db.HasManageAccessForCredentialParams{
+	hasAccess, err := repository.HasReadAccessForCredential(ctx, db.HasReadAccessForCredentialParams{
 		CredentialID: credentialID,
 		UserID:       userID,
 	})
