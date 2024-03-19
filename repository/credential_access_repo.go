@@ -2,62 +2,36 @@ package repository
 
 import (
 	db "osvauld/db/sqlc"
-	dto "osvauld/dtos"
 	"osvauld/infra/database"
-	"osvauld/infra/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func AddCredentialAccess(ctx *gin.Context, credentialID uuid.UUID, accessType string, userID uuid.UUID) error {
-	arg := db.AddCredentialAccessParams{
-		CredentialID: credentialID,
-		UserID:       userID,
-	}
-	_, err := database.Store.AddCredentialAccess(ctx, arg)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return err
-	}
-	return nil
-}
-
 func GetUsersByCredential(ctx *gin.Context, credentailID uuid.UUID) ([]db.GetUsersByCredentialRow, error) {
-	users, err := database.Store.GetUsersByCredential(ctx, credentailID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return users, err
-	}
-	return users, nil
-}
 
-func GetCredentialAccessForUser(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) ([]dto.AccessListResult, error) {
-	arg := db.GetCredentialAccessForUserParams{
-		CredentialID: credentialID,
-		UserID:       userID,
-	}
-
-	access, err := database.Store.GetCredentialAccessForUser(ctx, arg)
-	if err != nil {
-		return []dto.AccessListResult{}, err
-	}
-	accessListResults := []dto.AccessListResult{}
-	for _, access := range access {
-		accessListResults = append(accessListResults, dto.AccessListResult{
-			ID:         access.ID,
-			UserID:     access.UserID,
-			AccessType: access.AccessType,
-			GroupID:    access.GroupID,
-		})
-	}
-	return accessListResults, nil
+	return database.Store.GetUsersByCredential(ctx, credentailID)
 }
 
 func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialAccessEntryExistsParams) (bool, error) {
 
 	return database.Store.CheckCredentialAccessEntryExists(ctx, args)
 
+}
+
+func GetCredentialAccessTypeForUser(ctx *gin.Context, args db.GetCredentialAccessTypeForUserParams) ([]db.GetCredentialAccessTypeForUserRow, error) {
+
+	return database.Store.GetCredentialAccessTypeForUser(ctx, args)
+}
+
+func HasManageAccessForCredential(ctx *gin.Context, args db.HasManageAccessForCredentialParams) (bool, error) {
+
+	return database.Store.HasManageAccessForCredential(ctx, args)
+}
+
+func HasReadAccessForCredential(ctx *gin.Context, args db.HasReadAccessForCredentialParams) (bool, error) {
+
+	return database.Store.HasReadAccessForCredential(ctx, args)
 }
 
 func RemoveCredentialAccessForUsers(ctx *gin.Context, args db.RemoveCredentialAccessForUsersParams) error {

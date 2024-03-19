@@ -57,6 +57,8 @@ type ShareCredentialsWithUserResponse struct {
 // The response contains success or failure for each user
 func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsForUserPayload, caller uuid.UUID) ([]ShareCredentialsWithUserResponse, error) {
 
+		
+
 	responses := []ShareCredentialsWithUserResponse{}
 
 	// we share all the credentials for a single user in a single transaction

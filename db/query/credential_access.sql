@@ -1,14 +1,27 @@
 -- name: AddCredentialAccess :one
-
 INSERT INTO credential_access (credential_id, user_id, access_type, group_id, folder_id)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 
--- name: GetCredentialAccessForUser :many
+-- name: GetCredentialAccessTypeForUser :many
 SELECT id, user_id, credential_id, group_id, access_type
 FROM credential_access
 WHERE user_id = $1 AND credential_id = $2;
+
+
+-- name: HasManageAccessForCredential :one
+SELECT EXISTS (
+  SELECT 1 FROM credential_access
+  WHERE credential_id = $1 AND user_id = $2 AND access_type = 'manager'
+);
+
+
+-- name: HasReadAccessForCredential :one
+SELECT EXISTS (
+  SELECT 1 FROM credential_access
+  WHERE credential_id = $1 AND user_id = $2 AND access_type IN ('reader', 'manager')
+);
 
 
 -- name: GetUsersByCredential :many
@@ -36,9 +49,6 @@ SELECT EXISTS (
 DELETE FROM credential_access WHERE group_id IS NULL AND folder_id IS NULL 
 AND credential_id = $1 AND user_id = ANY(@user_ids::UUID[]);
 
--- name: RemoveFolderAccessForUsers :exec
-DELETE FROM folder_access WHERE group_id IS NULL 
-AND folder_id = $1 AND user_id = ANY(@user_ids::UUID[]);
 
 -- name: RemoveCredentialAccessForUsersWithFolderID :exec
 DELETE FROM credential_access WHERE group_id IS NULL
@@ -49,9 +59,6 @@ AND folder_id = $1 AND user_id = ANY(@user_ids::UUID[]);
 DELETE FROM credential_access WHERE folder_id IS NULL 
 AND credential_id = $1 AND group_id = ANY(@group_ids::UUID[]);
 
-
--- name: RemoveFolderAccessForGroups :exec
-DELETE FROM folder_access WHERE folder_id = $1 AND group_id = ANY(@group_ids::UUID[]);
 
 -- name: RemoveCredentialAccessForGroupsWithFolderID :exec
 DELETE FROM credential_access WHERE folder_id = $1 AND group_id = ANY(@group_ids::UUID[]);
@@ -64,11 +71,10 @@ WHERE  group_id IS NULL AND folder_id IS NULL
 AND credential_id = $2 AND user_id = $3;
 
 
--- name: EditFolderAccessForUser :exec
-UPDATE folder_access
+-- name: EditCredentialAccessForGroupWithFolderID :exec
+UPDATE credential_access
 SET access_type = $1
-WHERE group_id IS NULL
-AND folder_id = $2 AND user_id = $3;
+WHERE folder_id = $2 AND group_id = $3;
 
 
 -- name: EditCredentialAccessForUserWithFolderID :exec
@@ -85,13 +91,3 @@ WHERE folder_id IS NULL
 AND credential_id = $2 AND group_id = $3;
 
 
--- name: EditFolderAccessForGroup :exec
-UPDATE folder_access
-SET access_type = $1
-WHERE folder_id = $2 AND group_id = $3;
-
-
--- name: EditCredentialAccessForGroupWithFolderID :exec
-UPDATE credential_access
-SET access_type = $1
-WHERE folder_id = $2 AND group_id = $3;

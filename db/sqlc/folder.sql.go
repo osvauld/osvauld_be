@@ -37,50 +37,6 @@ func (q *Queries) AddFolder(ctx context.Context, arg AddFolderParams) (AddFolder
 	return i, err
 }
 
-const addFolderAccess = `-- name: AddFolderAccess :exec
-INSERT INTO folder_access (folder_id, user_id, access_type, group_id)
-VALUES ($1, $2, $3, $4)
-`
-
-type AddFolderAccessParams struct {
-	FolderID   uuid.UUID     `json:"folderId"`
-	UserID     uuid.UUID     `json:"userId"`
-	AccessType string        `json:"accessType"`
-	GroupID    uuid.NullUUID `json:"groupId"`
-}
-
-func (q *Queries) AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error {
-	_, err := q.db.ExecContext(ctx, addFolderAccess,
-		arg.FolderID,
-		arg.UserID,
-		arg.AccessType,
-		arg.GroupID,
-	)
-	return err
-}
-
-const checkFolderAccessEntryExists = `-- name: CheckFolderAccessEntryExists :one
-SELECT EXISTS (
-    SELECT 1
-    FROM folder_access
-    WHERE user_id = $1 AND folder_id = $2 
-    AND ((group_id IS NOT NULL AND group_id = $3) OR (group_id is null and $3 is null)) 
-)
-`
-
-type CheckFolderAccessEntryExistsParams struct {
-	UserID   uuid.UUID     `json:"userId"`
-	FolderID uuid.UUID     `json:"folderId"`
-	GroupID  uuid.NullUUID `json:"groupId"`
-}
-
-func (q *Queries) CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkFolderAccessEntryExists, arg.UserID, arg.FolderID, arg.GroupID)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
 const fetchAccessibleFoldersForUser = `-- name: FetchAccessibleFoldersForUser :many
 SELECT id, name, description, created_at, created_by
 FROM folders
@@ -278,25 +234,6 @@ func (q *Queries) GetSharedUsersForFolder(ctx context.Context, folderID uuid.UUI
 		return nil, err
 	}
 	return items, nil
-}
-
-const hasOwnerAccessForFolder = `-- name: HasOwnerAccessForFolder :one
-SELECT EXISTS (
-  SELECT 1 FROM folder_access
-  WHERE folder_id = $1 AND user_id = $2 AND access_type = 'owner'
-)
-`
-
-type HasOwnerAccessForFolderParams struct {
-	FolderID uuid.UUID `json:"folderId"`
-	UserID   uuid.UUID `json:"userId"`
-}
-
-func (q *Queries) HasOwnerAccessForFolder(ctx context.Context, arg HasOwnerAccessForFolderParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, hasOwnerAccessForFolder, arg.FolderID, arg.UserID)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
 }
 
 const isUserManagerOrOwner = `-- name: IsUserManagerOrOwner :one

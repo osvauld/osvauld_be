@@ -1,10 +1,8 @@
 package service
 
 import (
-	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
-	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -12,16 +10,9 @@ import (
 )
 
 func GetSensitiveFields(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]dto.Field, error) {
-	// Check if caller has access
-	hasAccess, err := HasReadAccessForCredential(ctx, credentialID, caller)
 
-	if err != nil {
+	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
 		return nil, err
-	}
-
-	if !hasAccess {
-		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
-		return nil, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
 	}
 
 	sensitiveFields, err := repository.GetSensitiveFields(ctx, db.GetSensitiveFieldsParams{
@@ -43,23 +34,38 @@ func GetSensitiveFields(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UU
 	return fieldObjs, err
 }
 
-func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) ([]dto.CredentialFields, error) {
+func GetCredentialsFieldsByFolderID(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]dto.CredentialFields, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
+	// we could merge the below two queries into one, but it is two queries not a big deal
 	credentialsIds, err := repository.GetCredentialIdsByFolderAndUserId(ctx, db.GetCredentialIdsByFolderParams{
 		FolderID: folderID,
-		UserID:   userID,
+		UserID:   caller,
 	})
 	if err != nil {
 		return nil, err
 	}
-	credentials, _ := GetFieldsByCredentialIds(ctx, credentialsIds, userID)
+
+	credentials, err := GetFieldsByCredentialIDs(ctx, credentialsIds, caller)
+	if err != nil {
+		return nil, err
+	}
+
 	return credentials, nil
 }
 
-func GetFieldsByCredentialIds(ctx *gin.Context, credentialIds []uuid.UUID, userID uuid.UUID) ([]dto.CredentialFields, error) {
+func GetFieldsByCredentialIDs(ctx *gin.Context, credentialIDs []uuid.UUID, caller uuid.UUID) ([]dto.CredentialFields, error) {
+
+	if err := VerifyReadAccessForCredentials(ctx, credentialIDs, caller); err != nil {
+		return nil, err
+	}
 
 	fields, err := repository.GetAllFieldsForCredentialIDs(ctx, db.GetAllFieldsForCredentialIDsParams{
-		Credentials: credentialIds,
-		UserID:      userID,
+		Credentials: credentialIDs,
+		UserID:      caller,
 	})
 
 	if err != nil {
@@ -83,7 +89,7 @@ func GetFieldsByCredentialIds(ctx *gin.Context, credentialIds []uuid.UUID, userI
 
 	credentialFieldDtos := []dto.CredentialFields{}
 
-	for _, credentialID := range credentialIds {
+	for _, credentialID := range credentialIDs {
 		credentialFieldDtos = append(credentialFieldDtos, dto.CredentialFields{
 			CredentialID: credentialID,
 			Fields:       credentialMap[credentialID],

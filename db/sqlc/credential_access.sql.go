@@ -13,7 +13,6 @@ import (
 )
 
 const addCredentialAccess = `-- name: AddCredentialAccess :one
-
 INSERT INTO credential_access (credential_id, user_id, access_type, group_id, folder_id)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id
@@ -140,53 +139,18 @@ func (q *Queries) EditCredentialAccessForUserWithFolderID(ctx context.Context, a
 	return err
 }
 
-const editFolderAccessForGroup = `-- name: EditFolderAccessForGroup :exec
-UPDATE folder_access
-SET access_type = $1
-WHERE folder_id = $2 AND group_id = $3
-`
-
-type EditFolderAccessForGroupParams struct {
-	AccessType string        `json:"accessType"`
-	FolderID   uuid.UUID     `json:"folderId"`
-	GroupID    uuid.NullUUID `json:"groupId"`
-}
-
-func (q *Queries) EditFolderAccessForGroup(ctx context.Context, arg EditFolderAccessForGroupParams) error {
-	_, err := q.db.ExecContext(ctx, editFolderAccessForGroup, arg.AccessType, arg.FolderID, arg.GroupID)
-	return err
-}
-
-const editFolderAccessForUser = `-- name: EditFolderAccessForUser :exec
-UPDATE folder_access
-SET access_type = $1
-WHERE group_id IS NULL
-AND folder_id = $2 AND user_id = $3
-`
-
-type EditFolderAccessForUserParams struct {
-	AccessType string    `json:"accessType"`
-	FolderID   uuid.UUID `json:"folderId"`
-	UserID     uuid.UUID `json:"userId"`
-}
-
-func (q *Queries) EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error {
-	_, err := q.db.ExecContext(ctx, editFolderAccessForUser, arg.AccessType, arg.FolderID, arg.UserID)
-	return err
-}
-
-const getCredentialAccessForUser = `-- name: GetCredentialAccessForUser :many
+const getCredentialAccessTypeForUser = `-- name: GetCredentialAccessTypeForUser :many
 SELECT id, user_id, credential_id, group_id, access_type
 FROM credential_access
 WHERE user_id = $1 AND credential_id = $2
 `
 
-type GetCredentialAccessForUserParams struct {
+type GetCredentialAccessTypeForUserParams struct {
 	UserID       uuid.UUID `json:"userId"`
 	CredentialID uuid.UUID `json:"credentialId"`
 }
 
-type GetCredentialAccessForUserRow struct {
+type GetCredentialAccessTypeForUserRow struct {
 	ID           uuid.UUID     `json:"id"`
 	UserID       uuid.UUID     `json:"userId"`
 	CredentialID uuid.UUID     `json:"credentialId"`
@@ -194,15 +158,15 @@ type GetCredentialAccessForUserRow struct {
 	AccessType   string        `json:"accessType"`
 }
 
-func (q *Queries) GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, getCredentialAccessForUser, arg.UserID, arg.CredentialID)
+func (q *Queries) GetCredentialAccessTypeForUser(ctx context.Context, arg GetCredentialAccessTypeForUserParams) ([]GetCredentialAccessTypeForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialAccessTypeForUser, arg.UserID, arg.CredentialID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetCredentialAccessForUserRow{}
+	items := []GetCredentialAccessTypeForUserRow{}
 	for rows.Next() {
-		var i GetCredentialAccessForUserRow
+		var i GetCredentialAccessTypeForUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -294,6 +258,44 @@ func (q *Queries) GetUsersByCredential(ctx context.Context, credentialID uuid.UU
 	return items, nil
 }
 
+const hasManageAccessForCredential = `-- name: HasManageAccessForCredential :one
+SELECT EXISTS (
+  SELECT 1 FROM credential_access
+  WHERE credential_id = $1 AND user_id = $2 AND access_type = 'manager'
+)
+`
+
+type HasManageAccessForCredentialParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) HasManageAccessForCredential(ctx context.Context, arg HasManageAccessForCredentialParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasManageAccessForCredential, arg.CredentialID, arg.UserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const hasReadAccessForCredential = `-- name: HasReadAccessForCredential :one
+SELECT EXISTS (
+  SELECT 1 FROM credential_access
+  WHERE credential_id = $1 AND user_id = $2 AND access_type IN ('reader', 'manager')
+)
+`
+
+type HasReadAccessForCredentialParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	UserID       uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) HasReadAccessForCredential(ctx context.Context, arg HasReadAccessForCredentialParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasReadAccessForCredential, arg.CredentialID, arg.UserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const removeCredentialAccessForGroups = `-- name: RemoveCredentialAccessForGroups :exec
 DELETE FROM credential_access WHERE folder_id IS NULL 
 AND credential_id = $1 AND group_id = ANY($2::UUID[])
@@ -350,34 +352,5 @@ type RemoveCredentialAccessForUsersWithFolderIDParams struct {
 
 func (q *Queries) RemoveCredentialAccessForUsersWithFolderID(ctx context.Context, arg RemoveCredentialAccessForUsersWithFolderIDParams) error {
 	_, err := q.db.ExecContext(ctx, removeCredentialAccessForUsersWithFolderID, arg.FolderID, pq.Array(arg.UserIds))
-	return err
-}
-
-const removeFolderAccessForGroups = `-- name: RemoveFolderAccessForGroups :exec
-DELETE FROM folder_access WHERE folder_id = $1 AND group_id = ANY($2::UUID[])
-`
-
-type RemoveFolderAccessForGroupsParams struct {
-	FolderID uuid.UUID   `json:"folderId"`
-	GroupIds []uuid.UUID `json:"groupIds"`
-}
-
-func (q *Queries) RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error {
-	_, err := q.db.ExecContext(ctx, removeFolderAccessForGroups, arg.FolderID, pq.Array(arg.GroupIds))
-	return err
-}
-
-const removeFolderAccessForUsers = `-- name: RemoveFolderAccessForUsers :exec
-DELETE FROM folder_access WHERE group_id IS NULL 
-AND folder_id = $1 AND user_id = ANY($2::UUID[])
-`
-
-type RemoveFolderAccessForUsersParams struct {
-	FolderID uuid.UUID   `json:"folderId"`
-	UserIds  []uuid.UUID `json:"userIds"`
-}
-
-func (q *Queries) RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error {
-	_, err := q.db.ExecContext(ctx, removeFolderAccessForUsers, arg.FolderID, pq.Array(arg.UserIds))
 	return err
 }
