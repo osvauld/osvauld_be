@@ -21,7 +21,7 @@ type Querier interface {
 	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
 	CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error)
 	CheckIfUsersExist(ctx context.Context) (bool, error)
-	CheckUserManagerOfGroup(ctx context.Context, arg CheckUserManagerOfGroupParams) (bool, error)
+	CheckUserAdminOfGroup(ctx context.Context, arg CheckUserAdminOfGroupParams) (bool, error)
 	CheckUserMemberOfGroup(ctx context.Context, arg CheckUserMemberOfGroupParams) (bool, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (SessionTable, error)
 	// sql/create_credential.sql
@@ -52,7 +52,7 @@ type Querier interface {
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	//-----------------------------------------------------------------------------------------------------
 	GetCredentialAccessDetailsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialAccessDetailsWithGroupAccessRow, error)
-	GetCredentialAccessForUser(ctx context.Context, arg GetCredentialAccessForUserParams) ([]GetCredentialAccessForUserRow, error)
+	GetCredentialAccessTypeForUser(ctx context.Context, arg GetCredentialAccessTypeForUserParams) ([]GetCredentialAccessTypeForUserRow, error)
 	GetCredentialDataByID(ctx context.Context, id uuid.UUID) (GetCredentialDataByIDRow, error)
 	GetCredentialDetailsByIDs(ctx context.Context, credentialids []uuid.UUID) ([]GetCredentialDetailsByIDsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
@@ -72,7 +72,10 @@ type Querier interface {
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error)
-	HasOwnerAccessForFolder(ctx context.Context, arg HasOwnerAccessForFolderParams) (bool, error)
+	HasManageAccessForCredential(ctx context.Context, arg HasManageAccessForCredentialParams) (bool, error)
+	HasManageAccessForFolder(ctx context.Context, arg HasManageAccessForFolderParams) (bool, error)
+	HasReadAccessForCredential(ctx context.Context, arg HasReadAccessForCredentialParams) (bool, error)
+	HasReadAccessForFolder(ctx context.Context, arg HasReadAccessForFolderParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	RemoveCredentialAccessForGroups(ctx context.Context, arg RemoveCredentialAccessForGroupsParams) error
 	RemoveCredentialAccessForGroupsWithFolderID(ctx context.Context, arg RemoveCredentialAccessForGroupsWithFolderIDParams) error

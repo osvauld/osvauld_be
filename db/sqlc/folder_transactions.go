@@ -30,7 +30,7 @@ func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateF
 		err = q.AddFolderAccess(ctx, AddFolderAccessParams{
 			FolderID:   folderData.ID,
 			UserID:     args.CreatedBy,
-			AccessType: "owner",
+			AccessType: "manager",
 		})
 		if err != nil {
 			return err

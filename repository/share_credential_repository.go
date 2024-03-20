@@ -9,10 +9,6 @@ import (
 
 func ShareCredentials(ctx *gin.Context, args db.ShareCredentialTransactionParams) error {
 
-	err := database.Store.ShareCredentialsTransaction(ctx, args)
-	if err != nil {
-		return err
-	}
+	return database.Store.ShareCredentialsTransaction(ctx, args)
 
-	return nil
 }

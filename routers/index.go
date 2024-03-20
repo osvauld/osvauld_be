@@ -37,7 +37,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), controllers.AddCredential)
 	route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialDataByID)
 	route.PUT("/credential/:id", middleware.JWTAuthMiddleware(), controllers.EditCredential)
-	route.GET("/credential/:id/sensitive", middleware.JWTAuthMiddleware(), controllers.GetSensitiveFieldsCredentialByID)
+	route.GET("/credential/:id/sensitive", middleware.JWTAuthMiddleware(), controllers.GetSensitiveFieldsByCredentialID)
 	route.GET("/credential/:id/users", middleware.JWTAuthMiddleware(), controllers.GetCredentialUsers)
 	route.GET("/credential/:id/groups", middleware.JWTAuthMiddleware(), controllers.GetCredentialGroups)
 
@@ -57,7 +57,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/credentials/search", middleware.JWTAuthMiddleware(), controllers.GetSearchData)
 	route.GET("/urls", middleware.JWTAuthMiddleware(), controllers.GetAllUrlsForUser)
 
-	route.GET("/group/:groupId/credential-fields", middleware.JWTAuthMiddleware(), controllers.GetAllCredentialsByGroupID)
+	route.GET("/group/:groupId/credential-fields", middleware.JWTAuthMiddleware(), controllers.GetAllCredentialFieldsByGroupID)
 	route.GET("/groups/:groupId/users/without-access", middleware.JWTAuthMiddleware(), controllers.GetUsersWithoutGroupAccess)
 
 	route.POST("/credential/:id/remove-user-access", middleware.JWTAuthMiddleware(), controllers.RemoveCredentialAccessForUsers)

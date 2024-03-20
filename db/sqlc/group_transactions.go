@@ -21,7 +21,7 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData d
 		err = q.AddGroupMember(ctx, AddGroupMemberParams{
 			GroupingID: createGroupResult.ID,
 			UserID:     groupData.CreatedBy,
-			AccessType: "manager",
+			AccessType: "admin",
 		})
 		if err != nil {
 			return err
