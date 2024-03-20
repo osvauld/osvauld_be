@@ -2,10 +2,8 @@ package service
 
 import (
 	"database/sql"
-	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
-	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -14,12 +12,8 @@ import (
 
 func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) (uuid.UUID, error) {
 
-	isOwner, err := CheckFolderOwner(ctx, request.FolderID, caller)
-	if err != nil {
+	if err := VerifyFolderManageAccessForUser(ctx, request.FolderID, caller); err != nil {
 		return uuid.UUID{}, err
-	}
-	if !isOwner {
-		return uuid.UUID{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have owner access to the folder"}
 	}
 
 	// Retrieve access types for the folder
@@ -28,17 +22,18 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 		return uuid.UUID{}, err
 	}
 
-	accessTypeMap := make(map[uuid.UUID]string)
+	userFolderAccessType := make(map[uuid.UUID]string)
 
 	for _, access := range accessList {
-		if access.UserID != caller {
-			accessTypeMap[access.UserID] = access.AccessType
 
-			// TODO: this check is redundant since only owner can add credentials
-		} else {
-			//caller should be owner
-			accessTypeMap[access.UserID] = "owner"
+		// Find the higest access level for a user
+		currentAccess, exists := userFolderAccessType[access.UserID]
+		if !exists {
+			userFolderAccessType[access.UserID] = access.AccessType
+		} else if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[currentAccess] {
+			userFolderAccessType[access.UserID] = access.AccessType
 		}
+
 	}
 
 	/* Convert UserFields to UserFieldsWithAccessType
@@ -46,7 +41,7 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	 */
 	var UserFieldsWithAccessTypeSlice []dto.UserFieldsWithAccessType
 	for _, userFields := range request.UserFields {
-		accessType, exists := accessTypeMap[userFields.UserID]
+		accessType, exists := userFolderAccessType[userFields.UserID]
 		if !exists {
 			// TODO: send appropriate error
 			continue
@@ -79,14 +74,8 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 // GetCredentialByID returns the credential details and non sensitive fields for the given credentialID
 func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (dto.CredentialForUser, error) {
 
-	accessType, err := GetAccessTypeForCredential(ctx, credentialID, caller)
-	if err != nil {
+	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
 		return dto.CredentialForUser{}, err
-	}
-
-	if !CheckHasReadAccessForCredential(ctx, accessType) {
-		logger.Errorf("user %s does not have access to the credential %s", caller, credentialID)
-		return dto.CredentialForUser{}, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the credential"}
 	}
 
 	credential, err := repository.GetCredentialDataByID(ctx, credentialID)
@@ -98,6 +87,11 @@ func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid
 		Credentials: []uuid.UUID{credentialID},
 		UserID:      caller,
 	})
+	if err != nil {
+		return dto.CredentialForUser{}, err
+	}
+
+	accessType, err := GetCredentialAccessTypeForUser(ctx, credentialID, caller)
 	if err != nil {
 		return dto.CredentialForUser{}, err
 	}
@@ -204,6 +198,11 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		credentialForUser.UpdatedAt = credential.UpdatedAt
 		credentialForUser.CreatedBy = credential.CreatedBy
 		credentialForUser.Fields = credentialFieldGroups[credential.CredentialID]
+		if fields, ok := credentialFieldGroups[credential.CredentialID]; ok {
+			credentialForUser.Fields = fields
+		} else {
+			credentialForUser.Fields = []dto.Field{} // Add an empty array if fields are not found
+		}
 
 		credentials = append(credentials, credentialForUser)
 	}
@@ -213,7 +212,9 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 
 func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uuid.UUID) ([]dto.CredentialForUser, error) {
 
-	// TODO: Add access checks
+	if err := VerifyReadAccessForCredentials(ctx, credentialIDs, userID); err != nil {
+		return nil, err
+	}
 
 	FieldsData, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
 		Credentials: credentialIDs,
@@ -222,8 +223,8 @@ func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uui
 	if err != nil {
 		return nil, err
 	}
-	credentialFieldGroups := map[uuid.UUID][]dto.Field{}
 
+	credentialFieldGroups := map[uuid.UUID][]dto.Field{}
 	for _, field := range FieldsData {
 		// if credential.CredentialID does not exist add it to the map and add the field to the array
 		credentialFieldGroups[field.CredentialID] = append(credentialFieldGroups[field.CredentialID], dto.Field{
@@ -256,6 +257,7 @@ func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uui
 	if err != nil {
 		return nil, err
 	}
+
 	return credentials, nil
 }
 
@@ -269,15 +271,11 @@ func GetAllUrlsForUser(ctx *gin.Context, userID uuid.UUID) ([]db.GetAllUrlsForUs
 
 func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCredentialRequest, caller uuid.UUID) error {
 
-	isOwner, err := HasWriteAccessForCredential(ctx, credentialID, caller)
-	if err != nil {
+	if err := VerifyCredentialManageAccessForUser(ctx, credentialID, caller); err != nil {
 		return err
 	}
-	if !isOwner {
-		return &customerrors.UserNotAuthenticatedError{Message: "user does not have manager access to the credential"}
-	}
 
-	err = repository.EditCredential(ctx, db.EditCredentialTransactionParams{
+	err := repository.EditCredential(ctx, db.EditCredentialTransactionParams{
 		CredentialID:   credentialID,
 		Name:           request.Name,
 		Description:    sql.NullString{String: request.Description, Valid: true},

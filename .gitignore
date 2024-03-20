@@ -19,3 +19,5 @@ vendor/
 .vscode/
 tmp/
 osvauld
+
+app.env

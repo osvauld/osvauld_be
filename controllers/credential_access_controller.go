@@ -35,7 +35,7 @@ func RemoveCredentialAccessForUsers(ctx *gin.Context) {
 	err = service.RemoveCredentialAccessForUsers(ctx, credentialID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfCredentialError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -70,7 +70,7 @@ func RemoveFolderAccessForUsers(ctx *gin.Context) {
 	err = service.RemoveFolderAccessForUsers(ctx, folderID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfFolderError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -105,7 +105,7 @@ func RemoveCredentialAccessForGroups(ctx *gin.Context) {
 	err = service.RemoveCredentialAccessForGroups(ctx, credentialID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfCredentialError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -140,7 +140,7 @@ func RemoveFolderAccessForGroups(ctx *gin.Context) {
 	err = service.RemoveFolderAccessForGroups(ctx, folderID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfFolderError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -175,7 +175,7 @@ func EditCredentialAccessForUser(ctx *gin.Context) {
 	err = service.EditCredentialAccessForUser(ctx, credentialID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfCredentialError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -210,7 +210,7 @@ func EditFolderAccessForUser(ctx *gin.Context) {
 	err = service.EditFolderAccessForUser(ctx, folderID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfFolderError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -245,7 +245,7 @@ func EditCredentialAccessForGroup(ctx *gin.Context) {
 	err = service.EditCredentialAccessForGroup(ctx, credentialID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfCredentialError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}
@@ -280,7 +280,7 @@ func EditFolderAccessForGroup(ctx *gin.Context) {
 	err = service.EditFolderAccessForGroup(ctx, folderID, req, caller)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAnOwnerOfFolderError); ok {
+		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
 			SendResponse(ctx, 401, nil, "", err)
 			return
 		}

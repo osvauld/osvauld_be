@@ -30,20 +30,20 @@ func (q *Queries) AddGroupMember(ctx context.Context, arg AddGroupMemberParams) 
 	return err
 }
 
-const checkUserManagerOfGroup = `-- name: CheckUserManagerOfGroup :one
+const checkUserAdminOfGroup = `-- name: CheckUserAdminOfGroup :one
 SELECT EXISTS (
   SELECT 1 FROM group_list
-  WHERE user_id = $1 AND grouping_id = $2 AND access_type = 'manager'
+  WHERE user_id = $1 AND grouping_id = $2 AND access_type = 'admin'
 ) as "exists"
 `
 
-type CheckUserManagerOfGroupParams struct {
+type CheckUserAdminOfGroupParams struct {
 	UserID     uuid.UUID `json:"userId"`
 	GroupingID uuid.UUID `json:"groupingId"`
 }
 
-func (q *Queries) CheckUserManagerOfGroup(ctx context.Context, arg CheckUserManagerOfGroupParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkUserManagerOfGroup, arg.UserID, arg.GroupingID)
+func (q *Queries) CheckUserAdminOfGroup(ctx context.Context, arg CheckUserAdminOfGroupParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserAdminOfGroup, arg.UserID, arg.GroupingID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

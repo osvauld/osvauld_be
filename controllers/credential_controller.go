@@ -17,13 +17,13 @@ func AddCredential(ctx *gin.Context) {
 
 	var req dto.AddCredentialRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
 
@@ -31,54 +31,63 @@ func AddCredential(ctx *gin.Context) {
 	if err != nil {
 		logger.Errorf(err.Error())
 
-		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "", err)
+		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 500, nil, "Failed to add credential", nil)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to add credential", nil)
 		return
 	}
 
 	response := map[string]uuid.UUID{"credentialId": credentialID}
-	SendResponse(ctx, 200, response, "Added credential", nil)
+	SendResponse(ctx, http.StatusOK, response, "Added credential", nil)
 }
 
 func GetCredentialDataByID(ctx *gin.Context) {
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	credentialIDStr := ctx.Param("id")
-	credentailaID, _ := uuid.Parse(credentialIDStr)
-	credential, err := service.GetCredentialDataByID(ctx, credentailaID, userID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
-			return
-		}
-		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
-	SendResponse(ctx, 200, credential, "Fetched credential", nil)
+
+	credentialIDStr := ctx.Param("id")
+	credentailaID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	credential, err := service.GetCredentialDataByID(ctx, credentailaID, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, http.StatusOK, credential, "Fetched credential", nil)
 }
 
 func GetCredentialsByFolder(ctx *gin.Context) {
 	// Parse user_id from headerss
 
-	userID, err := utils.FetchUserIDFromCtx(ctx)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
 	// Get folder_id from query params
 	folderIDStr := ctx.Param("id")
 	folderID, err := uuid.Parse(folderIDStr)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "Invalid folder id", errors.New("invalid folder id"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid folder id"))
 		return
 	}
 
-	credentials, err := service.GetCredentialsByFolder(ctx, folderID, userID)
+	credentials, err := service.GetCredentialsByFolder(ctx, folderID, caller)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch credential"))
 		return
 	}
 	SendResponse(ctx, 200, credentials, "Fetched credentials", nil)
@@ -86,110 +95,149 @@ func GetCredentialsByFolder(ctx *gin.Context) {
 }
 
 func GetCredentialsFieldsByFolderID(ctx *gin.Context) {
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	folderIDStr := ctx.Param("folderId")
-	folderID, _ := uuid.Parse(folderIDStr)
-	credential, err := service.GetCredentialsFieldsByFolderID(ctx, folderID, userID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
-	SendResponse(ctx, 200, credential, "Fetched credential", nil)
+
+	folderIDStr := ctx.Param("folderId")
+	folderID, err := uuid.Parse(folderIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid folder id"))
+		return
+	}
+
+	credential, err := service.GetCredentialsFieldsByFolderID(ctx, folderID, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserDoesNotHaveFolderAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch credential"))
+		return
+	}
+	SendResponse(ctx, http.StatusOK, credential, "Fetched credential", nil)
 }
 
 func GetCredentialsFieldsByIds(ctx *gin.Context) {
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
 	var req dto.GetCredentialsFieldsByIdsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	credentials, err := service.GetFieldsByCredentialIds(ctx, req.CredentialIds, userID)
+	credentials, err := service.GetFieldsByCredentialIDs(ctx, req.CredentialIds, caller)
 	if err != nil {
-		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
 	}
-	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
+	SendResponse(ctx, http.StatusOK, credentials, "Fetched credential", nil)
 }
 
 // This is used by search to get credentials by ids
 func GetCredentialsByIDs(ctx *gin.Context) {
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
 	var req dto.GetCredentialsByIDsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
-	credentials, err := service.GetCredentialsByIDs(ctx, req.CredentialIds, userID)
+
+	credentials, err := service.GetCredentialsByIDs(ctx, req.CredentialIds, caller)
 	if err != nil {
-		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
 	}
-	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
+	SendResponse(ctx, http.StatusOK, credentials, "Fetched credential", nil)
 }
 
 func GetAllUrlsForUser(ctx *gin.Context) {
-	userIdInterface, _ := ctx.Get("userId")
-	userID, _ := userIdInterface.(uuid.UUID)
-	urls, err := service.GetAllUrlsForUser(ctx, userID)
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 200, nil, "Failed to fetch urls", errors.New("failed to fetch urls"))
+		SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
 		return
 	}
-	SendResponse(ctx, 200, urls, "Fetched urls", nil)
+
+	urls, err := service.GetAllUrlsForUser(ctx, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch urls"))
+		return
+	}
+	SendResponse(ctx, http.StatusOK, urls, "Fetched urls", nil)
 }
 
-func GetSensitiveFieldsCredentialByID(ctx *gin.Context) {
+func GetSensitiveFieldsByCredentialID(ctx *gin.Context) {
 
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
 		return
 	}
 
 	credentialIDStr := ctx.Param("id")
 	credentailID, err := uuid.Parse(credentialIDStr)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", errors.New("invalid credential id"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
 		return
 	}
 
 	sensitiveFields, err := service.GetSensitiveFields(ctx, credentailID, userID)
 	if err != nil {
 
-		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "", err)
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
 
-		SendResponse(ctx, 500, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
 		return
 	}
 
-	SendResponse(ctx, 200, sensitiveFields, "Fetched credential", nil)
+	SendResponse(ctx, http.StatusOK, sensitiveFields, "Fetched credential", nil)
 
 }
 
 func EditCredential(ctx *gin.Context) {
 	var req dto.EditCredentialRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
 
 	credentialIDStr := ctx.Param("id")
 	credentailID, err := uuid.Parse(credentialIDStr)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "Invalid credential id", errors.New("invalid credential id"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
 		return
 	}
 
@@ -197,28 +245,28 @@ func EditCredential(ctx *gin.Context) {
 	if err != nil {
 		logger.Errorf(err.Error())
 
-		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "", err)
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 500, nil, "Failed to edit credential", nil)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to edit credential", nil)
 		return
 	}
 
-	SendResponse(ctx, 200, nil, "", nil)
+	SendResponse(ctx, http.StatusOK, nil, "", nil)
 }
 
 func GetSearchData(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-                  SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
-                  return
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
 	}
 	credentials, err := service.GetSearchData(ctx, caller)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "",  err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, credentials, "Fetched credential", nil)
+	SendResponse(ctx, http.StatusOK, credentials, "Fetched credential", nil)
 }

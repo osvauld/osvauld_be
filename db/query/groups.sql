@@ -26,10 +26,10 @@ SELECT EXISTS (
 ) as "exists";
 
 
--- name: CheckUserManagerOfGroup :one
+-- name: CheckUserAdminOfGroup :one
 SELECT EXISTS (
   SELECT 1 FROM group_list
-  WHERE user_id = $1 AND grouping_id = $2 AND access_type = 'manager'
+  WHERE user_id = $1 AND grouping_id = $2 AND access_type = 'admin'
 ) as "exists";
 
 

@@ -11,8 +11,9 @@ import (
 )
 
 var folderAccessLevels = map[string]int{
-	"member": 0,
-	"owner":  99,
+	"unauthorized": 0,
+	"reader":       1,
+	"manager":      99,
 }
 
 func CreateFolder(ctx *gin.Context, folder dto.CreateFolderRequest, caller uuid.UUID) (dto.FolderDetails, error) {
@@ -38,18 +39,31 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	return folders, nil
 }
 
-func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
+func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
 	users, err := repository.GetSharedUsersForFolder(ctx, folderID)
 	return users, err
 }
 
-func GetSharedGroupsForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedGroupsForFolderRow, error) {
+func GetSharedGroupsForFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetSharedGroupsForFolderRow, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
 	groups, err := repository.GetSharedGroupsForFolder(ctx, folderID)
 	return groups, err
 }
 
 func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (string, error) {
-	accessValues, err := repository.GetFolderAccessForUser(ctx, folderID, userID)
+	accessValues, err := repository.GetFolderAccessForUser(ctx, db.GetFolderAccessForUserParams{
+		FolderID: folderID,
+		UserID:   userID,
+	})
 	if err != nil {
 		return "", err
 	}
@@ -66,26 +80,12 @@ func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	return highestAccess, nil
 }
 
-func CheckFolderOwner(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
-	access, err := GetFolderAccessForUser(ctx, folderID, userID)
-	if err != nil {
-		return false, err
+func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
 	}
 
-	if access == "owner" {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func CheckOwnerOrManagerAccessForFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
-	return repository.CheckOwnerOrManagerAccessForFolder(ctx, folderID, userID)
-
-}
-
-func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
 	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
 	return groups, err
 }
-

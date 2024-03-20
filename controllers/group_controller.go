@@ -16,23 +16,23 @@ import (
 func CreateGroup(ctx *gin.Context) {
 	var req dto.CreateGroupRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
 
 	groupDetails, err := service.AddGroup(ctx, req.Name, caller)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "", errors.New("failed to create user"))
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to create group"))
 		return
 	}
 
-	SendResponse(ctx, 201, groupDetails, "created group", nil)
+	SendResponse(ctx, http.StatusCreated, groupDetails, "created group", nil)
 
 }
 
@@ -40,22 +40,51 @@ func GetUserGroups(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
 
 	groups, err := service.GetUserGroups(ctx, caller)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch users"))
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch users"))
 		return
 	}
-	SendResponse(ctx, 200, groups, "Fetched user groups", nil)
+	SendResponse(ctx, http.StatusOK, groups, "Fetched user groups", nil)
 
 }
 
 func GetGroupMembers(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("unauthorized"))
+		return
+	}
+
+	groupIDStr := ctx.Param("groupId")
+	groupID, err := uuid.Parse(groupIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid group id"))
+		return
+	}
+
+	groups, err := service.GetGroupMembers(ctx, groupID, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserNotMemberOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch group members"))
+		return
+	}
+	SendResponse(ctx, http.StatusOK, groups, "Fetched group memebers", nil)
+}
+
+func GetAllCredentialFieldsByGroupID(ctx *gin.Context) {
+
+	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
 		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
 		return
@@ -68,140 +97,127 @@ func GetGroupMembers(ctx *gin.Context) {
 		return
 	}
 
-	groups, err := service.GetGroupMembers(ctx, groupID, caller)
-	if err != nil {
-
-		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, err.Error(), nil)
-			return
-		}
-
-		SendResponse(ctx, 500, nil, "", errors.New("failed to fetch group members"))
-		return
-	}
-	SendResponse(ctx, 200, groups, "Fetched group memebers", nil)
-}
-
-func GetAllCredentialsByGroupID(ctx *gin.Context) {
-
-	userID, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "", errors.New("unauthorized"))
-		return
-	}
-
-	groupIDStr := ctx.Param("groupId")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "Invalid group id", nil)
-		return
-	}
-
 	credentialFields, err := service.GetCredentialFieldsByGroupID(ctx, userID, groupID)
 	if err != nil {
-		if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		if _, ok := err.(*customerrors.UserNotMemberOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 200, nil, "Failed to fetch credential", errors.New("failed to fetch credential"))
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch credential"))
 		return
 	}
 
-	if len(credentialFields) == 0 {
-		SendResponse(ctx, 200, []uuid.UUID{}, "No credentials found", nil)
-		return
-	}
-
-	SendResponse(ctx, 200, credentialFields, "Fetched credentials", nil)
+	SendResponse(ctx, http.StatusOK, credentialFields, "Fetched credentials", nil)
 }
 
 func AddMemberToGroup(ctx *gin.Context) {
 
-	userID, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
-		return
-	}
-
 	var req dto.AddMemberToGroupRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
-	err = service.AddMemberToGroup(ctx, req, userID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	err = service.AddMemberToGroup(ctx, req, caller)
 	if err != nil {
 		logger.Errorf(err.Error())
 		if _, ok := err.(*customerrors.UserAlreadyMemberOfGroupError); ok {
-			SendResponse(ctx, 409, nil, "", err)
+			SendResponse(ctx, http.StatusConflict, nil, "", err)
 			return
-		} else if _, ok := err.(*customerrors.UserNotAuthenticatedError); ok {
-			SendResponse(ctx, 401, nil, "", err)
+		} else if _, ok := err.(*customerrors.UserNotAdminOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
-		SendResponse(ctx, 500, nil, "failed to add members to group", nil)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to add members to group", nil)
 		return
 	}
 
-	SendResponse(ctx, 200, nil, "Added members to group", nil)
+	SendResponse(ctx, http.StatusOK, nil, "Added members to group", nil)
 }
 
 func GetUsersOfGroups(ctx *gin.Context) {
-	_, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
-		return
-	}
 
-	// TODO: Check if user is authorized to see members of the group
 	var req dto.GetUsersOfGroupsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
-	groupUsers, err := service.GetUsersOfGroups(ctx, req.GroupIDs)
-
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "failed to fetch group members", nil)
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	groupUsers, err := service.GetUsersOfGroups(ctx, req.GroupIDs, caller)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserNotMemberOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch group users"))
 		return
 	}
 	SendResponse(ctx, 200, groupUsers, "Fetched group users", nil)
 }
 
 func GetCredentialGroups(ctx *gin.Context) {
-	credentialIDStr := ctx.Param("id")
-	credentialID, _ := uuid.Parse(credentialIDStr)
 
-	users, err := service.GetCredentialGroups(ctx, credentialID)
+	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "failed to get credential users", err)
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
-	SendResponse(ctx, 200, users, "fetched credential users", nil)
+
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	users, err := service.GetCredentialGroups(ctx, credentialID, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to get credential users", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
 }
 
 func GetUsersWithoutGroupAccess(ctx *gin.Context) {
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
 
 	groupIDStr := ctx.Param("groupId")
 	groupID, err := uuid.Parse(groupIDStr)
 	if err != nil {
-		logger.Errorf(err.Error())
-		SendResponse(ctx, 400, nil, "Invalid group id", errors.New("invalid group id"))
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid group id"))
 		return
 	}
 
 	users, err := service.GetUsersWithoutGroupAccess(ctx, groupID, userID)
-
 	if err != nil {
-		logger.Errorf(err.Error())
-		SendResponse(ctx, 500, nil, "", err)
+		if _, ok := err.(*customerrors.UserNotMemberOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, users, "Fetched users not in group", nil)
+	SendResponse(ctx, http.StatusOK, users, "Fetched users not in group", nil)
 }

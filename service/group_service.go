@@ -11,6 +11,36 @@ import (
 	"github.com/google/uuid"
 )
 
+func VerifyMemberOfGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) error {
+	isMember, err := repository.CheckUserMemberOfGroup(ctx, db.CheckUserMemberOfGroupParams{
+		UserID:     caller,
+		GroupingID: groupID,
+	})
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return &customerrors.UserNotMemberOfGroupError{UserID: caller, GroupID: groupID}
+	}
+
+	return nil
+}
+
+func VerifyAdminOfGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) error {
+	isAdmin, err := repository.CheckUserAdminOfGroup(ctx, db.CheckUserAdminOfGroupParams{
+		UserID:     caller,
+		GroupingID: groupID,
+	})
+	if err != nil {
+		return err
+	}
+	if !isAdmin {
+		return &customerrors.UserNotAdminOfGroupError{UserID: caller, GroupID: groupID}
+	}
+
+	return nil
+}
+
 func AddGroup(ctx *gin.Context, groupName string, caller uuid.UUID) (dto.GroupDetails, error) {
 
 	groupDto := dto.GroupDetails{
@@ -36,34 +66,19 @@ func GetUserGroups(ctx *gin.Context, userID uuid.UUID) ([]db.FetchUserGroupsRow,
 
 func GetGroupMembers(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]db.GetGroupMembersRow, error) {
 
-	// Check user is a member of the group
-	isMember, err := CheckUserMemberOfGroup(ctx, groupID, caller)
-	if err != nil {
-		return []db.GetGroupMembersRow{}, err
-	}
-	if !isMember {
-		return []db.GetGroupMembersRow{}, &customerrors.UserNotAuthenticatedError{Message: "user is not a member of the group"}
+	if err := VerifyMemberOfGroup(ctx, groupID, caller); err != nil {
+		return nil, err
 	}
 
 	users, err := repository.GetGroupMembers(ctx, groupID)
 	return users, err
 }
 
-func CheckUserMemberOfGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) (bool, error) {
-	return repository.CheckUserMemberOfGroup(ctx, db.CheckUserMemberOfGroupParams{
-		UserID:     caller,
-		GroupingID: groupID,
-	})
-}
-
-func CheckUserManagerOfGroup(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) (bool, error) {
-	return repository.CheckUserManagerOfGroup(ctx, db.CheckUserManagerOfGroupParams{
-		UserID:     userID,
-		GroupingID: groupID,
-	})
-}
-
 func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]uuid.UUID, error) {
+
+	if err := VerifyMemberOfGroup(ctx, groupID, caller); err != nil {
+		return nil, err
+	}
 
 	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID, caller)
 	return credentialIDs, err
@@ -71,11 +86,7 @@ func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, group
 
 func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uuid.UUID) ([]dto.CredentialFields, error) {
 
-	isMember, err := CheckUserMemberOfGroup(ctx, groupID, caller)
-	if !isMember {
-		return nil, &customerrors.UserNotAuthenticatedError{Message: "user does not have access to the group"}
-	}
-	if err != nil {
+	if err := VerifyMemberOfGroup(ctx, groupID, caller); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +95,7 @@ func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uu
 		return nil, err
 	}
 
-	credentialFields, err := GetFieldsByCredentialIds(ctx, credentialIDs, caller)
+	credentialFields, err := GetFieldsByCredentialIDs(ctx, credentialIDs, caller)
 	if err != nil {
 		return nil, err
 	}
@@ -94,19 +105,7 @@ func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uu
 
 func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, caller uuid.UUID) error {
 
-	isManager, err := CheckUserManagerOfGroup(ctx, caller, payload.GroupID)
-	if err != nil {
-		return err
-	}
-	if !isManager {
-		return &customerrors.UserNotAuthenticatedError{Message: "caller is not an manager of the group"}
-	}
-
-	isMember, err := CheckUserMemberOfGroup(ctx, payload.GroupID, payload.MemberID)
-	if isMember {
-		return &customerrors.UserAlreadyMemberOfGroupError{Message: "user is already a member of the group"}
-	}
-	if err != nil {
+	if err := VerifyAdminOfGroup(ctx, payload.GroupID, caller); err != nil {
 		return err
 	}
 
@@ -191,12 +190,12 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 	return nil
 }
 
-func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
-	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
-	return users, err
-}
+func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
 
-func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
+	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
+		return nil, err
+	}
+
 	groups, err := repository.GetCredentialGroups(ctx, credentialID)
 	if err != nil {
 		logger.Errorf(err.Error())
@@ -206,14 +205,26 @@ func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAcce
 }
 
 func GetUsersWithoutGroupAccess(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]db.GetUsersWithoutGroupAccessRow, error) {
-	// Check user is can to see members of that are not in the group
-	isMember, err := CheckUserMemberOfGroup(ctx, groupID, caller)
-	if !isMember {
+
+	if err := VerifyMemberOfGroup(ctx, groupID, caller); err != nil {
 		return nil, err
 	}
+
 	users, err := repository.GetUsersWithoutGroupAccess(ctx, groupID)
 	if err != nil {
 		return []db.GetUsersWithoutGroupAccessRow{}, err
 	}
+	return users, err
+}
+
+func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID, caller uuid.UUID) ([]db.FetchUsersByGroupIdsRow, error) {
+
+	for _, groupID := range groupIDs {
+		if err := VerifyMemberOfGroup(ctx, groupID, caller); err != nil {
+			return nil, err
+		}
+	}
+
+	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
 	return users, err
 }

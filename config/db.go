@@ -17,6 +17,10 @@ type DatabaseConfiguration struct {
 }
 
 func DbConfiguration() (string, string) {
+
+	viper.SetDefault("MASTER_SSL_MODE", "prefer")
+	viper.SetDefault("REPLICA_SSL_MODE", "prefer")
+
 	masterDBName := viper.GetString("MASTER_DB_NAME")
 	masterDBUser := viper.GetString("MASTER_DB_USER")
 	masterDBPassword := viper.GetString("MASTER_DB_PASSWORD")
