@@ -15,10 +15,17 @@ type Configuration struct {
 func SetupConfig() error {
 	var configuration *Configuration
 
-	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
+	viper.AddConfigPath(".")
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
+
 	if err := viper.ReadInConfig(); err != nil {
-		logger.Errorf("Error to reading config file, %s", err)
-		return err
+		// Ignore the error if the config file is not found
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			logger.Errorf("error to read config, %v", err)
+			return err
+		}
 	}
 
 	err := viper.Unmarshal(&configuration)
