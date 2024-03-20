@@ -10,10 +10,9 @@ Osvauld requires a postgres instance running.
 
 ### Start Instance
 ```
-sudo docker run --name osvauld_be \
+docker run --name osvauld_be \
     -d \
-    -p 80:80 \
-    -p 443:443 \
+    -p 80:8000 \
     -e MASTER_DB_HOST=<db_host> \
     -e MASTER_DB_NAME=<db_name> \
     -e MASTER_DB_USER=<db_user> \
