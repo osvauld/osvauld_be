@@ -40,8 +40,6 @@ func DbConfiguration() (string, string) {
 		masterDBHost, masterDBUser, masterDBPassword, masterDBName, masterDBPort, masterDBSslMode,
 	)
 
-	fmt.Println(masterDBDSN)
-
 	replicaDBDSN := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		replicaDBHost, replicaDBUser, replicaDBPassword, replicaDBName, replicaDBPort, replicaDBSslMode,
