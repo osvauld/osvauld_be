@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
@@ -22,13 +21,13 @@ func CreateUser(ctx *gin.Context) {
 	var req dto.CreateUser
 	// Bind the request body to the struct
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	user, err := service.CreateUser(ctx, req)
@@ -44,52 +43,52 @@ func TempLogin(ctx *gin.Context) {
 
 	var req dto.TempLogin
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	challenge, err := service.TempLogin(ctx, req)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 
 	response := map[string]string{"challenge": challenge}
 
-	SendResponse(ctx, 200, response, "login successfull", nil)
+	SendResponse(ctx, http.StatusOK, response, "temp login successfull", nil)
 }
 
 // single use api per user to register their public keys
 func Register(ctx *gin.Context) {
 	var req dto.Register
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "invalid request", err)
 		return
 	}
 	user, err := service.Register(ctx, req)
 	if err != nil {
 		logger.Errorf(err.Error())
-		SendResponse(ctx, 400, nil, "failed to register user", errors.New("failed to register user"))
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to register user", err)
 		return
 	}
 
-	SendResponse(ctx, 200, user, "registration successfull", nil)
+	SendResponse(ctx, http.StatusOK, user, "registration successfull", nil)
 }
 
 func GetChallenge(ctx *gin.Context) {
 	var req dto.CreateChallenge
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	challenge, err := service.CreateChallenge(ctx, req)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 	type ChallengeResponse struct {
 		Challenge string `json:"challenge"`
 	}
-	SendResponse(ctx, 200, ChallengeResponse{Challenge: challenge}, "fetched challenge", nil)
+	SendResponse(ctx, http.StatusOK, ChallengeResponse{Challenge: challenge}, "fetched challenge", nil)
 }
 
 func VerifyChallenge(ctx *gin.Context) {
