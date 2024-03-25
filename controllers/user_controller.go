@@ -22,22 +22,21 @@ func CreateUser(ctx *gin.Context) {
 	var req dto.CreateUser
 	// Bind the request body to the struct
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, 400, nil, "", err)
 		return
 	}
 
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, 400, nil, "", err)
 		return
 	}
 	user, err := service.CreateUser(ctx, req)
 	if err != nil {
-		logger.Errorf(err.Error())
-		SendResponse(ctx, 400, nil, "failed to create user", nil)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 201, user, "created user", nil)
+	SendResponse(ctx, http.StatusCreated, user, "created user", nil)
 
 }
 
