@@ -190,20 +190,6 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 	return nil
 }
 
-func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
-
-	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
-		return nil, err
-	}
-
-	groups, err := repository.GetCredentialGroups(ctx, credentialID)
-	if err != nil {
-		logger.Errorf(err.Error())
-		return groups, err
-	}
-	return groups, nil
-}
-
 func GetUsersWithoutGroupAccess(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) ([]db.GetUsersWithoutGroupAccessRow, error) {
 
 	if err := VerifyMemberOfGroup(ctx, groupID, caller); err != nil {
@@ -227,4 +213,14 @@ func GetUsersOfGroups(ctx *gin.Context, groupIDs []uuid.UUID, caller uuid.UUID) 
 
 	users, err := repository.GetUsersOfGroups(ctx, groupIDs)
 	return users, err
+}
+
+func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
+	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
+	return groups, err
 }

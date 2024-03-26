@@ -188,41 +188,6 @@ func EditCredentialAccessForUser(ctx *gin.Context) {
 	SendResponse(ctx, 200, nil, "edited credential access", nil)
 }
 
-// controller to edit folder access
-func EditFolderAccessForUser(ctx *gin.Context) {
-	var req dto.EditFolderAccessForUser
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	caller, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", err)
-		return
-	}
-
-	folderIDStr := ctx.Param("id")
-	folderID, err := uuid.Parse(folderIDStr)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	err = service.EditFolderAccessForUser(ctx, folderID, req, caller)
-	if err != nil {
-
-		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
-			SendResponse(ctx, 401, nil, "", err)
-			return
-		}
-
-		SendResponse(ctx, 500, nil, "", err)
-		return
-	}
-	SendResponse(ctx, 200, nil, "edited folder access", nil)
-}
-
 // controller for edit credential access for user
 func EditCredentialAccessForGroup(ctx *gin.Context) {
 	var req dto.EditCredentialAccessForGroup
@@ -258,41 +223,6 @@ func EditCredentialAccessForGroup(ctx *gin.Context) {
 	SendResponse(ctx, 200, nil, "edited credential access for group", nil)
 }
 
-// controller for edit folder access for group
-func EditFolderAccessForGroup(ctx *gin.Context) {
-	var req dto.EditFolderAccessForGroup
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	caller, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", err)
-		return
-	}
-
-	folderIDStr := ctx.Param("id")
-	folderID, err := uuid.Parse(folderIDStr)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	err = service.EditFolderAccessForGroup(ctx, folderID, req, caller)
-	if err != nil {
-
-		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
-			SendResponse(ctx, 401, nil, "", err)
-			return
-		}
-
-		SendResponse(ctx, 500, nil, "", err)
-		return
-	}
-	SendResponse(ctx, 200, nil, "edited folder access for group", nil)
-}
-
 func GetCredentialUsersWithDirectAccess(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
@@ -310,13 +240,19 @@ func GetCredentialUsersWithDirectAccess(ctx *gin.Context) {
 
 	users, err := service.GetCredentialUsersWithDirectAccess(ctx, credentialID, caller)
 	if err != nil {
+
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
 }
 
-func GetCredentialUsersWithAllAccessSource(ctx *gin.Context) {
+func GetCredentialUsersForDataSync(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
@@ -331,10 +267,45 @@ func GetCredentialUsersWithAllAccessSource(ctx *gin.Context) {
 		return
 	}
 
-	users, err := service.GetCredentialUsersWithAllAccessSource(ctx, credentialID, caller)
+	users, err := service.GetCredentialUsersForDataSync(ctx, credentialID, caller)
 	if err != nil {
+
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
+}
+
+func GetCredentialGroups(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusUnauthorized, nil, "Unauthorized", err)
+		return
+	}
+
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	groups, err := service.GetCredentialGroups(ctx, credentialID, caller)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, groups, "fetched credential groups", nil)
 }

@@ -200,7 +200,7 @@ func EditCredentialAccessForGroup(ctx *gin.Context, credentialID uuid.UUID, payl
 
 }
 
-func UniqueUsersWithHighestAccess(userAccess []dto.CredentialUserWithAccess) []dto.CredentialUserWithAccess {
+func UniqueUsersWithHighestAccessForCredential(userAccess []dto.CredentialUserWithAccess) []dto.CredentialUserWithAccess {
 
 	userAccessMap := map[uuid.UUID]dto.CredentialUserWithAccess{}
 
@@ -242,43 +242,32 @@ func GetCredentialUsersWithDirectAccess(ctx *gin.Context, credentialID uuid.UUID
 	userAccessObjs := []dto.CredentialUserWithAccess{}
 	for _, access := range userAccess {
 		userAccessObjs = append(userAccessObjs, dto.CredentialUserWithAccess{
-			UserID:        access.ID,
-			Name:          access.Name,
-			AccessType:    access.AccessType,
-			AccessSource:  access.AccessSource,
-			EncryptionKey: access.EncryptionKey,
+			UserID:       access.UserID,
+			Name:         access.Name,
+			AccessType:   access.AccessType,
+			AccessSource: access.AccessSource,
 		})
 	}
 
-	uniqueAccessObjs := UniqueUsersWithHighestAccess(userAccessObjs)
+	uniqueAccessObjs := UniqueUsersWithHighestAccessForCredential(userAccessObjs)
 
 	return uniqueAccessObjs, nil
 }
 
-func GetCredentialUsersWithAllAccessSource(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]dto.CredentialUserWithAccess, error) {
+func GetCredentialUsersForDataSync(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetCredentialUsersForDataSyncRow, error) {
 
 	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
 		return nil, err
 	}
 
-	userAccess, err := repository.GetCredentialUsersWithDirectAndGroupAccess(ctx, credentialID)
-	if err != nil {
+	return repository.GetCredentialUsersForDataSync(ctx, credentialID)
+}
+
+func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetCredentialGroupsRow, error) {
+
+	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
 		return nil, err
 	}
 
-	userAccessObjs := []dto.CredentialUserWithAccess{}
-	for _, access := range userAccess {
-		userAccessObjs = append(userAccessObjs, dto.CredentialUserWithAccess{
-			UserID:        access.ID,
-			Name:          access.Name,
-			AccessType:    access.AccessType,
-			AccessSource:  access.AccessSource,
-			EncryptionKey: access.EncryptionKey,
-		})
-	}
-
-	uniqueAccessObjs := UniqueUsersWithHighestAccess(userAccessObjs)
-
-	return uniqueAccessObjs, nil
-
+	return repository.GetCredentialGroups(ctx, credentialID)
 }

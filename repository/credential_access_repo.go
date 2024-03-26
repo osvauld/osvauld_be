@@ -79,7 +79,12 @@ func GetCredentialUsersWithDirectAccess(ctx *gin.Context, credentialID uuid.UUID
 	return database.Store.GetCredentialUsersWithDirectAccess(ctx, credentialID)
 }
 
-func GetCredentialUsersWithDirectAndGroupAccess(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUsersWithDirectAndGroupAccessRow, error) {
+func GetCredentialUsersForDataSync(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUsersForDataSyncRow, error) {
 
-	return database.Store.GetCredentialUsersWithDirectAndGroupAccess(ctx, credentialID)
+	return database.Store.GetCredentialUsersForDataSync(ctx, credentialID)
+}
+
+func GetCredentialGroups(ctx *gin.Context, folderID uuid.UUID) ([]db.GetCredentialGroupsRow, error) {
+
+	return database.Store.GetCredentialGroups(ctx, folderID)
 }

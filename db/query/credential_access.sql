@@ -93,10 +93,10 @@ AND credential_id = $2 AND group_id = $3;
 
 -- name: GetCredentialUsersWithDirectAccess :many
 SELECT 
-    ca.user_id as "id",
-    u.name, 
+    ca.user_id,
+    u.name,
+    u.username,
     ca.access_type,
-    COALESCE(u.encryption_key, '') AS "encryptionKey",
     CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
 FROM 
     credential_access ca
@@ -106,13 +106,24 @@ WHERE
     ca.credential_id = $1 AND ca.group_id IS NULL;
 
 
--- name: GetCredentialUsersWithDirectAndGroupAccess :many
+-- name: GetCredentialGroups :many
 SELECT 
-    ca.user_id as "id",
-    u.name, 
+    ca.group_id,
+    g.name,
     ca.access_type,
-    COALESCE(u.encryption_key, '') AS "encryptionKey",
     CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM 
+    credential_access ca
+JOIN 
+    groupings g ON g.id = ca.id
+WHERE 
+    ca.credential_id = $1;
+
+
+-- name: GetCredentialUsersForDataSync :many
+SELECT 
+    DISTINCT ca.user_id,
+    COALESCE(u.encryption_key, '') AS "encryptionKey"
 FROM
     credential_access ca
 JOIN

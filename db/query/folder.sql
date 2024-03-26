@@ -19,14 +19,6 @@ WHERE id IN (
   WHERE a.user_id = $1
 );
 
-
--- name: GetSharedUsersForFolder :many
-SELECT users.id, users.name, users.username, COALESCE(users.encryption_key,'') as "publicKey", folder_access.access_type as "accessType"
-FROM folder_access
-JOIN users ON folder_access.user_id = users.id
-WHERE folder_access.folder_id = $1;
-
-
 -- name: GetSharedGroupsForFolder :many
 SELECT g.id, g.name, f.access_type
 FROM folder_access AS f JOIN groupings AS g ON f.group_id = g.id

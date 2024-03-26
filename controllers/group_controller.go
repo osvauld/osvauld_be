@@ -169,33 +169,6 @@ func GetUsersOfGroups(ctx *gin.Context) {
 	SendResponse(ctx, 200, groupUsers, "Fetched group users", nil)
 }
 
-func GetCredentialGroups(ctx *gin.Context) {
-
-	caller, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
-		return
-	}
-
-	credentialIDStr := ctx.Param("id")
-	credentialID, err := uuid.Parse(credentialIDStr)
-	if err != nil {
-		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
-		return
-	}
-
-	users, err := service.GetCredentialGroups(ctx, credentialID, caller)
-	if err != nil {
-		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
-			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
-			return
-		}
-		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to get credential users", err)
-		return
-	}
-	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
-}
-
 func GetUsersWithoutGroupAccess(ctx *gin.Context) {
 	userID, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
@@ -220,4 +193,29 @@ func GetUsersWithoutGroupAccess(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, http.StatusOK, users, "Fetched users not in group", nil)
+}
+
+func GetGroupsWithoutAccess(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	folderIDStr := ctx.Param("folderId")
+	folderID, err := uuid.Parse(folderIDStr)
+
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid folder id"))
+		return
+	}
+
+	groups, err := service.GetGroupsWithoutAccess(ctx, folderID, caller)
+	if err != nil {
+		SendResponse(ctx, 500, nil, "Failed to get groups", errors.New("failed to fetch required groups"))
+		return
+	}
+
+	SendResponse(ctx, 200, groups, "Fetched groups", nil)
 }

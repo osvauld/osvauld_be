@@ -10,11 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var folderAccessLevels = map[string]int{
-	"unauthorized": 0,
-	"reader":       1,
-	"manager":      99,
-}
 
 func CreateFolder(ctx *gin.Context, folder dto.CreateFolderRequest, caller uuid.UUID) (dto.FolderDetails, error) {
 
@@ -37,55 +32,4 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 		return nil, err
 	}
 	return folders, nil
-}
-
-func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
-
-	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
-		return nil, err
-	}
-
-	users, err := repository.GetSharedUsersForFolder(ctx, folderID)
-	return users, err
-}
-
-func GetSharedGroupsForFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetSharedGroupsForFolderRow, error) {
-
-	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
-		return nil, err
-	}
-
-	groups, err := repository.GetSharedGroupsForFolder(ctx, folderID)
-	return groups, err
-}
-
-func GetFolderAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (string, error) {
-	accessValues, err := repository.GetFolderAccessForUser(ctx, db.GetFolderAccessForUserParams{
-		FolderID: folderID,
-		UserID:   userID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	// Find the higest access level for a user
-	highestAccess := "unauthorized"
-	for _, accessValue := range accessValues {
-
-		if folderAccessLevels[accessValue] > folderAccessLevels[highestAccess] {
-			highestAccess = accessValue
-		}
-	}
-
-	return highestAccess, nil
-}
-
-func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
-
-	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
-		return nil, err
-	}
-
-	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
-	return groups, err
 }
