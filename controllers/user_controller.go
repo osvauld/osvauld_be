@@ -22,22 +22,21 @@ func CreateUser(ctx *gin.Context) {
 	var req dto.CreateUser
 	// Bind the request body to the struct
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	user, err := service.CreateUser(ctx, req)
 	if err != nil {
-		logger.Errorf(err.Error())
-		SendResponse(ctx, 400, nil, "failed to create user", nil)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 201, user, "created user", nil)
+	SendResponse(ctx, http.StatusCreated, user, "created user", nil)
 
 }
 
@@ -45,92 +44,100 @@ func TempLogin(ctx *gin.Context) {
 
 	var req dto.TempLogin
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	challenge, err := service.TempLogin(ctx, req)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 
 	response := map[string]string{"challenge": challenge}
 
-	SendResponse(ctx, 200, response, "login successfull", nil)
+	SendResponse(ctx, http.StatusOK, response, "temp login successfull", nil)
 }
 
 // single use api per user to register their public keys
 func Register(ctx *gin.Context) {
 	var req dto.Register
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "invalid request", err)
 		return
 	}
 	user, err := service.Register(ctx, req)
 	if err != nil {
 		logger.Errorf(err.Error())
-		SendResponse(ctx, 400, nil, "failed to register user", errors.New("failed to register user"))
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to register user", err)
 		return
 	}
 
-	SendResponse(ctx, 200, user, "registration successfull", nil)
+	SendResponse(ctx, http.StatusOK, user, "registration successfull", nil)
 }
 
 func GetChallenge(ctx *gin.Context) {
 	var req dto.CreateChallenge
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	challenge, err := service.CreateChallenge(ctx, req)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 	type ChallengeResponse struct {
 		Challenge string `json:"challenge"`
 	}
-	SendResponse(ctx, 200, ChallengeResponse{Challenge: challenge}, "fetched challenge", nil)
+	SendResponse(ctx, http.StatusOK, ChallengeResponse{Challenge: challenge}, "fetched challenge", nil)
 }
 
 func VerifyChallenge(ctx *gin.Context) {
 	var req dto.VerifyChallenge
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 	token, err := service.VerifyChallenge(ctx, req)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 	type TokenResponse struct {
 		Token string `json:"token"`
 	}
-	SendResponse(ctx, 200, TokenResponse{Token: token}, "verified challenge", nil)
+	SendResponse(ctx, http.StatusOK, TokenResponse{Token: token}, "verified challenge", nil)
 }
 
 func GetAllUsers(ctx *gin.Context) {
-	users, _ := service.GetAllUsers(ctx)
-	SendResponse(ctx, 200, users, "fetched users", nil)
+	users, err := service.GetAllUsers(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, users, "fetched users", nil)
 }
 
 func GetCredentialUsers(ctx *gin.Context) {
 	credentialIDStr := ctx.Param("id")
-	credentialID, _ := uuid.Parse(credentialIDStr)
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
 
 	users, err := service.GetCredentialUsers(ctx, credentialID)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "failed to get credential users", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, users, "fetched credential users", nil)
+	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
 }
 
 func GetAdminPage(ctx *gin.Context) {
 	exists, err := service.CheckUserExists(ctx)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "failed to fetch page", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 	if exists {
@@ -143,7 +150,7 @@ func GetAdminPage(ctx *gin.Context) {
 func CreateFirstAdmin(ctx *gin.Context) {
 	exists, err := service.CheckUserExists(ctx)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "failed to check user existence", err)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 
@@ -157,20 +164,20 @@ func CreateFirstAdmin(ctx *gin.Context) {
 
 	// Bind the request body to the struct
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	_, err = service.CreateUser(ctx, req)
 	if err != nil {
 		logger.Errorf(err.Error())
-		SendResponse(ctx, 400, nil, "failed to create user", nil)
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 
