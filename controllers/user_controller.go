@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
-	"github.com/google/uuid"
 )
 
 // // Initialize the validator once for your application
@@ -116,22 +114,6 @@ func GetAllUsers(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, http.StatusOK, users, "fetched users", nil)
-}
-
-func GetCredentialUsers(ctx *gin.Context) {
-	credentialIDStr := ctx.Param("id")
-	credentialID, err := uuid.Parse(credentialIDStr)
-	if err != nil {
-		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
-		return
-	}
-
-	users, err := service.GetCredentialUsers(ctx, credentialID)
-	if err != nil {
-		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
-		return
-	}
-	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
 }
 
 func GetAdminPage(ctx *gin.Context) {

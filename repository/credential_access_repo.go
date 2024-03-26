@@ -73,3 +73,13 @@ func EditFolderAccessForGroup(ctx *gin.Context, args db.EditFolderAccessForGroup
 
 	return database.Store.EditFolderAccessForGroupTransaction(ctx, args)
 }
+
+func GetCredentialUsersWithDirectAccess(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUsersWithDirectAccessRow, error) {
+
+	return database.Store.GetCredentialUsersWithDirectAccess(ctx, credentialID)
+}
+
+func GetCredentialUsersWithDirectAndGroupAccess(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetCredentialUsersWithDirectAndGroupAccessRow, error) {
+
+	return database.Store.GetCredentialUsersWithDirectAndGroupAccess(ctx, credentialID)
+}

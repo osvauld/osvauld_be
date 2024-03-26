@@ -199,3 +199,86 @@ func EditCredentialAccessForGroup(ctx *gin.Context, credentialID uuid.UUID, payl
 	return nil
 
 }
+
+func UniqueUsersWithHighestAccess(userAccess []dto.CredentialUserWithAccess) []dto.CredentialUserWithAccess {
+
+	userAccessMap := map[uuid.UUID]dto.CredentialUserWithAccess{}
+
+	for _, access := range userAccess {
+		if _, ok := userAccessMap[access.UserID]; !ok {
+			userAccessMap[access.UserID] = access
+		} else {
+			if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[userAccessMap[access.UserID].AccessType] {
+				userAccessMap[access.UserID] = access
+
+			} else if CredentialAccessLevels[access.AccessType] == CredentialAccessLevels[userAccessMap[access.UserID].AccessType] {
+				// incase of multiple access rows with same access level, we choose the one with acquired access
+				if access.AccessSource == "acquired" {
+					userAccessMap[access.UserID] = access
+				}
+			}
+		}
+	}
+
+	uniqueUserAccess := []dto.CredentialUserWithAccess{}
+	for _, access := range userAccessMap {
+		uniqueUserAccess = append(uniqueUserAccess, access)
+	}
+
+	return uniqueUserAccess
+}
+
+func GetCredentialUsersWithDirectAccess(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]dto.CredentialUserWithAccess, error) {
+
+	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
+		return nil, err
+	}
+
+	userAccess, err := repository.GetCredentialUsersWithDirectAccess(ctx, credentialID)
+	if err != nil {
+		return nil, err
+	}
+
+	userAccessObjs := []dto.CredentialUserWithAccess{}
+	for _, access := range userAccess {
+		userAccessObjs = append(userAccessObjs, dto.CredentialUserWithAccess{
+			UserID:        access.ID,
+			Name:          access.Name,
+			AccessType:    access.AccessType,
+			AccessSource:  access.AccessSource,
+			EncryptionKey: access.EncryptionKey,
+		})
+	}
+
+	uniqueAccessObjs := UniqueUsersWithHighestAccess(userAccessObjs)
+
+	return uniqueAccessObjs, nil
+}
+
+func GetCredentialUsersWithAllAccessSource(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]dto.CredentialUserWithAccess, error) {
+
+	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
+		return nil, err
+	}
+
+	userAccess, err := repository.GetCredentialUsersWithDirectAndGroupAccess(ctx, credentialID)
+	if err != nil {
+		return nil, err
+	}
+
+	userAccessObjs := []dto.CredentialUserWithAccess{}
+	for _, access := range userAccess {
+		userAccessObjs = append(userAccessObjs, dto.CredentialUserWithAccess{
+			UserID:        access.ID,
+			Name:          access.Name,
+			AccessType:    access.AccessType,
+			AccessSource:  access.AccessSource,
+			EncryptionKey: access.EncryptionKey,
+		})
+	}
+
+	uniqueAccessObjs := UniqueUsersWithHighestAccess(userAccessObjs)
+
+	return uniqueAccessObjs, nil
+
+}

@@ -81,18 +81,6 @@ WHERE
     a.user_id = $1
     AND c.folder_id = $2;
 
--- name: GetAccessTypeAndUsersByCredentialId :many
-SELECT 
-    al.user_id as "id",
-    u.name, 
-    al.access_type,
-    COALESCE(u.encryption_key, '') AS "publicKey"
-FROM 
-    credential_access al
-JOIN 
-    users u ON al.user_id = u.id
-WHERE 
-    al.credential_id = $1 AND al.group_id IS NULL;
 
 -- name: GetAccessTypeAndGroupsByCredentialId :many
     SELECT DISTINCT

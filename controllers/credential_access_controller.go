@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"errors"
+	"net/http"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/utils"
@@ -289,4 +291,50 @@ func EditFolderAccessForGroup(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, 200, nil, "edited folder access for group", nil)
+}
+
+func GetCredentialUsersWithDirectAccess(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusUnauthorized, nil, "Unauthorized", err)
+		return
+	}
+
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	users, err := service.GetCredentialUsersWithDirectAccess(ctx, credentialID, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
+}
+
+func GetCredentialUsersWithAllAccessSource(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusUnauthorized, nil, "Unauthorized", err)
+		return
+	}
+
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	users, err := service.GetCredentialUsersWithAllAccessSource(ctx, credentialID, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
 }

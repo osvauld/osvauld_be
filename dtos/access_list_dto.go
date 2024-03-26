@@ -2,14 +2,6 @@ package dto
 
 import "github.com/google/uuid"
 
-type AccessListResult struct {
-	ID           uuid.UUID     `json:"id"`
-	UserID       uuid.UUID     `json:"user_id"`
-	CredentialID uuid.UUID     `json:"credential_id"`
-	GroupID      uuid.NullUUID `json:"group_id"`
-	AccessType   string        `json:"access_type"`
-}
-
 type RemoveCredentialAccessForUsers struct {
 	UserIDs []uuid.UUID `json:"userIds"`
 }
@@ -44,4 +36,12 @@ type EditCredentialAccessForGroup struct {
 type EditFolderAccessForGroup struct {
 	GroupID    uuid.UUID `json:"groupId"`
 	AccessType string    `json:"accessType"`
+}
+
+type CredentialUserWithAccess struct {
+	UserID        uuid.UUID `json:"userId"`
+	Name          string    `json:"name"`
+	AccessType    string    `json:"accessType"`
+	AccessSource  string    `json:"accessSource"`
+	EncryptionKey string    `json:"encryptionKey"`
 }

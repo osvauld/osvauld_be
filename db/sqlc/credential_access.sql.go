@@ -214,6 +214,110 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 	return items, nil
 }
 
+const getCredentialUsersWithDirectAccess = `-- name: GetCredentialUsersWithDirectAccess :many
+SELECT 
+    ca.user_id as "id",
+    u.name, 
+    ca.access_type,
+    COALESCE(u.encryption_key, '') AS "encryptionKey",
+    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM 
+    credential_access ca
+JOIN 
+    users u ON ca.user_id = u.id
+WHERE 
+    ca.credential_id = $1 AND ca.group_id IS NULL
+`
+
+type GetCredentialUsersWithDirectAccessRow struct {
+	ID            uuid.UUID `json:"id"`
+	Name          string    `json:"name"`
+	AccessType    string    `json:"accessType"`
+	EncryptionKey string    `json:"encryptionKey"`
+	AccessSource  string    `json:"accessSource"`
+}
+
+func (q *Queries) GetCredentialUsersWithDirectAccess(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersWithDirectAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialUsersWithDirectAccess, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialUsersWithDirectAccessRow{}
+	for rows.Next() {
+		var i GetCredentialUsersWithDirectAccessRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.AccessType,
+			&i.EncryptionKey,
+			&i.AccessSource,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCredentialUsersWithDirectAndGroupAccess = `-- name: GetCredentialUsersWithDirectAndGroupAccess :many
+SELECT 
+    ca.user_id as "id",
+    u.name, 
+    ca.access_type,
+    COALESCE(u.encryption_key, '') AS "encryptionKey",
+    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM
+    credential_access ca
+JOIN
+    users u ON ca.user_id = u.id
+WHERE
+    ca.credential_id = $1
+`
+
+type GetCredentialUsersWithDirectAndGroupAccessRow struct {
+	ID            uuid.UUID `json:"id"`
+	Name          string    `json:"name"`
+	AccessType    string    `json:"accessType"`
+	EncryptionKey string    `json:"encryptionKey"`
+	AccessSource  string    `json:"accessSource"`
+}
+
+func (q *Queries) GetCredentialUsersWithDirectAndGroupAccess(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersWithDirectAndGroupAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialUsersWithDirectAndGroupAccess, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialUsersWithDirectAndGroupAccessRow{}
+	for rows.Next() {
+		var i GetCredentialUsersWithDirectAndGroupAccessRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.AccessType,
+			&i.EncryptionKey,
+			&i.AccessSource,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUsersByCredential = `-- name: GetUsersByCredential :many
 SELECT users.id, users.username, users.name, COALESCE(users.encryption_key, '') as "publicKey", credential_access.access_type as "accessType"
 FROM credential_access

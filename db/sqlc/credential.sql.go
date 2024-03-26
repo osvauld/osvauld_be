@@ -189,55 +189,6 @@ func (q *Queries) GetAccessTypeAndGroupsByCredentialId(ctx context.Context, cred
 	return items, nil
 }
 
-const getAccessTypeAndUsersByCredentialId = `-- name: GetAccessTypeAndUsersByCredentialId :many
-SELECT 
-    al.user_id as "id",
-    u.name, 
-    al.access_type,
-    COALESCE(u.encryption_key, '') AS "publicKey"
-FROM 
-    credential_access al
-JOIN 
-    users u ON al.user_id = u.id
-WHERE 
-    al.credential_id = $1 AND al.group_id IS NULL
-`
-
-type GetAccessTypeAndUsersByCredentialIdRow struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	AccessType string    `json:"accessType"`
-	PublicKey  string    `json:"publicKey"`
-}
-
-func (q *Queries) GetAccessTypeAndUsersByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndUsersByCredentialIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAccessTypeAndUsersByCredentialId, credentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetAccessTypeAndUsersByCredentialIdRow{}
-	for rows.Next() {
-		var i GetAccessTypeAndUsersByCredentialIdRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.AccessType,
-			&i.PublicKey,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getAllUrlsForUser = `-- name: GetAllUrlsForUser :many
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"

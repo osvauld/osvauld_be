@@ -43,10 +43,6 @@ func GetCredentialIdsByFolderAndUserId(ctx *gin.Context, args db.GetCredentialId
 	return database.Store.GetCredentialIdsByFolder(ctx, args)
 }
 
-func GetCredentialUsers(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndUsersByCredentialIdRow, error) {
-
-	return database.Store.GetAccessTypeAndUsersByCredentialId(ctx, credentialID)
-}
 
 func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetAccessTypeAndGroupsByCredentialIdRow, error) {
 
