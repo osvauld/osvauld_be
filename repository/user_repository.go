@@ -50,5 +50,5 @@ func CheckAnyUserExists(ctx *gin.Context) (bool, error) {
 }
 
 func RemoveUserFromAll(ctx *gin.Context, userID uuid.UUID) error {
-	return database.Store.RemoveUserFromAll(ctx, userID)
+	return database.Store.RemoveUserFromOrg(ctx, userID)
 }

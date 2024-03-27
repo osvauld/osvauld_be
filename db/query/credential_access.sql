@@ -130,6 +130,4 @@ JOIN
     users u ON ca.user_id = u.id
 WHERE
     ca.credential_id = $1;
--- name: DeleteUserFromCredentialAccess :exec
-DELETE FROM credential_access WHERE user_id = $1;
 

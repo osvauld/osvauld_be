@@ -98,15 +98,6 @@ func (q *Queries) DeleteCredentialFields(ctx context.Context, credentialID uuid.
 	return err
 }
 
-const deleteFieldsForUser = `-- name: DeleteFieldsForUser :exec
-DELETE FROM fields WHERE user_id = $1
-`
-
-func (q *Queries) DeleteFieldsForUser(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteFieldsForUser, userID)
-	return err
-}
-
 const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many
 SELECT
     f.id,

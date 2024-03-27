@@ -81,6 +81,5 @@ WHERE
             AND f.user_id = fields.user_id
     );
 
--- name: DeleteFieldsForUser :exec
-DELETE FROM fields WHERE user_id = $1;
+
 

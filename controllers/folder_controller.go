@@ -9,6 +9,7 @@ import (
 	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func CreateFolder(ctx *gin.Context) {
@@ -49,4 +50,25 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context) {
 
 	SendResponse(ctx, http.StatusOK, folders, "Fetched folders", nil)
 
+}
+
+func RemoveFolder(ctx *gin.Context) {
+	folderIDStr := ctx.Param("id")
+	folderID, err := uuid.Parse(folderIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid folder id"))
+		return
+	}
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	err = service.RemoveFolder(ctx, folderID, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to remove folder"))
+		return
+	}
+
+	SendResponse(ctx, http.StatusOK, nil, "Folder removed successfully", nil)
 }

@@ -56,15 +56,6 @@ func (q *Queries) CheckFolderAccessEntryExists(ctx context.Context, arg CheckFol
 	return exists, err
 }
 
-const deleteUserFromFolderAccess = `-- name: DeleteUserFromFolderAccess :exec
-DELETE FROM folder_access WHERE user_id = $1
-`
-
-func (q *Queries) DeleteUserFromFolderAccess(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserFromFolderAccess, userID)
-	return err
-}
-
 const editFolderAccessForGroup = `-- name: EditFolderAccessForGroup :exec
 UPDATE folder_access
 SET access_type = $1

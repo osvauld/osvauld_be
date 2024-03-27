@@ -123,3 +123,10 @@ LEFT JOIN
     folders f ON c.folder_id = f.id
 WHERE 
     ca.user_id = $1;
+
+-- name: RemoveCredential :exec
+DELETE FROM 
+    credentials
+WHERE 
+    id = $1;
+

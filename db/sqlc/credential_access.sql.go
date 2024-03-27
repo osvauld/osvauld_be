@@ -68,15 +68,6 @@ func (q *Queries) CheckCredentialAccessEntryExists(ctx context.Context, arg Chec
 	return exists, err
 }
 
-const deleteUserFromCredentialAccess = `-- name: DeleteUserFromCredentialAccess :exec
-DELETE FROM credential_access WHERE user_id = $1
-`
-
-func (q *Queries) DeleteUserFromCredentialAccess(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserFromCredentialAccess, userID)
-	return err
-}
-
 const editCredentialAccessForGroup = `-- name: EditCredentialAccessForGroup :exec
 UPDATE credential_access
 SET access_type = $1

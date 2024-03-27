@@ -30,12 +30,6 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
 	DeleteAccessRemovedFields(ctx context.Context) error
 	DeleteCredentialFields(ctx context.Context, credentialID uuid.UUID) error
-	DeleteFieldsForUser(ctx context.Context, userID uuid.UUID) error
-	DeleteUserFromCredentialAccess(ctx context.Context, userID uuid.UUID) error
-	DeleteUserFromFolderAccess(ctx context.Context, userID uuid.UUID) error
-	DeleteUserFromGroupList(ctx context.Context, userID uuid.UUID) error
-	DeleteUserFromSessionTable(ctx context.Context, userID uuid.UUID) error
-	DeleteUserFromUserTable(ctx context.Context, id uuid.UUID) error
 	EditCredentialAccessForGroup(ctx context.Context, arg EditCredentialAccessForGroupParams) error
 	EditCredentialAccessForGroupWithFolderID(ctx context.Context, arg EditCredentialAccessForGroupWithFolderIDParams) error
 	EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error
@@ -87,13 +81,18 @@ type Querier interface {
 	HasReadAccessForCredential(ctx context.Context, arg HasReadAccessForCredentialParams) (bool, error)
 	HasReadAccessForFolder(ctx context.Context, arg HasReadAccessForFolderParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
+	RemoveCredential(ctx context.Context, id uuid.UUID) error
 	RemoveCredentialAccessForGroups(ctx context.Context, arg RemoveCredentialAccessForGroupsParams) error
 	RemoveCredentialAccessForGroupsWithFolderID(ctx context.Context, arg RemoveCredentialAccessForGroupsWithFolderIDParams) error
 	RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error
 	RemoveCredentialAccessForUsersWithFolderID(ctx context.Context, arg RemoveCredentialAccessForUsersWithFolderIDParams) error
 	RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error
+	RemoveFolder(ctx context.Context, id uuid.UUID) error
 	RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error
 	RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error
+	RemoveGroup(ctx context.Context, id uuid.UUID) error
+	RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error
+	RemoveUserFromOrg(ctx context.Context, id uuid.UUID) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }

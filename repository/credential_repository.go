@@ -39,3 +39,7 @@ func GetCredentialIdsByFolderAndUserId(ctx *gin.Context, args db.GetCredentialId
 func GetSearchData(ctx *gin.Context, userID uuid.UUID) ([]db.GetCredentialsForSearchByUserIDRow, error) {
 	return database.Store.GetCredentialsForSearchByUserID(ctx, userID)
 }
+
+func RemoveCredential(ctx *gin.Context, credentialID uuid.UUID) error {
+	return database.Store.RemoveCredential(ctx, credentialID)
+}

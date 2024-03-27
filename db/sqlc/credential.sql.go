@@ -430,3 +430,15 @@ func (q *Queries) GetCredentialsForSearchByUserID(ctx context.Context, userID uu
 	}
 	return items, nil
 }
+
+const removeCredential = `-- name: RemoveCredential :exec
+DELETE FROM 
+    credentials
+WHERE 
+    id = $1
+`
+
+func (q *Queries) RemoveCredential(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeCredential, id)
+	return err
+}

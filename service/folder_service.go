@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 func CreateFolder(ctx *gin.Context, folder dto.CreateFolderRequest, caller uuid.UUID) (dto.FolderDetails, error) {
 
 	createFolderParams := db.CreateFolderTransactionParams{
@@ -32,4 +31,16 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 		return nil, err
 	}
 	return folders, nil
+}
+
+func RemoveFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) error {
+	// TODO: check folder ownership before removal
+	if err := VerifyFolderManageAccessForUser(ctx, folderID, caller); err != nil {
+		return err
+	}
+	err := repository.RemoveFolder(ctx, folderID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

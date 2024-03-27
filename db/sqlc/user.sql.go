@@ -73,24 +73,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 	return id, err
 }
 
-const deleteUserFromSessionTable = `-- name: DeleteUserFromSessionTable :exec
-DELETE FROM session_table WHERE user_id = $1
-`
-
-func (q *Queries) DeleteUserFromSessionTable(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserFromSessionTable, userID)
-	return err
-}
-
-const deleteUserFromUserTable = `-- name: DeleteUserFromUserTable :exec
-DELETE FROM users WHERE id = $1
-`
-
-func (q *Queries) DeleteUserFromUserTable(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserFromUserTable, id)
-	return err
-}
-
 const fetchChallenge = `-- name: FetchChallenge :one
 SELECT challenge FROM session_table WHERE user_id = $1
 `
@@ -211,6 +193,15 @@ func (q *Queries) GetUserTempPassword(ctx context.Context, username string) (Get
 	var i GetUserTempPasswordRow
 	err := row.Scan(&i.TempPassword, &i.Status)
 	return i, err
+}
+
+const removeUserFromOrg = `-- name: RemoveUserFromOrg :exec
+DELETE FROM users WHERE id = $1
+`
+
+func (q *Queries) RemoveUserFromOrg(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromOrg, id)
+	return err
 }
 
 const updateKeys = `-- name: UpdateKeys :exec

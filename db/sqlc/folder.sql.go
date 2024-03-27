@@ -210,3 +210,13 @@ func (q *Queries) IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrO
 	err := row.Scan(&exists)
 	return exists, err
 }
+
+const removeFolder = `-- name: RemoveFolder :exec
+DELETE FROM folders
+WHERE id = $1
+`
+
+func (q *Queries) RemoveFolder(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeFolder, id)
+	return err
+}

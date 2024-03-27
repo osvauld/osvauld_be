@@ -85,5 +85,4 @@ JOIN
     users u ON fa.user_id = u.id
 WHERE
     fa.folder_id = $1;
--- name: DeleteUserFromFolderAccess :exec
-DELETE FROM folder_access WHERE user_id = $1;
+

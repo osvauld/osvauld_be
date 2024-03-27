@@ -58,9 +58,7 @@ SELECT registration_challenge, status FROM users WHERE username = $1;
 SELECT EXISTS(SELECT 1 FROM users);
 
 
--- name: DeleteUserFromSessionTable :exec
-DELETE FROM session_table WHERE user_id = $1;
 
--- name: DeleteUserFromUserTable :exec
+-- name: RemoveUserFromOrg :exec
 DELETE FROM users WHERE id = $1;
 

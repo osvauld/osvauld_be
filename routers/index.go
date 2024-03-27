@@ -44,12 +44,16 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/folder/:id/users-data-sync", middleware.JWTAuthMiddleware(), controllers.GetFolderUsersForDataSync)
 	route.GET("/folder/:id/users", middleware.JWTAuthMiddleware(), controllers.GetFolderUsersWithDirectAccess)
 	route.GET("/folder/:id/groups", middleware.JWTAuthMiddleware(), controllers.GetFolderGroups)
+	route.DELETE("/folder/:id", middleware.JWTAuthMiddleware(), controllers.RemoveFolder)
 
 	route.POST("/group", middleware.JWTAuthMiddleware(), controllers.CreateGroup)
 	route.GET("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.GetGroupMembers)
 
 	route.GET("/groups", middleware.JWTAuthMiddleware(), controllers.GetUserGroups)
 	route.POST("/group/members", middleware.JWTAuthMiddleware(), controllers.AddMemberToGroup)
+	// TODO: maybe change the route to include groupId and memberId
+	route.DELETE("/group/member", middleware.JWTAuthMiddleware(), controllers.RemoveMemberFromGroup)
+	route.DELETE("/group/:groupId", middleware.JWTAuthMiddleware(), controllers.RemoveGroup)
 	route.POST("/groups/members", middleware.JWTAuthMiddleware(), controllers.GetUsersOfGroups)
 	route.GET("/groups/without-access/:folderId", middleware.JWTAuthMiddleware(), controllers.GetGroupsWithoutAccess)
 
@@ -64,6 +68,7 @@ func RegisterRoutes(route *gin.Engine) {
 
 	route.POST("/credential/:id/remove-user-access", middleware.JWTAuthMiddleware(), controllers.RemoveCredentialAccessForUsers)
 	route.POST("/credential/:id/remove-group-access", middleware.JWTAuthMiddleware(), controllers.RemoveCredentialAccessForGroups)
+	route.DELETE("/credential/:id", middleware.JWTAuthMiddleware(), controllers.RemoveCredential)
 
 	route.POST("/folder/:id/remove-user-access", middleware.JWTAuthMiddleware(), controllers.RemoveFolderAccessForUsers)
 	route.POST("/folder/:id/remove-group-access", middleware.JWTAuthMiddleware(), controllers.RemoveFolderAccessForGroups)

@@ -230,3 +230,14 @@ func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UU
 	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
 	return groups, err
 }
+
+func RemoveMemberFromGroup(ctx *gin.Context, payload dto.RemoveMemberFromGroupRequest, caller uuid.UUID) error {
+	//TODO: check the caller privilage
+
+	return repository.RemoveUserFromGroupList(ctx, payload.MemberID, payload.GroupID)
+}
+
+func RemoveGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) error {
+	// TODO: check the caller privilage
+	return repository.RemoveGroup(ctx, groupID)
+}

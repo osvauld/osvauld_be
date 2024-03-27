@@ -98,15 +98,6 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Creat
 	return i, err
 }
 
-const deleteUserFromGroupList = `-- name: DeleteUserFromGroupList :exec
-DELETE FROM group_list WHERE user_id = $1
-`
-
-func (q *Queries) DeleteUserFromGroupList(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserFromGroupList, userID)
-	return err
-}
-
 const fetchCredentialAccessTypeForGroup = `-- name: FetchCredentialAccessTypeForGroup :one
 SELECT access_type FROM credential_access
 WHERE group_id = $1 AND credential_id = $2
@@ -435,4 +426,29 @@ func (q *Queries) GetUsersWithoutGroupAccess(ctx context.Context, groupingID uui
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeGroup = `-- name: RemoveGroup :exec
+DELETE FROM groupings
+WHERE id = $1
+`
+
+func (q *Queries) RemoveGroup(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeGroup, id)
+	return err
+}
+
+const removeUserFromGroupList = `-- name: RemoveUserFromGroupList :exec
+DELETE FROM group_list
+WHERE user_id = $1 AND grouping_id = $2
+`
+
+type RemoveUserFromGroupListParams struct {
+	UserID     uuid.UUID `json:"userId"`
+	GroupingID uuid.UUID `json:"groupingId"`
+}
+
+func (q *Queries) RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromGroupList, arg.UserID, arg.GroupingID)
+	return err
 }

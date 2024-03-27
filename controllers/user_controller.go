@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 )
 
 // // Initialize the validator once for your application

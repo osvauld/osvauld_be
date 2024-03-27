@@ -15,7 +15,6 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	if err := VerifyFolderManageAccessForUser(ctx, request.FolderID, caller); err != nil {
 		return uuid.UUID{}, err
 	}
-
 	// Retrieve access types for the folder
 	accessList, err := repository.GetFolderAccess(ctx, request.FolderID)
 	if err != nil {
@@ -298,4 +297,15 @@ func GetSearchData(ctx *gin.Context, userID uuid.UUID) ([]db.GetCredentialsForSe
 		return nil, err
 	}
 	return credentials, nil
+}
+
+func RemoveCredential(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) error {
+	if err := VerifyCredentialManageAccessForUser(ctx, credentialID, caller); err != nil {
+		return err
+	}
+	err := repository.RemoveCredential(ctx, credentialID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
