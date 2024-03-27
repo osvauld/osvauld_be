@@ -48,3 +48,7 @@ func GetRegistrationChallenge(ctx *gin.Context, userName string) (db.GetRegistra
 func CheckAnyUserExists(ctx *gin.Context) (bool, error) {
 	return database.Store.CheckIfUsersExist(ctx)
 }
+
+func RemoveUserFromAll(ctx *gin.Context, userID uuid.UUID) error {
+	return database.Store.RemoveUserFromOrg(ctx, userID)
+}

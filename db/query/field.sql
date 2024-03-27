@@ -80,3 +80,6 @@ WHERE
             AND f.credential_id = fields.credential_id
             AND f.user_id = fields.user_id
     );
+
+
+

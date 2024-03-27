@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 )
 
 // // Initialize the validator once for your application
@@ -165,4 +166,16 @@ func CreateFirstAdmin(ctx *gin.Context) {
 
 	// Admin user created successfully, render the "admin created" template
 	ctx.HTML(http.StatusOK, "admin_created.tmpl", nil)
+}
+
+func RemoveUserFromAll(ctx *gin.Context) {
+	// TODO: check user is deleteing themselves
+	id := ctx.Param("id")
+	userID, _ := uuid.Parse(id)
+	err := service.RemoveUserFromAll(ctx, userID)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to delete user", err)
+		return
+	}
+	SendResponse(ctx, 200, nil, "deleted user", nil)
 }

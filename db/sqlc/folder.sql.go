@@ -22,7 +22,7 @@ RETURNING id, created_at
 type AddFolderParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 type AddFolderRow struct {
@@ -57,7 +57,7 @@ type FetchAccessibleFoldersForUserRow struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedAt   time.Time      `json:"createdAt"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error) {
@@ -209,4 +209,14 @@ func (q *Queries) IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrO
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const removeFolder = `-- name: RemoveFolder :exec
+DELETE FROM folders
+WHERE id = $1
+`
+
+func (q *Queries) RemoveFolder(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeFolder, id)
+	return err
 }

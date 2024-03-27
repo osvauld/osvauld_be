@@ -219,3 +219,48 @@ func GetGroupsWithoutAccess(ctx *gin.Context) {
 
 	SendResponse(ctx, 200, groups, "Fetched groups", nil)
 }
+
+func RemoveMemberFromGroup(ctx *gin.Context) {
+	var req dto.RemoveMemberFromGroupRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	err = service.RemoveMemberFromGroup(ctx, req, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to remove member from group", nil)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "Removed member from group", nil)
+}
+
+func RemoveGroup(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	groupIdStr := ctx.Param("groupId")
+	groupID, err := uuid.Parse(groupIdStr)
+
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid group id"))
+		return
+	}
+
+	err = service.RemoveGroup(ctx, groupID, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to remove group", nil)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "Removed  group", nil)
+
+}

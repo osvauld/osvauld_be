@@ -18,7 +18,7 @@ type Credential struct {
 	CredentialType string         `json:"credentialType"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	Domain         sql.NullString `json:"domain"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
@@ -43,22 +43,9 @@ type Field struct {
 	CredentialID uuid.UUID     `json:"credentialId"`
 	UserID       uuid.UUID     `json:"userId"`
 	CreatedAt    time.Time     `json:"createdAt"`
-	CreatedBy    uuid.UUID     `json:"createdBy"`
+	CreatedBy    uuid.NullUUID `json:"createdBy"`
 	UpdatedAt    time.Time     `json:"updatedAt"`
 	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
-}
-
-type FieldArchive struct {
-	ID         uuid.UUID `json:"id"`
-	FieldID    uuid.UUID `json:"fieldId"`
-	FieldName  string    `json:"fieldName"`
-	FieldValue string    `json:"fieldValue"`
-	FieldType  string    `json:"fieldType"`
-	CreateAt   time.Time `json:"createAt"`
-	CreatedBy  uuid.UUID `json:"createdBy"`
-	UpdatedAt  time.Time `json:"updatedAt"`
-	UpdatedBy  uuid.UUID `json:"updatedBy"`
-	Version    int32     `json:"version"`
 }
 
 type Folder struct {
@@ -67,7 +54,7 @@ type Folder struct {
 	UpdatedAt   time.Time      `json:"updatedAt"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 type FolderAccess struct {
@@ -89,11 +76,11 @@ type GroupList struct {
 }
 
 type Grouping struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
+	ID        uuid.UUID     `json:"id"`
+	CreatedAt time.Time     `json:"createdAt"`
+	UpdatedAt time.Time     `json:"updatedAt"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
 }
 
 type SessionTable struct {

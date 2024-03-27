@@ -85,3 +85,4 @@ JOIN
     users u ON fa.user_id = u.id
 WHERE
     fa.folder_id = $1;
+

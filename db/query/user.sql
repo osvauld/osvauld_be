@@ -56,3 +56,9 @@ SELECT registration_challenge, status FROM users WHERE username = $1;
 
 -- name: CheckIfUsersExist :one
 SELECT EXISTS(SELECT 1 FROM users);
+
+
+
+-- name: RemoveUserFromOrg :exec
+DELETE FROM users WHERE id = $1;
+

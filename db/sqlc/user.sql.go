@@ -195,6 +195,15 @@ func (q *Queries) GetUserTempPassword(ctx context.Context, username string) (Get
 	return i, err
 }
 
+const removeUserFromOrg = `-- name: RemoveUserFromOrg :exec
+DELETE FROM users WHERE id = $1
+`
+
+func (q *Queries) RemoveUserFromOrg(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromOrg, id)
+	return err
+}
+
 const updateKeys = `-- name: UpdateKeys :exec
 UPDATE users
 SET encryption_key = $1, device_key = $2, signed_up = TRUE, status = 'active'
