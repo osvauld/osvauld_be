@@ -77,8 +77,8 @@ WHERE
 
 -- name: GetFolderUsersForDataSync :many
 SELECT 
-    DISTINCT fa.user_id,
-    COALESCE(u.encryption_key, '') AS "encryptionKey"
+    DISTINCT fa.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM
     folder_access fa
 JOIN

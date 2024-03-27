@@ -39,19 +39,14 @@ type EditFolderAccessForGroup struct {
 }
 
 type CredentialUserWithAccess struct {
-	UserID       uuid.UUID `json:"userId"`
+	UserID       uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
 	AccessType   string    `json:"accessType"`
 	AccessSource string    `json:"accessSource"`
 }
 
 type FolderUserWithAccess struct {
-	UserID     uuid.UUID `json:"userId"`
+	UserID     uuid.UUID `json:"id"`
 	Name       string    `json:"name"`
 	AccessType string    `json:"accessType"`
-}
-
-type UserEncryptionKey struct {
-	UserID    uuid.UUID `json:"userId"`
-	PublicKey string    `json:"publicKey"`
 }

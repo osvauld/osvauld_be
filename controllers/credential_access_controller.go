@@ -48,111 +48,6 @@ func RemoveCredentialAccessForUsers(ctx *gin.Context) {
 	SendResponse(ctx, 200, nil, "removed credential access for user", nil)
 }
 
-// controller to remove folder access for user
-func RemoveFolderAccessForUsers(ctx *gin.Context) {
-	var req dto.RemoveFolderAccessForUsers
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	caller, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", err)
-		return
-	}
-
-	folderIDStr := ctx.Param("id")
-	folderID, err := uuid.Parse(folderIDStr)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	err = service.RemoveFolderAccessForUsers(ctx, folderID, req, caller)
-	if err != nil {
-
-		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
-			SendResponse(ctx, 401, nil, "", err)
-			return
-		}
-
-		SendResponse(ctx, 500, nil, "", err)
-		return
-	}
-	SendResponse(ctx, 200, nil, "removed folder access for user", nil)
-}
-
-// controller to remove credential access for group
-func RemoveCredentialAccessForGroups(ctx *gin.Context) {
-	var req dto.RemoveCredentialAccessForGroups
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	caller, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", err)
-		return
-	}
-
-	credentialIDStr := ctx.Param("id")
-	credentialID, err := uuid.Parse(credentialIDStr)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	err = service.RemoveCredentialAccessForGroups(ctx, credentialID, req, caller)
-	if err != nil {
-
-		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
-			SendResponse(ctx, 401, nil, "", err)
-			return
-		}
-
-		SendResponse(ctx, 500, nil, "", err)
-		return
-	}
-	SendResponse(ctx, 200, nil, "removed credential access for group", nil)
-}
-
-// controller to remove folder access for group
-func RemoveFolderAccessForGroups(ctx *gin.Context) {
-	var req dto.RemoveFolderAccessForGroups
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	caller, err := utils.FetchUserIDFromCtx(ctx)
-	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", err)
-		return
-	}
-
-	folderIDStr := ctx.Param("id")
-	folderID, err := uuid.Parse(folderIDStr)
-	if err != nil {
-		SendResponse(ctx, 400, nil, "", err)
-		return
-	}
-
-	err = service.RemoveFolderAccessForGroups(ctx, folderID, req, caller)
-	if err != nil {
-
-		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
-			SendResponse(ctx, 401, nil, "", err)
-			return
-		}
-
-		SendResponse(ctx, 500, nil, "", err)
-		return
-	}
-	SendResponse(ctx, 200, nil, "removed folder access for group", nil)
-}
-
 // controller to edit credential access
 func EditCredentialAccessForUser(ctx *gin.Context) {
 	var req dto.EditCredentialAccessForUser
@@ -221,6 +116,41 @@ func EditCredentialAccessForGroup(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, 200, nil, "edited credential access for group", nil)
+}
+
+// controller to remove credential access for group
+func RemoveCredentialAccessForGroups(ctx *gin.Context) {
+	var req dto.RemoveCredentialAccessForGroups
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, 401, nil, "Unauthorized", err)
+		return
+	}
+
+	credentialIDStr := ctx.Param("id")
+	credentialID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "", err)
+		return
+	}
+
+	err = service.RemoveCredentialAccessForGroups(ctx, credentialID, req, caller)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, 401, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, 500, nil, "", err)
+		return
+	}
+	SendResponse(ctx, 200, nil, "removed credential access for group", nil)
 }
 
 func GetCredentialUsersWithDirectAccess(ctx *gin.Context) {

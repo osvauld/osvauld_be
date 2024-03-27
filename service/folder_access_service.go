@@ -143,7 +143,7 @@ func UniqueUsersWithHighestAccessForFolder(userAccess []dto.FolderUserWithAccess
 	for _, access := range userAccess {
 		if _, ok := userAccessMap[access.UserID]; !ok {
 			userAccessMap[access.UserID] = access
-		} else if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[userAccessMap[access.UserID].AccessType] {
+		} else if folderAccessLevels[access.AccessType] > folderAccessLevels[userAccessMap[access.UserID].AccessType] {
 			userAccessMap[access.UserID] = access
 
 		}

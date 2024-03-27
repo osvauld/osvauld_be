@@ -265,8 +265,8 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 
 const getCredentialUsersForDataSync = `-- name: GetCredentialUsersForDataSync :many
 SELECT 
-    DISTINCT ca.user_id,
-    COALESCE(u.encryption_key, '') AS "encryptionKey"
+    DISTINCT ca.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM
     credential_access ca
 JOIN
@@ -276,8 +276,8 @@ WHERE
 `
 
 type GetCredentialUsersForDataSyncRow struct {
-	UserID        uuid.UUID `json:"userId"`
-	EncryptionKey string    `json:"encryptionKey"`
+	ID        uuid.UUID `json:"id"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetCredentialUsersForDataSync(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersForDataSyncRow, error) {
@@ -289,7 +289,7 @@ func (q *Queries) GetCredentialUsersForDataSync(ctx context.Context, credentialI
 	items := []GetCredentialUsersForDataSyncRow{}
 	for rows.Next() {
 		var i GetCredentialUsersForDataSyncRow
-		if err := rows.Scan(&i.UserID, &i.EncryptionKey); err != nil {
+		if err := rows.Scan(&i.ID, &i.PublicKey); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

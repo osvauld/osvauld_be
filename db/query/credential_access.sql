@@ -122,8 +122,8 @@ WHERE
 
 -- name: GetCredentialUsersForDataSync :many
 SELECT 
-    DISTINCT ca.user_id,
-    COALESCE(u.encryption_key, '') AS "encryptionKey"
+    DISTINCT ca.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM
     credential_access ca
 JOIN

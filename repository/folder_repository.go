@@ -14,12 +14,10 @@ func CreateFolder(ctx *gin.Context, args db.CreateFolderTransactionParams) (dto.
 }
 
 func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleFoldersForUserRow, error) {
-
 	return database.Store.FetchAccessibleFoldersForUser(ctx, userID)
 }
 
 func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
 	return database.Store.GetGroupsWithoutAccess(ctx, folderId)
-
 }
 

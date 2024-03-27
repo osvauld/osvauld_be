@@ -80,7 +80,10 @@ func FetchCredentialIDsWithGroupAccess(ctx *gin.Context, caller uuid.UUID, group
 		return nil, err
 	}
 
-	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID, caller)
+	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, db.FetchCredentialIDsWithGroupAccessParams{
+		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
+		UserID:  caller,
+	})
 	return credentialIDs, err
 }
 
@@ -90,7 +93,10 @@ func GetCredentialFieldsByGroupID(ctx *gin.Context, caller uuid.UUID, groupID uu
 		return nil, err
 	}
 
-	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, groupID, caller)
+	credentialIDs, err := repository.FetchCredentialIDsWithGroupAccess(ctx, db.FetchCredentialIDsWithGroupAccessParams{
+		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
+		UserID:  caller,
+	})
 	if err != nil {
 		return nil, err
 	}

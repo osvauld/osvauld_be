@@ -135,8 +135,8 @@ func (q *Queries) GetFolderGroups(ctx context.Context, folderID uuid.UUID) ([]Ge
 
 const getFolderUsersForDataSync = `-- name: GetFolderUsersForDataSync :many
 SELECT 
-    DISTINCT fa.user_id,
-    COALESCE(u.encryption_key, '') AS "encryptionKey"
+    DISTINCT fa.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
 FROM
     folder_access fa
 JOIN
@@ -146,8 +146,8 @@ WHERE
 `
 
 type GetFolderUsersForDataSyncRow struct {
-	UserID        uuid.UUID `json:"userId"`
-	EncryptionKey string    `json:"encryptionKey"`
+	ID        uuid.UUID `json:"id"`
+	PublicKey string    `json:"publicKey"`
 }
 
 func (q *Queries) GetFolderUsersForDataSync(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersForDataSyncRow, error) {
@@ -159,7 +159,7 @@ func (q *Queries) GetFolderUsersForDataSync(ctx context.Context, folderID uuid.U
 	items := []GetFolderUsersForDataSyncRow{}
 	for rows.Next() {
 		var i GetFolderUsersForDataSyncRow
-		if err := rows.Scan(&i.UserID, &i.EncryptionKey); err != nil {
+		if err := rows.Scan(&i.ID, &i.PublicKey); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
