@@ -75,15 +75,15 @@ RETURNING id, name, created_by, created_at
 `
 
 type CreateGroupParams struct {
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
 }
 
 type CreateGroupRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        uuid.UUID     `json:"id"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
+	CreatedAt time.Time     `json:"createdAt"`
 }
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error) {
@@ -96,6 +96,15 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Creat
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const deleteUserFromGroupList = `-- name: DeleteUserFromGroupList :exec
+DELETE FROM group_list WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserFromGroupList(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUserFromGroupList, userID)
+	return err
 }
 
 const fetchCredentialAccessTypeForGroup = `-- name: FetchCredentialAccessTypeForGroup :one
@@ -156,10 +165,10 @@ WHERE group_list.user_id = $1
 `
 
 type FetchUserGroupsRow struct {
-	GroupId   uuid.UUID `json:"groupId"`
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
-	CreatedAt time.Time `json:"createdAt"`
+	GroupId   uuid.UUID     `json:"groupId"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
+	CreatedAt time.Time     `json:"createdAt"`
 }
 
 func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error) {

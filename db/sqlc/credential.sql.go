@@ -26,7 +26,7 @@ type CreateCredentialParams struct {
 	Description    sql.NullString `json:"description"`
 	CredentialType string         `json:"credentialType"`
 	FolderID       uuid.UUID      `json:"folderId"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	Domain         sql.NullString `json:"domain"`
 }
 
@@ -109,7 +109,7 @@ type FetchCredentialDetailsForUserByFolderIdRow struct {
 	CredentialType string        `json:"credentialType"`
 	CreatedAt      time.Time     `json:"createdAt"`
 	UpdatedAt      time.Time     `json:"updatedAt"`
-	CreatedBy      uuid.UUID     `json:"createdBy"`
+	CreatedBy      uuid.NullUUID `json:"createdBy"`
 	UpdatedBy      uuid.NullUUID `json:"updatedBy"`
 	AccessType     string        `json:"accessType"`
 }
@@ -249,7 +249,7 @@ type GetCredentialDataByIDRow struct {
 	Description    sql.NullString `json:"description"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	CredentialType string         `json:"credentialType"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
@@ -295,7 +295,7 @@ type GetCredentialDetailsByIDsRow struct {
 	Description    sql.NullString `json:"description"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	CredentialType string         `json:"credentialType"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`

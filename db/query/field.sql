@@ -80,3 +80,7 @@ WHERE
             AND f.credential_id = fields.credential_id
             AND f.user_id = fields.user_id
     );
+
+-- name: DeleteFieldsForUser :exec
+DELETE FROM fields WHERE user_id = $1;
+

@@ -20,6 +20,7 @@ type Store interface {
 	RemoveFolderAccessForGroupsTransactions(context.Context, RemoveFolderAccessForGroupsParams) error
 	EditFolderAccessForUserTransaction(context.Context, EditFolderAccessForUserParams) error
 	EditFolderAccessForGroupTransaction(context.Context, EditFolderAccessForGroupParams) error
+	RemoveUserFromAll(ctx context.Context, userID uuid.UUID) error
 }
 
 type SQLStore struct {

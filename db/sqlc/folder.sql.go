@@ -22,7 +22,7 @@ RETURNING id, created_at
 type AddFolderParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 type AddFolderRow struct {
@@ -57,7 +57,7 @@ type FetchAccessibleFoldersForUserRow struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedAt   time.Time      `json:"createdAt"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error) {

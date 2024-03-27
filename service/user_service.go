@@ -152,3 +152,7 @@ func CheckUserExists(ctx *gin.Context) (bool, error) {
 	}
 	return check, nil
 }
+
+func RemoveUserFromAll(ctx *gin.Context, userID uuid.UUID) error {
+	return repository.RemoveUserFromAll(ctx, userID)
+}

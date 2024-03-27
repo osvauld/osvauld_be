@@ -115,7 +115,7 @@ func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid
 		FolderID:       credential.FolderID,
 		CreatedAt:      credential.CreatedAt,
 		UpdatedAt:      credential.UpdatedAt,
-		CreatedBy:      credential.CreatedBy,
+		CreatedBy:      credential.CreatedBy.UUID,
 		Fields:         fieldDtos,
 	}
 	return credentialDetails, err
@@ -196,7 +196,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		credentialForUser.FolderID = folderID
 		credentialForUser.CreatedAt = credential.CreatedAt
 		credentialForUser.UpdatedAt = credential.UpdatedAt
-		credentialForUser.CreatedBy = credential.CreatedBy
+		credentialForUser.CreatedBy = credential.CreatedBy.UUID
 		credentialForUser.Fields = credentialFieldGroups[credential.CredentialID]
 		if fields, ok := credentialFieldGroups[credential.CredentialID]; ok {
 			credentialForUser.Fields = fields
@@ -248,7 +248,7 @@ func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uui
 		credentialForUser.FolderID = credential.FolderID
 		credentialForUser.CreatedAt = credential.CreatedAt
 		credentialForUser.UpdatedAt = credential.UpdatedAt
-		credentialForUser.CreatedBy = credential.CreatedBy
+		credentialForUser.CreatedBy = credential.CreatedBy.UUID
 		credentialForUser.Fields = credentialFieldGroups[credential.ID]
 
 		credentials = append(credentials, credentialForUser)

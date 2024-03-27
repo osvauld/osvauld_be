@@ -18,6 +18,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/user/", controllers.CreateUser)
 	route.POST("/user/temp-login", controllers.TempLogin)
+	route.DELETE("/user/:id", controllers.RemoveUserFromAll)
 	route.POST("/user/register", controllers.Register)
 	route.POST("/user/challenge", controllers.GetChallenge)
 	route.POST("/user/verify", controllers.VerifyChallenge)

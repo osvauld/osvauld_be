@@ -89,3 +89,7 @@ FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
 WHERE gl.grouping_id IS NULL;
 
+
+-- name: DeleteUserFromGroupList :exec
+DELETE FROM group_list WHERE user_id = $1;
+

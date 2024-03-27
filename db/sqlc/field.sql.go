@@ -20,12 +20,12 @@ VALUES
 `
 
 type AddFieldParams struct {
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	CredentialID uuid.UUID `json:"credentialId"`
-	FieldType    string    `json:"fieldType"`
-	UserID       uuid.UUID `json:"userId"`
-	CreatedBy    uuid.UUID `json:"createdBy"`
+	FieldName    string        `json:"fieldName"`
+	FieldValue   string        `json:"fieldValue"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	FieldType    string        `json:"fieldType"`
+	UserID       uuid.UUID     `json:"userId"`
+	CreatedBy    uuid.NullUUID `json:"createdBy"`
 }
 
 func (q *Queries) AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error) {
@@ -95,6 +95,15 @@ WHERE credential_id = $1
 
 func (q *Queries) DeleteCredentialFields(ctx context.Context, credentialID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteCredentialFields, credentialID)
+	return err
+}
+
+const deleteFieldsForUser = `-- name: DeleteFieldsForUser :exec
+DELETE FROM fields WHERE user_id = $1
+`
+
+func (q *Queries) DeleteFieldsForUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteFieldsForUser, userID)
 	return err
 }
 
