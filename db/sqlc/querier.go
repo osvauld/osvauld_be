@@ -46,7 +46,6 @@ type Querier interface {
 	FetchUsersByGroupIds(ctx context.Context, dollar_1 []uuid.UUID) ([]FetchUsersByGroupIdsRow, error)
 	GetAccessTypeAndGroupsByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndGroupsByCredentialIdRow, error)
 	GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error)
-	GetAccessTypeAndUsersByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndUsersByCredentialIdRow, error)
 	GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFieldsForCredentialIDsParams) ([]GetAllFieldsForCredentialIDsRow, error)
 	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
@@ -55,18 +54,23 @@ type Querier interface {
 	GetCredentialAccessTypeForUser(ctx context.Context, arg GetCredentialAccessTypeForUserParams) ([]GetCredentialAccessTypeForUserRow, error)
 	GetCredentialDataByID(ctx context.Context, id uuid.UUID) (GetCredentialDataByIDRow, error)
 	GetCredentialDetailsByIDs(ctx context.Context, credentialids []uuid.UUID) ([]GetCredentialDetailsByIDsRow, error)
+	GetCredentialGroups(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialGroupsRow, error)
 	GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetCredentialIdsByFolder(ctx context.Context, arg GetCredentialIdsByFolderParams) ([]uuid.UUID, error)
+	GetCredentialUsersForDataSync(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersForDataSyncRow, error)
+	GetCredentialUsersWithDirectAccess(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersWithDirectAccessRow, error)
 	GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)
+	GetFolderGroups(ctx context.Context, folderID uuid.UUID) ([]GetFolderGroupsRow, error)
 	GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetFolderIDAndTypeWithGroupAccessRow, error)
+	GetFolderUsersForDataSync(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersForDataSyncRow, error)
+	GetFolderUsersWithDirectAccess(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersWithDirectAccessRow, error)
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
 	GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID) ([]GetGroupsWithoutAccessRow, error)
 	GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error)
 	GetRegistrationChallenge(ctx context.Context, username string) (GetRegistrationChallengeRow, error)
 	GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error)
 	GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedGroupsForFolderRow, error)
-	GetSharedUsersForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersForFolderRow, error)
 	GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
@@ -77,13 +81,18 @@ type Querier interface {
 	HasReadAccessForCredential(ctx context.Context, arg HasReadAccessForCredentialParams) (bool, error)
 	HasReadAccessForFolder(ctx context.Context, arg HasReadAccessForFolderParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
+	RemoveCredential(ctx context.Context, id uuid.UUID) error
 	RemoveCredentialAccessForGroups(ctx context.Context, arg RemoveCredentialAccessForGroupsParams) error
 	RemoveCredentialAccessForGroupsWithFolderID(ctx context.Context, arg RemoveCredentialAccessForGroupsWithFolderIDParams) error
 	RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error
 	RemoveCredentialAccessForUsersWithFolderID(ctx context.Context, arg RemoveCredentialAccessForUsersWithFolderIDParams) error
 	RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error
+	RemoveFolder(ctx context.Context, id uuid.UUID) error
 	RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error
 	RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error
+	RemoveGroup(ctx context.Context, id uuid.UUID) error
+	RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error
+	RemoveUserFromOrg(ctx context.Context, id uuid.UUID) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }

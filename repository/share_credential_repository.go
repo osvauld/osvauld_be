@@ -8,7 +8,5 @@ import (
 )
 
 func ShareCredentials(ctx *gin.Context, args db.ShareCredentialTransactionParams) error {
-
 	return database.Store.ShareCredentialsTransaction(ctx, args)
-
 }

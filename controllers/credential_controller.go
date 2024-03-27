@@ -270,3 +270,24 @@ func GetSearchData(ctx *gin.Context) {
 	}
 	SendResponse(ctx, http.StatusOK, credentials, "Fetched credential", nil)
 }
+
+func RemoveCredential(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	credentialIDStr := ctx.Param("id")
+	credentailID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	err = service.RemoveCredential(ctx, credentailID, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to remove credential"))
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "Credential removed successfully", nil)
+}

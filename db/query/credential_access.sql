@@ -91,3 +91,43 @@ WHERE folder_id IS NULL
 AND credential_id = $2 AND group_id = $3;
 
 
+-- name: GetCredentialUsersWithDirectAccess :many
+SELECT 
+    ca.user_id,
+    u.name,
+    u.username,
+    ca.access_type,
+    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM 
+    credential_access ca
+JOIN 
+    users u ON ca.user_id = u.id
+WHERE 
+    ca.credential_id = $1 AND ca.group_id IS NULL;
+
+
+-- name: GetCredentialGroups :many
+SELECT 
+    ca.group_id,
+    g.name,
+    ca.access_type,
+    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM 
+    credential_access ca
+JOIN 
+    groupings g ON g.id = ca.id
+WHERE 
+    ca.credential_id = $1;
+
+
+-- name: GetCredentialUsersForDataSync :many
+SELECT 
+    DISTINCT ca.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
+FROM
+    credential_access ca
+JOIN
+    users u ON ca.user_id = u.id
+WHERE
+    ca.credential_id = $1;
+

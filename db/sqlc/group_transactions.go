@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	dto "osvauld/dtos"
+
+	"github.com/google/uuid"
 )
 
 func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData dto.GroupDetails) (dto.GroupDetails, error) {
@@ -12,7 +14,7 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData d
 		var err error
 		createGroupResult, err = q.CreateGroup(ctx, CreateGroupParams{
 			Name:      groupData.Name,
-			CreatedBy: groupData.CreatedBy,
+			CreatedBy: uuid.NullUUID{UUID: groupData.CreatedBy, Valid: true},
 		})
 		if err != nil {
 			return err

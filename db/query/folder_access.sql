@@ -48,3 +48,41 @@ SET access_type = $1
 WHERE folder_id = $2 AND group_id = $3;
 
 
+-- name: GetFolderUsersWithDirectAccess :many
+SELECT 
+    fa.user_id,
+    u.name,
+    u.username,
+    fa.access_type
+FROM 
+    folder_access fa
+JOIN 
+    users u ON fa.user_id = u.id
+WHERE 
+    fa.folder_id = $1 AND fa.group_id IS NULL;
+
+
+-- name: GetFolderGroups :many
+SELECT 
+    fa.group_Id,
+    g.name,
+    fa.access_type
+FROM 
+    folder_access fa
+JOIN 
+    groupings g ON g.id = fa.group_id
+WHERE 
+    fa.folder_id = $1;
+
+
+-- name: GetFolderUsersForDataSync :many
+SELECT 
+    DISTINCT fa.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
+FROM
+    folder_access fa
+JOIN
+    users u ON fa.user_id = u.id
+WHERE
+    fa.folder_id = $1;
+

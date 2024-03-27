@@ -26,7 +26,7 @@ type CreateCredentialParams struct {
 	Description    sql.NullString `json:"description"`
 	CredentialType string         `json:"credentialType"`
 	FolderID       uuid.UUID      `json:"folderId"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	Domain         sql.NullString `json:"domain"`
 }
 
@@ -109,7 +109,7 @@ type FetchCredentialDetailsForUserByFolderIdRow struct {
 	CredentialType string        `json:"credentialType"`
 	CreatedAt      time.Time     `json:"createdAt"`
 	UpdatedAt      time.Time     `json:"updatedAt"`
-	CreatedBy      uuid.UUID     `json:"createdBy"`
+	CreatedBy      uuid.NullUUID `json:"createdBy"`
 	UpdatedBy      uuid.NullUUID `json:"updatedBy"`
 	AccessType     string        `json:"accessType"`
 }
@@ -189,55 +189,6 @@ func (q *Queries) GetAccessTypeAndGroupsByCredentialId(ctx context.Context, cred
 	return items, nil
 }
 
-const getAccessTypeAndUsersByCredentialId = `-- name: GetAccessTypeAndUsersByCredentialId :many
-SELECT 
-    al.user_id as "id",
-    u.name, 
-    al.access_type,
-    COALESCE(u.encryption_key, '') AS "publicKey"
-FROM 
-    credential_access al
-JOIN 
-    users u ON al.user_id = u.id
-WHERE 
-    al.credential_id = $1 AND al.group_id IS NULL
-`
-
-type GetAccessTypeAndUsersByCredentialIdRow struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	AccessType string    `json:"accessType"`
-	PublicKey  string    `json:"publicKey"`
-}
-
-func (q *Queries) GetAccessTypeAndUsersByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndUsersByCredentialIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAccessTypeAndUsersByCredentialId, credentialID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetAccessTypeAndUsersByCredentialIdRow{}
-	for rows.Next() {
-		var i GetAccessTypeAndUsersByCredentialIdRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.AccessType,
-			&i.PublicKey,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getAllUrlsForUser = `-- name: GetAllUrlsForUser :many
 SELECT DISTINCT
     field_value as value, credential_id as "credentialId"
@@ -298,7 +249,7 @@ type GetCredentialDataByIDRow struct {
 	Description    sql.NullString `json:"description"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	CredentialType string         `json:"credentialType"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
@@ -344,7 +295,7 @@ type GetCredentialDetailsByIDsRow struct {
 	Description    sql.NullString `json:"description"`
 	FolderID       uuid.UUID      `json:"folderId"`
 	CredentialType string         `json:"credentialType"`
-	CreatedBy      uuid.UUID      `json:"createdBy"`
+	CreatedBy      uuid.NullUUID  `json:"createdBy"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
@@ -478,4 +429,16 @@ func (q *Queries) GetCredentialsForSearchByUserID(ctx context.Context, userID uu
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeCredential = `-- name: RemoveCredential :exec
+DELETE FROM 
+    credentials
+WHERE 
+    id = $1
+`
+
+func (q *Queries) RemoveCredential(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeCredential, id)
+	return err
 }

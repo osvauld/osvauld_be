@@ -75,15 +75,15 @@ RETURNING id, name, created_by, created_at
 `
 
 type CreateGroupParams struct {
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
 }
 
 type CreateGroupRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        uuid.UUID     `json:"id"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
+	CreatedAt time.Time     `json:"createdAt"`
 }
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error) {
@@ -156,10 +156,10 @@ WHERE group_list.user_id = $1
 `
 
 type FetchUserGroupsRow struct {
-	GroupId   uuid.UUID `json:"groupId"`
-	Name      string    `json:"name"`
-	CreatedBy uuid.UUID `json:"createdBy"`
-	CreatedAt time.Time `json:"createdAt"`
+	GroupId   uuid.UUID     `json:"groupId"`
+	Name      string        `json:"name"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
+	CreatedAt time.Time     `json:"createdAt"`
 }
 
 func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error) {
@@ -426,4 +426,29 @@ func (q *Queries) GetUsersWithoutGroupAccess(ctx context.Context, groupingID uui
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeGroup = `-- name: RemoveGroup :exec
+DELETE FROM groupings
+WHERE id = $1
+`
+
+func (q *Queries) RemoveGroup(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeGroup, id)
+	return err
+}
+
+const removeUserFromGroupList = `-- name: RemoveUserFromGroupList :exec
+DELETE FROM group_list
+WHERE user_id = $1 AND grouping_id = $2
+`
+
+type RemoveUserFromGroupListParams struct {
+	UserID     uuid.UUID `json:"userId"`
+	GroupingID uuid.UUID `json:"groupingId"`
+}
+
+func (q *Queries) RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromGroupList, arg.UserID, arg.GroupingID)
+	return err
 }

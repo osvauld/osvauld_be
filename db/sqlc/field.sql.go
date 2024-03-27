@@ -20,12 +20,12 @@ VALUES
 `
 
 type AddFieldParams struct {
-	FieldName    string    `json:"fieldName"`
-	FieldValue   string    `json:"fieldValue"`
-	CredentialID uuid.UUID `json:"credentialId"`
-	FieldType    string    `json:"fieldType"`
-	UserID       uuid.UUID `json:"userId"`
-	CreatedBy    uuid.UUID `json:"createdBy"`
+	FieldName    string        `json:"fieldName"`
+	FieldValue   string        `json:"fieldValue"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	FieldType    string        `json:"fieldType"`
+	UserID       uuid.UUID     `json:"userId"`
+	CreatedBy    uuid.NullUUID `json:"createdBy"`
 }
 
 func (q *Queries) AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error) {
