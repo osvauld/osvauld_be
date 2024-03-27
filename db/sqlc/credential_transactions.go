@@ -30,7 +30,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 			Name:           args.Name,
 			Description:    args.Description,
 			FolderID:       args.FolderID,
-			CreatedBy:      args.CreatedBy,
+			CreatedBy:      uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
 			CredentialType: args.CredentialType,
 			Domain:         sql.NullString{String: args.Domain, Valid: true},
 		}
@@ -48,7 +48,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 					FieldType:    field.FieldType,
 					CredentialID: credentialID,
 					UserID:       userFields.UserID,
-					CreatedBy:    args.CreatedBy,
+					CreatedBy:    uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
 				})
 				if err != nil {
 					return err
@@ -114,7 +114,7 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 					CredentialID: args.CredentialID,
 					UserID:       userFields.UserID,
 					FieldType:    field.FieldType,
-					CreatedBy:    args.EditedBy,
+					CreatedBy:    uuid.NullUUID{UUID: args.EditedBy, Valid: true},
 				})
 				if err != nil {
 					return err

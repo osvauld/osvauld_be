@@ -24,7 +24,7 @@ CREATE TABLE folders (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
     description VARCHAR(2048),
-    created_by UUID NOT NULL REFERENCES users(id)
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- SQL Definition for Credential
@@ -33,11 +33,11 @@ CREATE TABLE credentials (
     name VARCHAR(255) NOT NULL,
     description VARCHAR(2048),
     credential_type VARCHAR(255) NOT NULL,
-    folder_id UUID NOT NULL REFERENCES folders(id),
+    folder_id UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE,
     domain VARCHAR(2048),
-    created_by UUID NOT NULL REFERENCES users(id),
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by UUID REFERENCES users(id),
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -47,27 +47,15 @@ CREATE TABLE fields (
     field_name VARCHAR(255) NOT NULL,
     field_value TEXT NOT NULL,
     field_type VARCHAR(255) NOT NULL,
-    credential_id UUID NOT NULL REFERENCES credentials(id),
-    user_id UUID NOT NULL REFERENCES users(id),
+    credential_id UUID NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID NOT NULL REFERENCES users(id),
+    created_by UUID  REFERENCES users(id) ON DELETE SET NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by UUID REFERENCES users(id)
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL
 );
 
--- SQL Definition for Fields
-CREATE TABLE field_archive (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    field_id UUID NOT NULL REFERENCES fields(id),
-    field_name VARCHAR(255) NOT NULL,
-    field_value TEXT NOT NULL,
-    field_type VARCHAR(255) NOT NULL,
-    create_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID NOT NULL REFERENCES users(id),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by UUID NOT NULL REFERENCES users(id),
-    version INTEGER NOT NULL DEFAULT 1
-);
+
 
 -- SQL Definition for Group
 CREATE TABLE groupings (
@@ -75,7 +63,7 @@ CREATE TABLE groupings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name VARCHAR(255) NOT NULL,
-    created_by UUID NOT NULL REFERENCES users(id)
+    created_by UUID  REFERENCES users(id) ON DELETE SET NULL
 );
 
 
@@ -95,11 +83,11 @@ CREATE TABLE credential_access (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    credential_id UUID NOT NULL REFERENCES credentials(id),
-    user_id UUID NOT NULL REFERENCES users(id),
+    credential_id UUID NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     access_type VARCHAR(255) NOT NULL,
-    group_id UUID REFERENCES groupings(id),
-    folder_id UUID REFERENCES folders(id)
+    group_id UUID REFERENCES groupings(id) ON DELETE CASCADE,
+    folder_id UUID REFERENCES folders(id) ON DELETE CASCADE
 );
 
 
@@ -111,7 +99,7 @@ CREATE TABLE folder_access (
     folder_id UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     access_type VARCHAR(255) NOT NULL,
-    group_id UUID REFERENCES groupings(id)
+    group_id UUID REFERENCES groupings(id) ON DELETE CASCADE
 );
 
 
@@ -119,7 +107,7 @@ CREATE TABLE folder_access (
 
 CREATE TABLE session_table (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     public_key TEXT NOT NULL UNIQUE,
     challenge VARCHAR(255) NOT NULL,
     device_id VARCHAR(255),

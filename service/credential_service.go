@@ -15,7 +15,6 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	if err := VerifyFolderManageAccessForUser(ctx, request.FolderID, caller); err != nil {
 		return uuid.UUID{}, err
 	}
-
 	// Retrieve access types for the folder
 	accessList, err := repository.GetFolderAccess(ctx, request.FolderID)
 	if err != nil {
@@ -115,7 +114,7 @@ func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid
 		FolderID:       credential.FolderID,
 		CreatedAt:      credential.CreatedAt,
 		UpdatedAt:      credential.UpdatedAt,
-		CreatedBy:      credential.CreatedBy,
+		CreatedBy:      credential.CreatedBy.UUID,
 		Fields:         fieldDtos,
 	}
 	return credentialDetails, err
@@ -196,7 +195,7 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 		credentialForUser.FolderID = folderID
 		credentialForUser.CreatedAt = credential.CreatedAt
 		credentialForUser.UpdatedAt = credential.UpdatedAt
-		credentialForUser.CreatedBy = credential.CreatedBy
+		credentialForUser.CreatedBy = credential.CreatedBy.UUID
 		credentialForUser.Fields = credentialFieldGroups[credential.CredentialID]
 		if fields, ok := credentialFieldGroups[credential.CredentialID]; ok {
 			credentialForUser.Fields = fields
@@ -248,7 +247,7 @@ func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uui
 		credentialForUser.FolderID = credential.FolderID
 		credentialForUser.CreatedAt = credential.CreatedAt
 		credentialForUser.UpdatedAt = credential.UpdatedAt
-		credentialForUser.CreatedBy = credential.CreatedBy
+		credentialForUser.CreatedBy = credential.CreatedBy.UUID
 		credentialForUser.Fields = credentialFieldGroups[credential.ID]
 
 		credentials = append(credentials, credentialForUser)
@@ -298,4 +297,15 @@ func GetSearchData(ctx *gin.Context, userID uuid.UUID) ([]db.GetCredentialsForSe
 		return nil, err
 	}
 	return credentials, nil
+}
+
+func RemoveCredential(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) error {
+	if err := VerifyCredentialManageAccessForUser(ctx, credentialID, caller); err != nil {
+		return err
+	}
+	err := repository.RemoveCredential(ctx, credentialID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

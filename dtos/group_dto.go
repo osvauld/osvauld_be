@@ -27,3 +27,8 @@ type AddMemberToGroupRequest struct {
 type GetUsersOfGroupsRequest struct {
 	GroupIDs []uuid.UUID `json:"groupIds"`
 }
+
+type RemoveMemberFromGroupRequest struct {
+	GroupID  uuid.UUID `json:"groupId"`
+	MemberID uuid.UUID `json:"memberId"`
+}

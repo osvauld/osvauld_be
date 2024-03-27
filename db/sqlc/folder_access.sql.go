@@ -91,6 +91,137 @@ func (q *Queries) EditFolderAccessForUser(ctx context.Context, arg EditFolderAcc
 	return err
 }
 
+const getFolderGroups = `-- name: GetFolderGroups :many
+SELECT 
+    fa.group_Id,
+    g.name,
+    fa.access_type
+FROM 
+    folder_access fa
+JOIN 
+    groupings g ON g.id = fa.group_id
+WHERE 
+    fa.folder_id = $1
+`
+
+type GetFolderGroupsRow struct {
+	GroupID    uuid.NullUUID `json:"groupId"`
+	Name       string        `json:"name"`
+	AccessType string        `json:"accessType"`
+}
+
+func (q *Queries) GetFolderGroups(ctx context.Context, folderID uuid.UUID) ([]GetFolderGroupsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFolderGroups, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetFolderGroupsRow{}
+	for rows.Next() {
+		var i GetFolderGroupsRow
+		if err := rows.Scan(&i.GroupID, &i.Name, &i.AccessType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFolderUsersForDataSync = `-- name: GetFolderUsersForDataSync :many
+SELECT 
+    DISTINCT fa.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
+FROM
+    folder_access fa
+JOIN
+    users u ON fa.user_id = u.id
+WHERE
+    fa.folder_id = $1
+`
+
+type GetFolderUsersForDataSyncRow struct {
+	ID        uuid.UUID `json:"id"`
+	PublicKey string    `json:"publicKey"`
+}
+
+func (q *Queries) GetFolderUsersForDataSync(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersForDataSyncRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFolderUsersForDataSync, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetFolderUsersForDataSyncRow{}
+	for rows.Next() {
+		var i GetFolderUsersForDataSyncRow
+		if err := rows.Scan(&i.ID, &i.PublicKey); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFolderUsersWithDirectAccess = `-- name: GetFolderUsersWithDirectAccess :many
+SELECT 
+    fa.user_id,
+    u.name,
+    u.username,
+    fa.access_type
+FROM 
+    folder_access fa
+JOIN 
+    users u ON fa.user_id = u.id
+WHERE 
+    fa.folder_id = $1 AND fa.group_id IS NULL
+`
+
+type GetFolderUsersWithDirectAccessRow struct {
+	UserID     uuid.UUID `json:"userId"`
+	Name       string    `json:"name"`
+	Username   string    `json:"username"`
+	AccessType string    `json:"accessType"`
+}
+
+func (q *Queries) GetFolderUsersWithDirectAccess(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersWithDirectAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFolderUsersWithDirectAccess, folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetFolderUsersWithDirectAccessRow{}
+	for rows.Next() {
+		var i GetFolderUsersWithDirectAccessRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Name,
+			&i.Username,
+			&i.AccessType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const hasManageAccessForFolder = `-- name: HasManageAccessForFolder :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access

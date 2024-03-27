@@ -14,25 +14,13 @@ func CreateFolder(ctx *gin.Context, args db.CreateFolderTransactionParams) (dto.
 }
 
 func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleFoldersForUserRow, error) {
-
 	return database.Store.FetchAccessibleFoldersForUser(ctx, userID)
-}
-
-func GetSharedUsersForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedUsersForFolderRow, error) {
-
-	return database.Store.GetSharedUsersForFolder(ctx, folderID)
-}
-
-func GetSharedGroupsForFolder(ctx *gin.Context, folderID uuid.UUID) ([]db.GetSharedGroupsForFolderRow, error) {
-	return database.Store.GetSharedGroupsForFolder(ctx, folderID)
-
 }
 
 func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
 	return database.Store.GetGroupsWithoutAccess(ctx, folderId)
-
 }
 
-func CheckFolderAccessEntryExists(ctx *gin.Context, args db.CheckFolderAccessEntryExistsParams) (bool, error) {
-	return database.Store.CheckFolderAccessEntryExists(ctx, args)
+func RemoveFolder(ctx *gin.Context, folderID uuid.UUID) error {
+	return database.Store.RemoveFolder(ctx, folderID)
 }

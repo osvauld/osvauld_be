@@ -20,7 +20,11 @@ func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateF
 	err := store.execTx(ctx, func(q *Queries) error {
 
 		// Create folder record
-		addFolderParams := AddFolderParams(args)
+		addFolderParams := AddFolderParams{
+			Name:        args.Name,
+			Description: args.Description,
+			CreatedBy:   uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
+		}
 		folderData, err := q.AddFolder(ctx, addFolderParams)
 		if err != nil {
 			return err

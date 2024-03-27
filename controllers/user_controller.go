@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
@@ -118,22 +117,6 @@ func GetAllUsers(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusOK, users, "fetched users", nil)
 }
 
-func GetCredentialUsers(ctx *gin.Context) {
-	credentialIDStr := ctx.Param("id")
-	credentialID, err := uuid.Parse(credentialIDStr)
-	if err != nil {
-		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
-		return
-	}
-
-	users, err := service.GetCredentialUsers(ctx, credentialID)
-	if err != nil {
-		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
-		return
-	}
-	SendResponse(ctx, http.StatusOK, users, "fetched credential users", nil)
-}
-
 func GetAdminPage(ctx *gin.Context) {
 	exists, err := service.CheckUserExists(ctx)
 	if err != nil {
@@ -183,4 +166,16 @@ func CreateFirstAdmin(ctx *gin.Context) {
 
 	// Admin user created successfully, render the "admin created" template
 	ctx.HTML(http.StatusOK, "admin_created.tmpl", nil)
+}
+
+func RemoveUserFromAll(ctx *gin.Context) {
+	// TODO: check user is deleteing themselves
+	id := ctx.Param("id")
+	userID, _ := uuid.Parse(id)
+	err := service.RemoveUserFromAll(ctx, userID)
+	if err != nil {
+		SendResponse(ctx, 400, nil, "failed to delete user", err)
+		return
+	}
+	SendResponse(ctx, 200, nil, "deleted user", nil)
 }

@@ -187,6 +187,55 @@ func (q *Queries) GetCredentialAccessTypeForUser(ctx context.Context, arg GetCre
 	return items, nil
 }
 
+const getCredentialGroups = `-- name: GetCredentialGroups :many
+SELECT 
+    ca.group_id,
+    g.name,
+    ca.access_type,
+    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM 
+    credential_access ca
+JOIN 
+    groupings g ON g.id = ca.id
+WHERE 
+    ca.credential_id = $1
+`
+
+type GetCredentialGroupsRow struct {
+	GroupID      uuid.NullUUID `json:"groupId"`
+	Name         string        `json:"name"`
+	AccessType   string        `json:"accessType"`
+	AccessSource string        `json:"accessSource"`
+}
+
+func (q *Queries) GetCredentialGroups(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialGroupsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialGroups, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialGroupsRow{}
+	for rows.Next() {
+		var i GetCredentialGroupsRow
+		if err := rows.Scan(
+			&i.GroupID,
+			&i.Name,
+			&i.AccessType,
+			&i.AccessSource,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCredentialIDsByUserID = `-- name: GetCredentialIDsByUserID :many
 SELECT credential_id FROM credential_access WHERE user_id = $1
 `
@@ -204,6 +253,98 @@ func (q *Queries) GetCredentialIDsByUserID(ctx context.Context, userID uuid.UUID
 			return nil, err
 		}
 		items = append(items, credential_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCredentialUsersForDataSync = `-- name: GetCredentialUsersForDataSync :many
+SELECT 
+    DISTINCT ca.user_id as "id",
+    COALESCE(u.encryption_key, '') AS "publicKey"
+FROM
+    credential_access ca
+JOIN
+    users u ON ca.user_id = u.id
+WHERE
+    ca.credential_id = $1
+`
+
+type GetCredentialUsersForDataSyncRow struct {
+	ID        uuid.UUID `json:"id"`
+	PublicKey string    `json:"publicKey"`
+}
+
+func (q *Queries) GetCredentialUsersForDataSync(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersForDataSyncRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialUsersForDataSync, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialUsersForDataSyncRow{}
+	for rows.Next() {
+		var i GetCredentialUsersForDataSyncRow
+		if err := rows.Scan(&i.ID, &i.PublicKey); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCredentialUsersWithDirectAccess = `-- name: GetCredentialUsersWithDirectAccess :many
+SELECT 
+    ca.user_id,
+    u.name,
+    u.username,
+    ca.access_type,
+    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+FROM 
+    credential_access ca
+JOIN 
+    users u ON ca.user_id = u.id
+WHERE 
+    ca.credential_id = $1 AND ca.group_id IS NULL
+`
+
+type GetCredentialUsersWithDirectAccessRow struct {
+	UserID       uuid.UUID `json:"userId"`
+	Name         string    `json:"name"`
+	Username     string    `json:"username"`
+	AccessType   string    `json:"accessType"`
+	AccessSource string    `json:"accessSource"`
+}
+
+func (q *Queries) GetCredentialUsersWithDirectAccess(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersWithDirectAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCredentialUsersWithDirectAccess, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCredentialUsersWithDirectAccessRow{}
+	for rows.Next() {
+		var i GetCredentialUsersWithDirectAccessRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Name,
+			&i.Username,
+			&i.AccessType,
+			&i.AccessSource,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

@@ -10,21 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-// func HasManageAccessForFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
-
-// 	return repository.HasManageAccessForFolder(ctx, db.HasManageAccessForFolderParams{
-// 		FolderID: folderID,
-// 		UserID:   userID,
-// 	})
-// }
-
-// func HasReadAccessForFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) (bool, error) {
-
-// 	return repository.HasReadAccessForFolder(ctx, db.HasReadAccessForFolderParams{
-// 		FolderID: folderID,
-// 		UserID:   userID,
-// 	})
-// }
+var folderAccessLevels = map[string]int{
+	"unauthorized": 0,
+	"reader":       1,
+	"manager":      99,
+}
 
 func VerifyFolderManageAccessForUser(ctx *gin.Context, folderID uuid.UUID, userID uuid.UUID) error {
 
@@ -143,5 +133,73 @@ func EditFolderAccessForGroup(ctx *gin.Context, folderID uuid.UUID, payload dto.
 	}
 
 	return nil
+
+}
+
+func UniqueUsersWithHighestAccessForFolder(userAccess []dto.FolderUserWithAccess) []dto.FolderUserWithAccess {
+
+	userAccessMap := map[uuid.UUID]dto.FolderUserWithAccess{}
+
+	for _, access := range userAccess {
+		if _, ok := userAccessMap[access.UserID]; !ok {
+			userAccessMap[access.UserID] = access
+		} else if folderAccessLevels[access.AccessType] > folderAccessLevels[userAccessMap[access.UserID].AccessType] {
+			userAccessMap[access.UserID] = access
+
+		}
+	}
+
+	uniqueUserAccess := []dto.FolderUserWithAccess{}
+	for _, access := range userAccessMap {
+		uniqueUserAccess = append(uniqueUserAccess, access)
+	}
+
+	return uniqueUserAccess
+
+}
+
+func GetFolderUsersWithDirectAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]dto.FolderUserWithAccess, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
+	userAccess, err := repository.GetFolderUsersWithDirectAccess(ctx, folderID)
+	if err != nil {
+		return nil, err
+	}
+
+	userAccessObjs := []dto.FolderUserWithAccess{}
+	for _, access := range userAccess {
+		userAccessObjs = append(userAccessObjs, dto.FolderUserWithAccess{
+			UserID:     access.UserID,
+			Name:       access.Name,
+			AccessType: access.AccessType,
+		})
+	}
+
+	userAccessObjs = UniqueUsersWithHighestAccessForFolder(userAccessObjs)
+
+	return userAccessObjs, nil
+
+}
+
+func GetFolderUsersForDataSync(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetFolderUsersForDataSyncRow, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
+	return repository.GetFolderUsersForDataSync(ctx, folderID)
+
+}
+
+func GetFolderGroups(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) ([]db.GetFolderGroupsRow, error) {
+
+	if err := VerifyFolderReadAccessForUser(ctx, folderID, caller); err != nil {
+		return nil, err
+	}
+
+	return repository.GetFolderGroups(ctx, folderID)
 
 }

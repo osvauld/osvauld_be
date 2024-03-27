@@ -22,7 +22,7 @@ RETURNING id, created_at
 type AddFolderParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 type AddFolderRow struct {
@@ -57,7 +57,7 @@ type FetchAccessibleFoldersForUserRow struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedAt   time.Time      `json:"createdAt"`
-	CreatedBy   uuid.UUID      `json:"createdBy"`
+	CreatedBy   uuid.NullUUID  `json:"createdBy"`
 }
 
 func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error) {
@@ -192,50 +192,6 @@ func (q *Queries) GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UU
 	return items, nil
 }
 
-const getSharedUsersForFolder = `-- name: GetSharedUsersForFolder :many
-SELECT users.id, users.name, users.username, COALESCE(users.encryption_key,'') as "publicKey", folder_access.access_type as "accessType"
-FROM folder_access
-JOIN users ON folder_access.user_id = users.id
-WHERE folder_access.folder_id = $1
-`
-
-type GetSharedUsersForFolderRow struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	Username   string    `json:"username"`
-	PublicKey  string    `json:"publicKey"`
-	AccessType string    `json:"accessType"`
-}
-
-func (q *Queries) GetSharedUsersForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedUsersForFolderRow, error) {
-	rows, err := q.db.QueryContext(ctx, getSharedUsersForFolder, folderID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetSharedUsersForFolderRow{}
-	for rows.Next() {
-		var i GetSharedUsersForFolderRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Username,
-			&i.PublicKey,
-			&i.AccessType,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const isUserManagerOrOwner = `-- name: IsUserManagerOrOwner :one
 SELECT EXISTS (
   SELECT 1 FROM folder_access
@@ -253,4 +209,14 @@ func (q *Queries) IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrO
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const removeFolder = `-- name: RemoveFolder :exec
+DELETE FROM folders
+WHERE id = $1
+`
+
+func (q *Queries) RemoveFolder(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeFolder, id)
+	return err
 }
