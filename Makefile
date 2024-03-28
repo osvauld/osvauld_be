@@ -1,24 +1,11 @@
-help:
-	@echo ''
-	@echo 'Usage: make [TARGET] [EXTRA_ARGUMENTS]'
-	@echo 'Targets:'
-	@echo 'make dev: make dev for development work'
-	@echo 'make build: make build container'
-	@echo 'make production: docker production build'
-	@echo 'clean: clean for all clear docker images'
 
-dev:
-	
-	docker-compose -f docker-compose-dev.yml down
-	docker-compose -f docker-compose-dev.yml up
+migrateup:
+	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
-build:
-	docker-compose -f docker-compose-prod.yml build
-	docker-compose -f docker-compose-dev.yml down build
+migratedown:
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
-production:
-	docker-compose -f docker-compose-prod.yml up -d --build
+new_migration:
+	migrate create -ext sql -dir db/migration -seq $(name)
 
-clean:
-	docker-compose -f docker-compose-prod.yml down -v
-	docker-compose -f docker-compose-dev.yml down -v
+.PHONY: migrateup migratedown new_migration

@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS session_table;
+DROP TABLE IF EXISTS folder_access;
+DROP TABLE IF EXISTS credential_access;
+DROP TABLE IF EXISTS group_list;
+DROP TABLE IF EXISTS groupings;
+DROP TABLE IF EXISTS fields;
+DROP TABLE IF EXISTS credentials;
+DROP TABLE IF EXISTS folders;
+DROP TABLE IF EXISTS users;
+
+DROP EXTENSION IF EXISTS "uuid-ossp";
