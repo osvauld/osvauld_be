@@ -232,12 +232,19 @@ func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UU
 }
 
 func RemoveMemberFromGroup(ctx *gin.Context, payload dto.RemoveMemberFromGroupRequest, caller uuid.UUID) error {
-	//TODO: check the caller privilage
+
+	if err := VerifyAdminOfGroup(ctx, payload.GroupID, caller); err != nil {
+		return err
+	}
 
 	return repository.RemoveUserFromGroupList(ctx, payload.MemberID, payload.GroupID)
 }
 
 func RemoveGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) error {
-	// TODO: check the caller privilage
+
+	if err := VerifyAdminOfGroup(ctx, groupID, caller); err != nil {
+		return err
+	}
+
 	return repository.RemoveGroup(ctx, groupID)
 }
