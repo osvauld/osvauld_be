@@ -23,6 +23,30 @@ func (q *Queries) CheckIfUsersExist(ctx context.Context) (bool, error) {
 	return exists, err
 }
 
+const checkNameExist = `-- name: CheckNameExist :one
+SELECT 
+    EXISTS(SELECT 1 FROM users WHERE name = $1) AS exists
+`
+
+func (q *Queries) CheckNameExist(ctx context.Context, name string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkNameExist, name)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const checkUsernameExist = `-- name: CheckUsernameExist :one
+SELECT 
+    EXISTS(SELECT 1 FROM users WHERE username = $1) AS exists
+`
+
+func (q *Queries) CheckUsernameExist(ctx context.Context, username string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUsernameExist, username)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createChallenge = `-- name: CreateChallenge :one
 INSERT INTO session_table (user_id, public_key, challenge)
 VALUES ($1, $2, $3)
