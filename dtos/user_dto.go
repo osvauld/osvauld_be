@@ -31,3 +31,8 @@ type VerifyChallenge struct {
 	Signature string `json:"signature"`
 	PublicKey string `json:"publicKey"`
 }
+
+type CheckUserAvailability struct {
+	UserName string `json:"username" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+}

@@ -62,3 +62,12 @@ SELECT EXISTS(SELECT 1 FROM users);
 -- name: RemoveUserFromOrg :exec
 DELETE FROM users WHERE id = $1;
 
+
+-- name: CheckUsernameExist :one
+SELECT 
+    EXISTS(SELECT 1 FROM users WHERE username = $1) AS exists;
+
+-- name: CheckNameExist :one
+SELECT 
+    EXISTS(SELECT 1 FROM users WHERE name = $1) AS exists;
+

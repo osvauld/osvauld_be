@@ -349,22 +349,29 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]
 }
 
 const getGroupsWithoutAccess = `-- name: GetGroupsWithoutAccess :many
-SELECT id as "groupId", name 
-FROM groupings
-WHERE id NOT IN (
+SELECT g.id as "groupId", g.name 
+FROM groupings g
+JOIN group_list gl ON g.id = gl.grouping_id
+JOIN users u ON gl.user_id = u.id
+WHERE g.id NOT IN (
     SELECT group_id
     FROM folder_access
     WHERE folder_id = $1 AND group_id IS NOT NULL
-)
+) AND u.id = $2
 `
+
+type GetGroupsWithoutAccessParams struct {
+	FolderID uuid.UUID `json:"folderId"`
+	ID       uuid.UUID `json:"id"`
+}
 
 type GetGroupsWithoutAccessRow struct {
 	GroupId uuid.UUID `json:"groupId"`
 	Name    string    `json:"name"`
 }
 
-func (q *Queries) GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID) ([]GetGroupsWithoutAccessRow, error) {
-	rows, err := q.db.QueryContext(ctx, getGroupsWithoutAccess, folderID)
+func (q *Queries) GetGroupsWithoutAccess(ctx context.Context, arg GetGroupsWithoutAccessParams) ([]GetGroupsWithoutAccessRow, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupsWithoutAccess, arg.FolderID, arg.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +397,7 @@ const getUsersWithoutGroupAccess = `-- name: GetUsersWithoutGroupAccess :many
 SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "encryptionKey"
 FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
-WHERE gl.grouping_id IS NULL
+WHERE gl.grouping_id IS NULL  and u.status = 'active'
 `
 
 type GetUsersWithoutGroupAccessRow struct {

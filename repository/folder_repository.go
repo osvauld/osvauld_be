@@ -17,8 +17,11 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	return database.Store.FetchAccessibleFoldersForUser(ctx, userID)
 }
 
-func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
-	return database.Store.GetGroupsWithoutAccess(ctx, folderId)
+func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID, caller uuid.UUID) ([]db.GetGroupsWithoutAccessRow, error) {
+	return database.Store.GetGroupsWithoutAccess(ctx, db.GetGroupsWithoutAccessParams{
+		FolderID: folderId,
+		ID:       caller,
+	})
 }
 
 func RemoveFolder(ctx *gin.Context, folderID uuid.UUID) error {

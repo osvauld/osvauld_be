@@ -74,20 +74,21 @@ GROUP BY
     g.id;
 
 -- name: GetGroupsWithoutAccess :many
-SELECT id as "groupId", name 
-FROM groupings
-WHERE id NOT IN (
+SELECT g.id as "groupId", g.name 
+FROM groupings g
+JOIN group_list gl ON g.id = gl.grouping_id
+JOIN users u ON gl.user_id = u.id
+WHERE g.id NOT IN (
     SELECT group_id
     FROM folder_access
     WHERE folder_id = $1 AND group_id IS NOT NULL
-);
-
+) AND u.id = $2;
 
 -- name: GetUsersWithoutGroupAccess :many
 SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "encryptionKey"
 FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
-WHERE gl.grouping_id IS NULL;
+WHERE gl.grouping_id IS NULL  and u.status = 'active';
 
 
 

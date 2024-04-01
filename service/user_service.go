@@ -156,3 +156,25 @@ func CheckUserExists(ctx *gin.Context) (bool, error) {
 func RemoveUserFromAll(ctx *gin.Context, userID uuid.UUID) error {
 	return repository.RemoveUserFromAll(ctx, userID)
 }
+
+func CheckUserAvailability(ctx *gin.Context, data dto.CheckUserAvailability) (bool, string, error) {
+	usernameExists, err := repository.CheckUsernameExists(ctx, data.UserName)
+	if err != nil {
+		return false, "", err
+	}
+
+	nameExists, err := repository.CheckNameExists(ctx, data.Name)
+	if err != nil {
+		return false, "", err
+	}
+
+	if usernameExists && nameExists {
+		return false, "Username and name already exist", nil
+	} else if usernameExists {
+		return false, "Username already exists", nil
+	} else if nameExists {
+		return false, "Name already exists", nil
+	}
+
+	return true, "", nil
+}
