@@ -87,7 +87,7 @@ WHERE id NOT IN (
 SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "encryptionKey"
 FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
-WHERE gl.grouping_id IS NULL;
+WHERE gl.grouping_id IS NULL  and u.status = 'active';
 
 
 
