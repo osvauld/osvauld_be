@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/service"
 	"osvauld/utils"
 
@@ -204,8 +205,8 @@ func GetFolderUsersWithDirectAccess(ctx *gin.Context) {
 			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
-
-		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch required users"))
+		logger.Errorf(err.Error())
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
 

@@ -46,7 +46,8 @@ type CredentialUserWithAccess struct {
 }
 
 type FolderUserWithAccess struct {
-	UserID     uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	AccessType string    `json:"accessType"`
+	UserID       uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	AccessType   string    `json:"accessType"`
+	AccessSource string    `json:"accessSource"`
 }

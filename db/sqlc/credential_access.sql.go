@@ -309,13 +309,12 @@ SELECT
     u.name,
     u.username,
     ca.access_type,
-    CASE WHEN ca.folder_id IS NULL THEN 'acquired' ELSE 'inherited' END AS "accessSource"
+    CASE WHEN (ca.folder_id IS NULL AND ca.group_id is NULL) THEN 'acquired' ELSE 'inherited' END AS "accessSource"
 FROM 
     credential_access ca
 JOIN 
     users u ON ca.user_id = u.id
-WHERE 
-    ca.credential_id = $1 AND ca.group_id IS NULL
+WHERE ca.credential_id = $1
 `
 
 type GetCredentialUsersWithDirectAccessRow struct {
