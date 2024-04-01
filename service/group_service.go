@@ -227,7 +227,7 @@ func GetGroupsWithoutAccess(ctx *gin.Context, folderID uuid.UUID, caller uuid.UU
 		return nil, err
 	}
 
-	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID)
+	groups, err := repository.GetGroupsWithoutAccess(ctx, folderID, caller)
 	return groups, err
 }
 
