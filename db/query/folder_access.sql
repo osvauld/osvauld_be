@@ -53,13 +53,14 @@ SELECT
     fa.user_id,
     u.name,
     u.username,
-    fa.access_type
+    fa.access_type,
+    CASE WHEN (fa.group_id is NULL) THEN 'acquired' ELSE 'inherited' END AS "accessSource"
 FROM 
     folder_access fa
 JOIN 
     users u ON fa.user_id = u.id
 WHERE 
-    fa.folder_id = $1 AND fa.group_id IS NULL;
+    fa.folder_id = $1;
 
 
 -- name: GetFolderGroups :many
