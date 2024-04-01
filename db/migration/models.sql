@@ -8,7 +8,7 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     username VARCHAR(255) UNIQUE NOT NULL,
-    name VARCHAR(255) NOT NULL, 
+    name VARCHAR(255) UNIQUE NOT NULL , 
     encryption_key TEXT,
     device_key TEXT,
     temp_password VARCHAR(255) NOT NULL,
