@@ -68,7 +68,7 @@ type Querier interface {
 	GetFolderUsersForDataSync(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersForDataSyncRow, error)
 	GetFolderUsersWithDirectAccess(ctx context.Context, folderID uuid.UUID) ([]GetFolderUsersWithDirectAccessRow, error)
 	GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error)
-	GetGroupsWithoutAccess(ctx context.Context, folderID uuid.UUID) ([]GetGroupsWithoutAccessRow, error)
+	GetGroupsWithoutAccess(ctx context.Context, arg GetGroupsWithoutAccessParams) ([]GetGroupsWithoutAccessRow, error)
 	GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error)
 	GetRegistrationChallenge(ctx context.Context, username string) (GetRegistrationChallengeRow, error)
 	GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error)
