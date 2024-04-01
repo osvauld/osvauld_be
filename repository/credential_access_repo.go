@@ -68,6 +68,6 @@ func GetCredentialUsersForDataSync(ctx *gin.Context, credentialID uuid.UUID) ([]
 	return database.Store.GetCredentialUsersForDataSync(ctx, credentialID)
 }
 
-func GetCredentialGroups(ctx *gin.Context, folderID uuid.UUID) ([]db.GetCredentialGroupsRow, error) {
-	return database.Store.GetCredentialGroups(ctx, folderID)
+func GetCredentialGroups(ctx *gin.Context, credentialId uuid.UUID) ([]db.GetCredentialGroupsRow, error) {
+	return database.Store.GetCredentialGroups(ctx, credentialId)
 }
