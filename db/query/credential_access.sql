@@ -107,7 +107,7 @@ WHERE
 
 
 -- name: GetCredentialGroups :many
-SELECT 
+SELECT  DISTINCT
     ca.group_id,
     g.name,
     ca.access_type,
@@ -115,7 +115,7 @@ SELECT
 FROM 
     credential_access ca
 JOIN 
-    groupings g ON g.id = ca.id
+    groupings g ON g.id = ca.group_id
 WHERE 
     ca.credential_id = $1;
 

@@ -179,3 +179,21 @@ func RemoveUserFromAll(ctx *gin.Context) {
 	}
 	SendResponse(ctx, 200, nil, "deleted user", nil)
 }
+
+func CheckUserAvailability(ctx *gin.Context) {
+	var req dto.CheckUserAvailability
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+	available, message, err := service.CheckUserAvailability(ctx, req)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	response := map[string]interface{}{
+		"available": available,
+		"message":   message,
+	}
+	SendResponse(ctx, http.StatusOK, response, "checked user availability", nil)
+}
