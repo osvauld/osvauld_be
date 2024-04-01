@@ -235,6 +235,10 @@ func RemoveMemberFromGroup(ctx *gin.Context) {
 
 	err = service.RemoveMemberFromGroup(ctx, req, caller)
 	if err != nil {
+		if _, ok := err.(*customerrors.UserNotAdminOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
 		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to remove member from group", nil)
 		return
 	}
@@ -258,6 +262,12 @@ func RemoveGroup(ctx *gin.Context) {
 
 	err = service.RemoveGroup(ctx, groupID, caller)
 	if err != nil {
+
+		if _, ok := err.(*customerrors.UserNotAdminOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
 		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to remove group", nil)
 		return
 	}

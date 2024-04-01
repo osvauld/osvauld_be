@@ -172,9 +172,10 @@ func GetFolderUsersWithDirectAccess(ctx *gin.Context, folderID uuid.UUID, caller
 	userAccessObjs := []dto.FolderUserWithAccess{}
 	for _, access := range userAccess {
 		userAccessObjs = append(userAccessObjs, dto.FolderUserWithAccess{
-			UserID:     access.UserID,
-			Name:       access.Name,
-			AccessType: access.AccessType,
+			UserID:       access.UserID,
+			Name:         access.Name,
+			AccessType:   access.AccessType,
+			AccessSource: access.AccessSource,
 		})
 	}
 
