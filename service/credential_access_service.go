@@ -4,6 +4,7 @@ import (
 	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/repository"
 
 	"github.com/gin-gonic/gin"
@@ -265,7 +266,9 @@ func GetCredentialUsersForDataSync(ctx *gin.Context, credentialID uuid.UUID, cal
 
 func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetCredentialGroupsRow, error) {
 
+	logger.Debugf("Getting credential groups for credential: %v", credentialID)
 	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
+		logger.Debugf("Error: %v", err)
 		return nil, err
 	}
 

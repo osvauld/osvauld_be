@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"osvauld/customerrors"
 	dto "osvauld/dtos"
+	"osvauld/infra/logger"
 	"osvauld/utils"
 
 	"osvauld/service"
@@ -227,6 +228,7 @@ func GetCredentialGroups(ctx *gin.Context) {
 	}
 
 	groups, err := service.GetCredentialGroups(ctx, credentialID, caller)
+	logger.Debugf("Groups: %v", groups)
 	if err != nil {
 
 		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
