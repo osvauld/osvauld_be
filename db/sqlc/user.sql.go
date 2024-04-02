@@ -79,19 +79,25 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, name, temp_password)
-VALUES ($1, $2, $3)
+INSERT INTO users (username, name, temp_password, type)
+VALUES ($1, $2, $3, COALESCE($4, 'user'))
 RETURNING id
 `
 
 type CreateUserParams struct {
-	Username     string `json:"username"`
-	Name         string `json:"name"`
-	TempPassword string `json:"tempPassword"`
+	Username     string      `json:"username"`
+	Name         string      `json:"name"`
+	TempPassword string      `json:"tempPassword"`
+	Column4      interface{} `json:"column4"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Name, arg.TempPassword)
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.Name,
+		arg.TempPassword,
+		arg.Column4,
+	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -217,6 +223,17 @@ func (q *Queries) GetUserTempPassword(ctx context.Context, username string) (Get
 	var i GetUserTempPasswordRow
 	err := row.Scan(&i.TempPassword, &i.Status)
 	return i, err
+}
+
+const getUserType = `-- name: GetUserType :one
+SELECT type FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserType(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, getUserType, id)
+	var type_ string
+	err := row.Scan(&type_)
+	return type_, err
 }
 
 const removeUserFromOrg = `-- name: RemoveUserFromOrg :exec

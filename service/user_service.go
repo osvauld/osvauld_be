@@ -25,7 +25,7 @@ func CreateUser(ctx *gin.Context, user dto.CreateUser) (uuid.UUID, error) {
 		Username:     user.UserName,
 		Name:         user.Name,
 		TempPassword: hashedPassword,
-	})
+		Column4:      user.Type})
 
 }
 
@@ -177,4 +177,8 @@ func CheckUserAvailability(ctx *gin.Context, data dto.CheckUserAvailability) (bo
 	}
 
 	return true, "", nil
+}
+
+func CheckUserType(ctx *gin.Context, userID uuid.UUID) (string, error) {
+	return repository.CheckUserType(ctx, userID)
 }

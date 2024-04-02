@@ -1,8 +1,7 @@
 -- name: CreateUser :one
-INSERT INTO users (username, name, temp_password)
-VALUES ($1, $2, $3)
+INSERT INTO users (username, name, temp_password, type)
+VALUES ($1, $2, $3, COALESCE($4, 'user'))
 RETURNING id;
-
 
 -- name: GetUserByUsername :one
 SELECT id,name,username, COALESCE(encryption_key,'') as "publicKey"
@@ -71,3 +70,5 @@ SELECT
 SELECT 
     EXISTS(SELECT 1 FROM users WHERE name = $1) AS exists;
 
+-- name: GetUserType :one
+SELECT type FROM users WHERE id = $1;

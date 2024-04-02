@@ -16,7 +16,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/admin", controllers.GetAdminPage)
 	route.POST("/admin", controllers.CreateFirstAdmin)
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
-	route.POST("/user/", controllers.CreateUser)
+	route.POST("/user/", middleware.JWTAuthMiddleware(), controllers.CreateUser)
 	route.POST("/user/temp-login", controllers.TempLogin)
 	route.POST("/user/name-availability", middleware.JWTAuthMiddleware(), controllers.CheckUserAvailability)
 	route.DELETE("/user/:id", controllers.RemoveUserFromAll)
