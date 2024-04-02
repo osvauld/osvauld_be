@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	service "osvauld/service"
+	"osvauld/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
@@ -16,7 +18,20 @@ var validate = validator.New()
 
 func CreateUser(ctx *gin.Context) {
 	// Define a struct just for request body
-
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	userType, err := service.CheckUserType(ctx, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "invalid user type", err)
+		return
+	}
+	if userType != "admin" {
+		SendResponse(ctx, http.StatusUnauthorized, nil, "user not authorized", errors.New("user not authorized"))
+		return
+	}
 	//TODO: add created by field
 	var req dto.CreateUser
 	// Bind the request body to the struct
@@ -151,6 +166,7 @@ func CreateFirstAdmin(ctx *gin.Context) {
 		return
 	}
 
+	req.Type = "admin"
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
