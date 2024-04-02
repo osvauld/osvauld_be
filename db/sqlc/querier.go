@@ -73,6 +73,7 @@ type Querier interface {
 	GetRegistrationChallenge(ctx context.Context, username string) (GetRegistrationChallengeRow, error)
 	GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error)
 	GetSharedGroupsForFolder(ctx context.Context, folderID uuid.UUID) ([]GetSharedGroupsForFolderRow, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)

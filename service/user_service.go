@@ -182,3 +182,7 @@ func CheckUserAvailability(ctx *gin.Context, data dto.CheckUserAvailability) (bo
 func CheckUserType(ctx *gin.Context, userID uuid.UUID) (string, error) {
 	return repository.CheckUserType(ctx, userID)
 }
+
+func GetUser(ctx *gin.Context, userID uuid.UUID) (db.GetUserByIDRow, error) {
+	return repository.GetUserByID(ctx, userID)
+}

@@ -72,3 +72,6 @@ SELECT
 
 -- name: GetUserType :one
 SELECT type FROM users WHERE id = $1;
+
+-- name: GetUserByID :one
+SELECT id, username, name, type FROM users WHERE id = $1;
