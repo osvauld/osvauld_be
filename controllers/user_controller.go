@@ -213,3 +213,17 @@ func CheckUserAvailability(ctx *gin.Context) {
 	}
 	SendResponse(ctx, http.StatusOK, response, "checked user availability", nil)
 }
+
+func GetUser(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	user, err := service.GetUser(ctx, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, user, "fetched user", nil)
+}

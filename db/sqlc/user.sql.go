@@ -169,6 +169,29 @@ func (q *Queries) GetRegistrationChallenge(ctx context.Context, username string)
 	return i, err
 }
 
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, username, name, type FROM users WHERE id = $1
+`
+
+type GetUserByIDRow struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	Name     string    `json:"name"`
+	Type     string    `json:"type"`
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	var i GetUserByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Name,
+		&i.Type,
+	)
+	return i, err
+}
+
 const getUserByPublicKey = `-- name: GetUserByPublicKey :one
 SELECT id
 FROM users
