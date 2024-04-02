@@ -4,6 +4,7 @@ type CreateUser struct {
 	UserName     string `json:"username" binding:"required"`
 	Name         string `json:"name" binding:"required"`
 	TempPassword string `json:"tempPassword" binding:"required"` // hashed password from fe
+	Type         string `json:"type"`
 }
 
 type Register struct {

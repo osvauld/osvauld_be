@@ -76,6 +76,7 @@ type Querier interface {
 	GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
+	GetUserType(ctx context.Context, id uuid.UUID) (string, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)
 	GetUsersWithoutGroupAccess(ctx context.Context, groupingID uuid.UUID) ([]GetUsersWithoutGroupAccessRow, error)
 	HasManageAccessForCredential(ctx context.Context, arg HasManageAccessForCredentialParams) (bool, error)
