@@ -85,7 +85,7 @@ WHERE g.id NOT IN (
 ) AND u.id = $2;
 
 -- name: GetUsersWithoutGroupAccess :many
-SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "encryptionKey"
+SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "publicKey"
 FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
 WHERE gl.grouping_id IS NULL  and u.status = 'active';
