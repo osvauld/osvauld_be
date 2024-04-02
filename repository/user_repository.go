@@ -65,3 +65,7 @@ func CheckUsernameExists(ctx *gin.Context, username string) (bool, error) {
 func CheckUserType(ctx *gin.Context, userID uuid.UUID) (string, error) {
 	return database.Store.GetUserType(ctx, userID)
 }
+
+func GetUserByID(ctx *gin.Context, userID uuid.UUID) (db.GetUserByIDRow, error) {
+	return database.Store.GetUserByID(ctx, userID)
+}
