@@ -45,3 +45,8 @@ SELECT EXISTS (
 -- name: RemoveFolder :exec
 DELETE FROM folders
 WHERE id = $1;
+
+-- name: RenameFolder :exec
+UPDATE folders
+SET name = $2
+WHERE id = $1;

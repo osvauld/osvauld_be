@@ -97,6 +97,8 @@ type Querier interface {
 	RemoveGroup(ctx context.Context, id uuid.UUID) error
 	RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error
 	RemoveUserFromOrg(ctx context.Context, id uuid.UUID) error
+	RenameFolder(ctx context.Context, arg RenameFolderParams) error
+	RenameGroup(ctx context.Context, arg RenameGroupParams) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }

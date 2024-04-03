@@ -220,3 +220,19 @@ func (q *Queries) RemoveFolder(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, removeFolder, id)
 	return err
 }
+
+const renameFolder = `-- name: RenameFolder :exec
+UPDATE folders
+SET name = $2
+WHERE id = $1
+`
+
+type RenameFolderParams struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+func (q *Queries) RenameFolder(ctx context.Context, arg RenameFolderParams) error {
+	_, err := q.db.ExecContext(ctx, renameFolder, arg.ID, arg.Name)
+	return err
+}

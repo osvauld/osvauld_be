@@ -459,3 +459,19 @@ func (q *Queries) RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFro
 	_, err := q.db.ExecContext(ctx, removeUserFromGroupList, arg.UserID, arg.GroupingID)
 	return err
 }
+
+const renameGroup = `-- name: RenameGroup :exec
+UPDATE groupings
+SET name = $2
+WHERE id = $1
+`
+
+type RenameGroupParams struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+func (q *Queries) RenameGroup(ctx context.Context, arg RenameGroupParams) error {
+	_, err := q.db.ExecContext(ctx, renameGroup, arg.ID, arg.Name)
+	return err
+}

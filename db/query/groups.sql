@@ -90,13 +90,15 @@ FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
 WHERE gl.grouping_id IS NULL  and u.status = 'active';
 
-
-
 -- name: RemoveUserFromGroupList :exec
 DELETE FROM group_list
 WHERE user_id = $1 AND grouping_id = $2;
 
-
 -- name: RemoveGroup :exec
 DELETE FROM groupings
 WHERE id = $1; 
+
+-- name: RenameGroup :exec
+UPDATE groupings
+SET name = $2
+WHERE id = $1;
