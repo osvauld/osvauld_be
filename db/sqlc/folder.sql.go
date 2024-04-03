@@ -37,6 +37,23 @@ func (q *Queries) AddFolder(ctx context.Context, arg AddFolderParams) (AddFolder
 	return i, err
 }
 
+const editFolder = `-- name: EditFolder :exec
+UPDATE folders
+SET name = $2, description = $3
+WHERE id = $1
+`
+
+type EditFolderParams struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+func (q *Queries) EditFolder(ctx context.Context, arg EditFolderParams) error {
+	_, err := q.db.ExecContext(ctx, editFolder, arg.ID, arg.Name, arg.Description)
+	return err
+}
+
 const fetchAccessibleFoldersForUser = `-- name: FetchAccessibleFoldersForUser :many
 SELECT id, name, description, created_at, created_by
 FROM folders

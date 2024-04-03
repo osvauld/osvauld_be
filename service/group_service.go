@@ -248,3 +248,21 @@ func RemoveGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) error {
 
 	return repository.RemoveGroup(ctx, groupID)
 }
+
+func EditGroup(ctx *gin.Context, groupID uuid.UUID, payload dto.EditGroup, caller uuid.UUID) error {
+
+	if err := VerifyAdminOfGroup(ctx, groupID, caller); err != nil {
+		return err
+	}
+
+	args := db.EditGroupParams{
+		ID:   groupID,
+		Name: payload.Name,
+	}
+
+	err := repository.EditGroup(ctx, args)
+	if err != nil {
+		return err
+	}
+	return nil
+}
