@@ -81,4 +81,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/folder/:id/edit-user-access", middleware.JWTAuthMiddleware(), controllers.EditFolderAccessForUser)
 	route.POST("/folder/:id/edit-group-access", middleware.JWTAuthMiddleware(), controllers.EditFolderAccessForGroup)
 
+	route.PUT("/folder/:id", middleware.JWTAuthMiddleware(), controllers.EditFolder)
+	route.PUT("/group/:id", middleware.JWTAuthMiddleware(), controllers.EditGroup)
+
 }

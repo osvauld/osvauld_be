@@ -288,7 +288,7 @@ func EditGroup(ctx *gin.Context) {
 		return
 	}
 
-	groupID, err := uuid.Parse(ctx.Param("groupId"))
+	groupID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid group id"))
 		return
