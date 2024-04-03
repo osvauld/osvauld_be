@@ -37,8 +37,10 @@ type Querier interface {
 	EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error
 	EditCredentialAccessForUserWithFolderID(ctx context.Context, arg EditCredentialAccessForUserWithFolderIDParams) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
+	EditFolder(ctx context.Context, arg EditFolderParams) error
 	EditFolderAccessForGroup(ctx context.Context, arg EditFolderAccessForGroupParams) error
 	EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error
+	EditGroup(ctx context.Context, arg EditGroupParams) error
 	FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error)
 	FetchChallenge(ctx context.Context, userID uuid.UUID) (string, error)
 	FetchCredentialAccessTypeForGroup(ctx context.Context, arg FetchCredentialAccessTypeForGroupParams) (string, error)
@@ -97,8 +99,6 @@ type Querier interface {
 	RemoveGroup(ctx context.Context, id uuid.UUID) error
 	RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error
 	RemoveUserFromOrg(ctx context.Context, id uuid.UUID) error
-	RenameFolder(ctx context.Context, arg RenameFolderParams) error
-	RenameGroup(ctx context.Context, arg RenameGroupParams) error
 	UpdateKeys(ctx context.Context, arg UpdateKeysParams) error
 	UpdateRegistrationChallenge(ctx context.Context, arg UpdateRegistrationChallengeParams) error
 }

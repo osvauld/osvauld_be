@@ -44,3 +44,25 @@ func RemoveFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) error 
 	}
 	return nil
 }
+
+func EditFolder(ctx *gin.Context, folderID uuid.UUID, payload dto.EditFolder, caller uuid.UUID) error {
+
+	if err := VerifyFolderManageAccessForUser(ctx, folderID, caller); err != nil {
+		return err
+	}
+
+	args := db.EditFolderParams{
+		ID:   folderID,
+		Name: payload.Name,
+		Description: sql.NullString{
+			String: payload.Description,
+			Valid:  true,
+		},
+	}
+
+	err := repository.EditFolder(ctx, args)
+	if err != nil {
+		return err
+	}
+	return nil
+}

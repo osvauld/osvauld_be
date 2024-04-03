@@ -98,6 +98,22 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Creat
 	return i, err
 }
 
+const editGroup = `-- name: EditGroup :exec
+UPDATE groupings
+SET name = $2
+WHERE id = $1
+`
+
+type EditGroupParams struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+func (q *Queries) EditGroup(ctx context.Context, arg EditGroupParams) error {
+	_, err := q.db.ExecContext(ctx, editGroup, arg.ID, arg.Name)
+	return err
+}
+
 const fetchCredentialAccessTypeForGroup = `-- name: FetchCredentialAccessTypeForGroup :one
 SELECT access_type FROM credential_access
 WHERE group_id = $1 AND credential_id = $2
@@ -457,21 +473,5 @@ type RemoveUserFromGroupListParams struct {
 
 func (q *Queries) RemoveUserFromGroupList(ctx context.Context, arg RemoveUserFromGroupListParams) error {
 	_, err := q.db.ExecContext(ctx, removeUserFromGroupList, arg.UserID, arg.GroupingID)
-	return err
-}
-
-const renameGroup = `-- name: RenameGroup :exec
-UPDATE groupings
-SET name = $2
-WHERE id = $1
-`
-
-type RenameGroupParams struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
-}
-
-func (q *Queries) RenameGroup(ctx context.Context, arg RenameGroupParams) error {
-	_, err := q.db.ExecContext(ctx, renameGroup, arg.ID, arg.Name)
 	return err
 }

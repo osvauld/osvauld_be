@@ -18,3 +18,8 @@ type FolderDetails struct {
 	CreatedBy   uuid.UUID `json:"createdBy"`
 	CreatedAt   time.Time `json:"createdAt"`
 }
+
+type EditFolder struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}

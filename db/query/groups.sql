@@ -98,7 +98,7 @@ WHERE user_id = $1 AND grouping_id = $2;
 DELETE FROM groupings
 WHERE id = $1; 
 
--- name: RenameGroup :exec
+-- name: EditGroup :exec
 UPDATE groupings
 SET name = $2
 WHERE id = $1;

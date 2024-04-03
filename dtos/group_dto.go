@@ -32,3 +32,7 @@ type RemoveMemberFromGroupRequest struct {
 	GroupID  uuid.UUID `json:"groupId"`
 	MemberID uuid.UUID `json:"memberId"`
 }
+
+type EditGroup struct {
+	Name string `json:"name"`
+}

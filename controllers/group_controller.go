@@ -274,3 +274,34 @@ func RemoveGroup(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusOK, nil, "Removed  group", nil)
 
 }
+
+func EditGroup(ctx *gin.Context) {
+	var req dto.EditGroup
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	groupID, err := uuid.Parse(ctx.Param("groupId"))
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid group id"))
+		return
+	}
+
+	err = service.EditGroup(ctx, groupID, req, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserNotAdminOfGroupError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "failed to edit group", nil)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "Edited group", nil)
+}
