@@ -376,7 +376,7 @@ func (q *Queries) GetCredentialIdsByFolder(ctx context.Context, arg GetCredentia
 
 const getCredentialsForSearchByUserID = `-- name: GetCredentialsForSearchByUserID :many
 SELECT 
-    c.id, 
+    c.id as "credentialId", 
     c.name, 
     COALESCE(c.description, '') AS description,
     COALESCE(c.domain, '') AS domain,
@@ -393,12 +393,12 @@ WHERE
 `
 
 type GetCredentialsForSearchByUserIDRow struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Domain      string    `json:"domain"`
-	FolderID    uuid.UUID `json:"folderId"`
-	FolderName  string    `json:"folderName"`
+	CredentialId uuid.UUID `json:"credentialId"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	Domain       string    `json:"domain"`
+	FolderID     uuid.UUID `json:"folderId"`
+	FolderName   string    `json:"folderName"`
 }
 
 func (q *Queries) GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error) {
@@ -411,7 +411,7 @@ func (q *Queries) GetCredentialsForSearchByUserID(ctx context.Context, userID uu
 	for rows.Next() {
 		var i GetCredentialsForSearchByUserIDRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.CredentialId,
 			&i.Name,
 			&i.Description,
 			&i.Domain,
