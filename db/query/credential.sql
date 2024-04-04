@@ -109,7 +109,7 @@ WHERE
 
 -- name: GetCredentialsForSearchByUserID :many
 SELECT 
-    c.id, 
+    c.id as "credentialId", 
     c.name, 
     COALESCE(c.description, '') AS description,
     COALESCE(c.domain, '') AS domain,
