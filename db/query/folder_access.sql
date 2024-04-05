@@ -65,7 +65,7 @@ WHERE
 
 -- name: GetFolderGroups :many
 SELECT 
-    fa.group_Id,
+    DISTINCT fa.group_id,
     g.name,
     fa.access_type
 FROM 
