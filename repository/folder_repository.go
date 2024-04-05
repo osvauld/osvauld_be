@@ -27,3 +27,7 @@ func GetGroupsWithoutAccess(ctx *gin.Context, folderId uuid.UUID, caller uuid.UU
 func RemoveFolder(ctx *gin.Context, folderID uuid.UUID) error {
 	return database.Store.RemoveFolder(ctx, folderID)
 }
+
+func EditFolder(ctx *gin.Context, args db.EditFolderParams) error {
+	return database.Store.EditFolder(ctx, args)
+}

@@ -60,3 +60,7 @@ func RemoveMemberFromGroup(ctx *gin.Context, args db.RemoveMemberFromGroupTransa
 func RemoveGroup(ctx *gin.Context, groupID uuid.UUID) error {
 	return database.Store.RemoveGroup(ctx, groupID)
 }
+
+func EditGroup(ctx *gin.Context, args db.EditGroupParams) error {
+	return database.Store.EditGroup(ctx, args)
+}

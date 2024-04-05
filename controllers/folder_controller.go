@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	service "osvauld/service"
@@ -71,4 +72,37 @@ func RemoveFolder(ctx *gin.Context) {
 	}
 
 	SendResponse(ctx, http.StatusOK, nil, "Folder removed successfully", nil)
+}
+
+func EditFolder(ctx *gin.Context) {
+	var payload dto.EditFolder
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	folderID, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid folder id"))
+		return
+	}
+
+	err = service.EditFolder(ctx, folderID, payload, caller)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserNotManagerOfFolderError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+
+	SendResponse(ctx, http.StatusOK, nil, "Folder edited successfully", nil)
 }
