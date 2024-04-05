@@ -263,6 +263,21 @@ func (q *Queries) HasReadAccessForFolder(ctx context.Context, arg HasReadAccessF
 	return exists, err
 }
 
+const removeFolderAccessForGroupMember = `-- name: RemoveFolderAccessForGroupMember :exec
+DELETE FROM folder_access WHERE 
+group_id = $1 AND user_id = $2
+`
+
+type RemoveFolderAccessForGroupMemberParams struct {
+	GroupID uuid.NullUUID `json:"groupId"`
+	UserID  uuid.UUID     `json:"userId"`
+}
+
+func (q *Queries) RemoveFolderAccessForGroupMember(ctx context.Context, arg RemoveFolderAccessForGroupMemberParams) error {
+	_, err := q.db.ExecContext(ctx, removeFolderAccessForGroupMember, arg.GroupID, arg.UserID)
+	return err
+}
+
 const removeFolderAccessForGroups = `-- name: RemoveFolderAccessForGroups :exec
 DELETE FROM folder_access WHERE folder_id = $1 AND group_id = ANY($2::UUID[])
 `

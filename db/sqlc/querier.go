@@ -86,12 +86,14 @@ type Querier interface {
 	HasReadAccessForFolder(ctx context.Context, arg HasReadAccessForFolderParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	RemoveCredential(ctx context.Context, id uuid.UUID) error
+	RemoveCredentialAccessForGroupMember(ctx context.Context, arg RemoveCredentialAccessForGroupMemberParams) error
 	RemoveCredentialAccessForGroups(ctx context.Context, arg RemoveCredentialAccessForGroupsParams) error
 	RemoveCredentialAccessForGroupsWithFolderID(ctx context.Context, arg RemoveCredentialAccessForGroupsWithFolderIDParams) error
 	RemoveCredentialAccessForUsers(ctx context.Context, arg RemoveCredentialAccessForUsersParams) error
 	RemoveCredentialAccessForUsersWithFolderID(ctx context.Context, arg RemoveCredentialAccessForUsersWithFolderIDParams) error
 	RemoveCredentialFieldsForUsers(ctx context.Context, arg RemoveCredentialFieldsForUsersParams) error
 	RemoveFolder(ctx context.Context, id uuid.UUID) error
+	RemoveFolderAccessForGroupMember(ctx context.Context, arg RemoveFolderAccessForGroupMemberParams) error
 	RemoveFolderAccessForGroups(ctx context.Context, arg RemoveFolderAccessForGroupsParams) error
 	RemoveFolderAccessForUsers(ctx context.Context, arg RemoveFolderAccessForUsersParams) error
 	RemoveGroup(ctx context.Context, id uuid.UUID) error

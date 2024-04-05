@@ -237,7 +237,20 @@ func RemoveMemberFromGroup(ctx *gin.Context, payload dto.RemoveMemberFromGroupRe
 		return err
 	}
 
-	return repository.RemoveUserFromGroupList(ctx, payload.MemberID, payload.GroupID)
+	err := repository.RemoveMemberFromGroup(ctx, db.RemoveMemberFromGroupTransactionParams{
+		GroupID:  payload.GroupID,
+		MemberID: payload.MemberID,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = DeleteAccessRemovedFields(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func RemoveGroup(ctx *gin.Context, groupID uuid.UUID, caller uuid.UUID) error {
