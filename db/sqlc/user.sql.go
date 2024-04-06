@@ -114,15 +114,55 @@ func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string,
 	return challenge, err
 }
 
-const getAllUsers = `-- name: GetAllUsers :many
+const getAllSignedUpUsers = `-- name: GetAllSignedUpUsers :many
 SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true
 `
 
-type GetAllUsersRow struct {
+type GetAllSignedUpUsersRow struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Username  string    `json:"username"`
 	PublicKey string    `json:"publicKey"`
+}
+
+func (q *Queries) GetAllSignedUpUsers(ctx context.Context) ([]GetAllSignedUpUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllSignedUpUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAllSignedUpUsersRow{}
+	for rows.Next() {
+		var i GetAllSignedUpUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Username,
+			&i.PublicKey,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllUsers = `-- name: GetAllUsers :many
+SELECT id,name,username, status, type FROM users
+`
+
+type GetAllUsersRow struct {
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	Username string    `json:"username"`
+	Status   string    `json:"status"`
+	Type     string    `json:"type"`
 }
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
@@ -138,7 +178,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 			&i.ID,
 			&i.Name,
 			&i.Username,
-			&i.PublicKey,
+			&i.Status,
+			&i.Type,
 		); err != nil {
 			return nil, err
 		}
