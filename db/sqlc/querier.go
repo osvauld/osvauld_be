@@ -51,6 +51,7 @@ type Querier interface {
 	GetAccessTypeAndGroupsByCredentialId(ctx context.Context, credentialID uuid.UUID) ([]GetAccessTypeAndGroupsByCredentialIdRow, error)
 	GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error)
 	GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFieldsForCredentialIDsParams) ([]GetAllFieldsForCredentialIDsRow, error)
+	GetAllSignedUpUsers(ctx context.Context) ([]GetAllSignedUpUsersRow, error)
 	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
 	//-----------------------------------------------------------------------------------------------------

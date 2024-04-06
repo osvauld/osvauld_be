@@ -20,7 +20,7 @@ SET registration_challenge = $1, status = 'temp_login'
 WHERE username = $2;
 
 
--- name: GetAllUsers :many
+-- name: GetAllSignedUpUsers :many
 SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true;
 
 
@@ -75,3 +75,6 @@ SELECT type FROM users WHERE id = $1;
 
 -- name: GetUserByID :one
 SELECT id, username, name, type FROM users WHERE id = $1;
+
+-- name: GetAllUsers :many
+SELECT id,name,username, status, type FROM users ;

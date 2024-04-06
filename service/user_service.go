@@ -92,9 +92,9 @@ func Register(ctx *gin.Context, registerData dto.Register) (bool, error) {
 
 }
 
-func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
+func GetAllSignedUpUsers(ctx *gin.Context) ([]db.GetAllSignedUpUsersRow, error) {
 
-	return repository.GetAllUsers(ctx)
+	return repository.GetAllSignedUpUsers(ctx)
 }
 
 func CreateChallenge(ctx *gin.Context, user dto.CreateChallenge) (string, error) {
@@ -185,4 +185,8 @@ func CheckUserType(ctx *gin.Context, userID uuid.UUID) (string, error) {
 
 func GetUser(ctx *gin.Context, userID uuid.UUID) (db.GetUserByIDRow, error) {
 	return repository.GetUserByID(ctx, userID)
+}
+
+func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
+	return repository.GetAllUsers(ctx)
 }
