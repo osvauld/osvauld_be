@@ -123,8 +123,8 @@ func VerifyChallenge(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusOK, TokenResponse{Token: token}, "verified challenge", nil)
 }
 
-func GetAllUsers(ctx *gin.Context) {
-	users, err := service.GetAllUsers(ctx)
+func GetAllSignedUpUsers(ctx *gin.Context) {
+	users, err := service.GetAllSignedUpUsers(ctx)
 	if err != nil {
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
@@ -226,4 +226,13 @@ func GetUser(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, http.StatusOK, user, "fetched user", nil)
+}
+
+func GetAllUsers(ctx *gin.Context) {
+	users, err := service.GetAllUsers(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, users, "fetched users", nil)
 }

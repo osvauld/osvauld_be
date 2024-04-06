@@ -13,8 +13,8 @@ func CreateUser(ctx *gin.Context, args db.CreateUserParams) (uuid.UUID, error) {
 	return database.Store.CreateUser(ctx, args)
 }
 
-func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
-	return database.Store.GetAllUsers(ctx)
+func GetAllSignedUpUsers(ctx *gin.Context) ([]db.GetAllSignedUpUsersRow, error) {
+	return database.Store.GetAllSignedUpUsers(ctx)
 }
 
 func CreateChallenge(ctx *gin.Context, args db.CreateChallengeParams) (db.SessionTable, error) {
@@ -68,4 +68,8 @@ func CheckUserType(ctx *gin.Context, userID uuid.UUID) (string, error) {
 
 func GetUserByID(ctx *gin.Context, userID uuid.UUID) (db.GetUserByIDRow, error) {
 	return database.Store.GetUserByID(ctx, userID)
+}
+
+func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
+	return database.Store.GetAllUsers(ctx)
 }
