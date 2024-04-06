@@ -263,11 +263,47 @@ func GetCredentialUsersForDataSync(ctx *gin.Context, credentialID uuid.UUID, cal
 	return repository.GetCredentialUsersForDataSync(ctx, credentialID)
 }
 
+func UniqueGroupsWithHighestAccessForCredential(groupAccess []db.GetCredentialGroupsRow) []db.GetCredentialGroupsRow {
+
+	groupAccessMap := map[uuid.UUID]db.GetCredentialGroupsRow{}
+
+	for _, access := range groupAccess {
+		groupID := access.GroupID.UUID
+		if _, ok := groupAccessMap[groupID]; !ok {
+			groupAccessMap[groupID] = access
+		} else {
+			if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[groupAccessMap[groupID].AccessType] {
+				groupAccessMap[groupID] = access
+
+			} else if CredentialAccessLevels[access.AccessType] == CredentialAccessLevels[groupAccessMap[groupID].AccessType] {
+				// incase of multiple access rows with same access level, we choose the one with acquired access
+				if access.AccessSource == "acquired" {
+					groupAccessMap[groupID] = access
+				}
+			}
+		}
+	}
+
+	uniqueGroupAccess := []db.GetCredentialGroupsRow{}
+	for _, access := range groupAccessMap {
+		uniqueGroupAccess = append(uniqueGroupAccess, access)
+	}
+
+	return uniqueGroupAccess
+}
+
 func GetCredentialGroups(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) ([]db.GetCredentialGroupsRow, error) {
 
 	if err := VerifyCredentialReadAccessForUser(ctx, credentialID, caller); err != nil {
 		return nil, err
 	}
 
-	return repository.GetCredentialGroups(ctx, credentialID)
+	accessRows, err := repository.GetCredentialGroups(ctx, credentialID)
+	if err != nil {
+		return nil, err
+	}
+
+	uniqueAccessRows := UniqueGroupsWithHighestAccessForCredential(accessRows)
+
+	return uniqueAccessRows, nil
 }
