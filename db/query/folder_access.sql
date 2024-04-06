@@ -87,3 +87,7 @@ JOIN
 WHERE
     fa.folder_id = $1;
 
+
+-- name: RemoveFolderAccessForGroupMember :exec
+DELETE FROM folder_access WHERE 
+group_id = $1 AND user_id = $2;
