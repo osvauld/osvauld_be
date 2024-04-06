@@ -53,11 +53,8 @@ func GetUsersWithoutGroupAccess(ctx *gin.Context, groupId uuid.UUID) ([]db.GetUs
 	return database.Store.GetUsersWithoutGroupAccess(ctx, groupId)
 }
 
-func RemoveUserFromGroupList(ctx *gin.Context, userID uuid.UUID, groupID uuid.UUID) error {
-	return database.Store.RemoveUserFromGroupList(ctx, db.RemoveUserFromGroupListParams{
-		UserID:     userID,
-		GroupingID: groupID,
-	})
+func RemoveMemberFromGroup(ctx *gin.Context, args db.RemoveMemberFromGroupTransactionParams) error {
+	return database.Store.RemoveMemberFromGroupTransaction(ctx, args)
 }
 
 func RemoveGroup(ctx *gin.Context, groupID uuid.UUID) error {

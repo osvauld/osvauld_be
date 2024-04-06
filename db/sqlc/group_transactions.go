@@ -89,3 +89,43 @@ func (store *SQLStore) AddMembersToGroupTransaction(ctx context.Context, args Ad
 
 	return err
 }
+
+type RemoveMemberFromGroupTransactionParams struct {
+	GroupID  uuid.UUID
+	MemberID uuid.UUID
+}
+
+func (store *SQLStore) RemoveMemberFromGroupTransaction(ctx context.Context, args RemoveMemberFromGroupTransactionParams) error {
+
+	err := store.execTx(ctx, func(q *Queries) error {
+
+		err := q.RemoveUserFromGroupList(ctx, RemoveUserFromGroupListParams{
+			GroupingID: args.GroupID,
+			UserID:     args.MemberID,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = q.RemoveCredentialAccessForGroupMember(ctx, RemoveCredentialAccessForGroupMemberParams{
+			UserID:  args.MemberID,
+			GroupID: uuid.NullUUID{UUID: args.GroupID, Valid: true},
+		})
+		if err != nil {
+			return err
+		}
+
+		err = q.RemoveFolderAccessForGroupMember(ctx, RemoveFolderAccessForGroupMemberParams{
+			UserID:  args.MemberID,
+			GroupID: uuid.NullUUID{UUID: args.GroupID, Valid: true},
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	})
+
+	return err
+}

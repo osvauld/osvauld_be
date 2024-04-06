@@ -436,6 +436,21 @@ func (q *Queries) HasReadAccessForCredential(ctx context.Context, arg HasReadAcc
 	return exists, err
 }
 
+const removeCredentialAccessForGroupMember = `-- name: RemoveCredentialAccessForGroupMember :exec
+DELETE FROM credential_access WHERE 
+group_id = $1 AND user_id = $2
+`
+
+type RemoveCredentialAccessForGroupMemberParams struct {
+	GroupID uuid.NullUUID `json:"groupId"`
+	UserID  uuid.UUID     `json:"userId"`
+}
+
+func (q *Queries) RemoveCredentialAccessForGroupMember(ctx context.Context, arg RemoveCredentialAccessForGroupMemberParams) error {
+	_, err := q.db.ExecContext(ctx, removeCredentialAccessForGroupMember, arg.GroupID, arg.UserID)
+	return err
+}
+
 const removeCredentialAccessForGroups = `-- name: RemoveCredentialAccessForGroups :exec
 DELETE FROM credential_access WHERE folder_id IS NULL 
 AND credential_id = $1 AND group_id = ANY($2::UUID[])

@@ -130,3 +130,7 @@ JOIN
 WHERE
     ca.credential_id = $1;
 
+
+-- name: RemoveCredentialAccessForGroupMember :exec
+DELETE FROM credential_access WHERE 
+group_id = $1 AND user_id = $2;
