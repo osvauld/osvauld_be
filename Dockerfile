@@ -31,7 +31,8 @@ RUN mv migrate /usr/local/bin/migrate
 # Copy the Pre-built binary file from the previous stage. Also copy config yml file
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
-COPY --from=builder /app/db ./db
+RUN mkdir db
+COPY --from=builder /app/db/migration ./db/migration
 
 # Copy migration script into the container
 COPY --from=builder /app/run_migration.sh ./run_migration.sh
