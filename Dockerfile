@@ -34,7 +34,7 @@ COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/db ./db
 
 # Copy migration script into the container
-COPY --from=builder /app/db/run_migration.sh ./run_migration.sh
+COPY --from=builder /app/run_migration.sh ./run_migration.sh
 RUN chmod +x ./run_migration.sh
 
 # Expose port 8080 to the outside world
