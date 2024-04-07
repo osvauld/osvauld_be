@@ -8,13 +8,13 @@ INSERT INTO group_list (grouping_id, user_id, access_type)
 VALUES ($1, $2, $3);
 
 -- name: FetchUserGroups :many
-SELECT groupings.id as "groupId", groupings.name, groupings.created_by, groupings.created_at
+SELECT groupings.id as "groupId", groupings.name, groupings.created_by, groupings.created_at, group_list.access_type as "accessType"
 FROM groupings
 JOIN group_list ON group_list.grouping_id = groupings.id
 WHERE group_list.user_id = $1;
 
 -- name: GetGroupMembers :many
-SELECT users.id, users.name, users.username, COALESCE(users.encryption_key, '') as "publicKey"
+SELECT users.id, users.name, users.username, COALESCE(users.encryption_key, '') as "publicKey", group_list.access_type as "accessType"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1;
