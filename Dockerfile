@@ -31,13 +31,14 @@ RUN mv migrate /usr/local/bin/migrate
 # Copy the Pre-built binary file from the previous stage. Also copy config yml file
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/db/ ./db/
 
 # Copy migration script into the container
-COPY run_migration.sh /run_migration.sh
-RUN chmod +x /run_migration.sh
+COPY --from=builder /app/db/run_migration.sh ./run_migration.sh
+RUN chmod +x ./run_migration.sh
 
 # Expose port 8080 to the outside world
 EXPOSE 8000
 
-ENTRYPOINT ["/run_migration.sh"]
+ENTRYPOINT ["sh ./run_migration.sh"]
 CMD ["./main"]
