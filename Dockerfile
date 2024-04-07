@@ -21,12 +21,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o main .
 
 # Start a new stage from scratch
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates curl
 
 WORKDIR /root/
 
-RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-arm64.tar.gz | tar xvz
-RUN mv migrate.linux-amd64 /usr/local/bin/migrate
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+RUN mv migrate /usr/local/bin/migrate
 
 # Copy the Pre-built binary file from the previous stage. Also copy config yml file
 COPY --from=builder /app/main .
