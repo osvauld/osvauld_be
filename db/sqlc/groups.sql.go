@@ -165,17 +165,18 @@ func (q *Queries) FetchCredentialIDsWithGroupAccess(ctx context.Context, arg Fet
 }
 
 const fetchUserGroups = `-- name: FetchUserGroups :many
-SELECT groupings.id as "groupId", groupings.name, groupings.created_by, groupings.created_at
+SELECT groupings.id as "groupId", groupings.name, groupings.created_by, groupings.created_at, group_list.access_type as "accessType"
 FROM groupings
 JOIN group_list ON group_list.grouping_id = groupings.id
 WHERE group_list.user_id = $1
 `
 
 type FetchUserGroupsRow struct {
-	GroupId   uuid.UUID     `json:"groupId"`
-	Name      string        `json:"name"`
-	CreatedBy uuid.NullUUID `json:"createdBy"`
-	CreatedAt time.Time     `json:"createdAt"`
+	GroupId    uuid.UUID     `json:"groupId"`
+	Name       string        `json:"name"`
+	CreatedBy  uuid.NullUUID `json:"createdBy"`
+	CreatedAt  time.Time     `json:"createdAt"`
+	AccessType string        `json:"accessType"`
 }
 
 func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]FetchUserGroupsRow, error) {
@@ -192,6 +193,7 @@ func (q *Queries) FetchUserGroups(ctx context.Context, userID uuid.UUID) ([]Fetc
 			&i.Name,
 			&i.CreatedBy,
 			&i.CreatedAt,
+			&i.AccessType,
 		); err != nil {
 			return nil, err
 		}
@@ -323,17 +325,18 @@ func (q *Queries) GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT users.id, users.name, users.username, COALESCE(users.encryption_key, '') as "publicKey"
+SELECT users.id, users.name, users.username, COALESCE(users.encryption_key, '') as "publicKey", group_list.access_type as "accessType"
 FROM users
 JOIN group_list ON users.id = group_list.user_id
 WHERE group_list.grouping_id = $1
 `
 
 type GetGroupMembersRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Username  string    `json:"username"`
-	PublicKey string    `json:"publicKey"`
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	Username   string    `json:"username"`
+	PublicKey  string    `json:"publicKey"`
+	AccessType string    `json:"accessType"`
 }
 
 func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]GetGroupMembersRow, error) {
@@ -350,6 +353,7 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupingID uuid.UUID) ([]
 			&i.Name,
 			&i.Username,
 			&i.PublicKey,
+			&i.AccessType,
 		); err != nil {
 			return nil, err
 		}
