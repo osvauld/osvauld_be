@@ -40,5 +40,5 @@ RUN chmod +x ./run_migration.sh
 # Expose port 8080 to the outside world
 EXPOSE 8000
 
-ENTRYPOINT ["sh ./run_migration.sh"]
+ENTRYPOINT ["sh", "./run_migration.sh"]
 CMD ["./main"]
