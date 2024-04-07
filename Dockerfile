@@ -33,11 +33,11 @@ COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
 
 # Copy migration script into the container
-COPY migrate.sh /migrate.sh
-RUN chmod +x /migrate.sh
+COPY run_migration.sh /run_migration.sh
+RUN chmod +x /run_migration.sh
 
 # Expose port 8080 to the outside world
 EXPOSE 8000
 
-ENTRYPOINT ["/migrate.sh"]
+ENTRYPOINT ["/run_migration.sh"]
 CMD ["./main"]
