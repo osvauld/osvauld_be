@@ -10,6 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
+var accessLevels = map[string]int{
+	"manager": 2,
+	"reader":  1,
+	"none":    0,
+}
+
 func CreateFolder(ctx *gin.Context, folder dto.CreateFolderRequest, caller uuid.UUID) (dto.FolderDetails, error) {
 
 	createFolderParams := db.CreateFolderTransactionParams{
@@ -30,7 +36,11 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	if err != nil {
 		return nil, err
 	}
-	return folders, nil
+	uniqueFolders, err := GetFolderWithHighestAccess(folders)
+	if err != nil {
+		return nil, err
+	}
+	return uniqueFolders, nil
 }
 
 func RemoveFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) error {
@@ -65,4 +75,25 @@ func EditFolder(ctx *gin.Context, folderID uuid.UUID, payload dto.EditFolder, ca
 		return err
 	}
 	return nil
+}
+
+func GetFolderWithHighestAccess(folders []db.FetchAccessibleFoldersForUserRow) ([]db.FetchAccessibleFoldersForUserRow, error) {
+	uniqueFoldersMap := make(map[uuid.UUID]db.FetchAccessibleFoldersForUserRow)
+
+	for _, folder := range folders {
+		if existingFolder, ok := uniqueFoldersMap[folder.ID]; ok {
+			if accessLevels[folder.AccessType] > accessLevels[existingFolder.AccessType] {
+				uniqueFoldersMap[folder.ID] = folder
+			}
+		} else {
+			uniqueFoldersMap[folder.ID] = folder
+		}
+	}
+	uniqueFolders := make([]db.FetchAccessibleFoldersForUserRow, 0, len(uniqueFoldersMap))
+	for _, folder := range uniqueFoldersMap {
+		uniqueFolders = append(uniqueFolders, folder)
+	}
+
+	return uniqueFolders, nil
+
 }
