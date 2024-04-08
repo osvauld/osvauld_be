@@ -213,6 +213,7 @@ func GetGroupsWithoutAccess(ctx *gin.Context) {
 
 	groups, err := service.GetGroupsWithoutAccess(ctx, folderID, caller)
 	if err != nil {
+		logger.Debugf(err.Error())
 		SendResponse(ctx, 500, nil, "Failed to get groups", errors.New("failed to fetch required groups"))
 		return
 	}

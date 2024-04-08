@@ -6,9 +6,10 @@ RETURNING id, created_at;
 
 
 -- name: FetchAccessibleFoldersForUser :many
-SELECT id, name, description, created_at, created_by
+SELECT folders.id, folders.name, folders.description, folders.created_at, folders.created_by, COALESCE(folder_access.access_type, 'none') as "accessType"
 FROM folders
-WHERE id IN (
+LEFT JOIN folder_access ON folders.id = folder_access.folder_id AND folder_access.user_id = $1
+WHERE folders.id IN (
   SELECT DISTINCT(folder_id)
   FROM folder_access
   WHERE folder_access.user_id = $1
