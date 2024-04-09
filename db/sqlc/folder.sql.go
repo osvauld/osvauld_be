@@ -110,14 +110,15 @@ func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid
 }
 
 const getAccessTypeAndUserByFolder = `-- name: GetAccessTypeAndUserByFolder :many
-SELECT user_id, access_type
+SELECT user_id, access_type, group_id
 FROM folder_access
 WHERE folder_id = $1
 `
 
 type GetAccessTypeAndUserByFolderRow struct {
-	UserID     uuid.UUID `json:"userId"`
-	AccessType string    `json:"accessType"`
+	UserID     uuid.UUID     `json:"userId"`
+	AccessType string        `json:"accessType"`
+	GroupID    uuid.NullUUID `json:"groupId"`
 }
 
 func (q *Queries) GetAccessTypeAndUserByFolder(ctx context.Context, folderID uuid.UUID) ([]GetAccessTypeAndUserByFolderRow, error) {
@@ -129,7 +130,7 @@ func (q *Queries) GetAccessTypeAndUserByFolder(ctx context.Context, folderID uui
 	items := []GetAccessTypeAndUserByFolderRow{}
 	for rows.Next() {
 		var i GetAccessTypeAndUserByFolderRow
-		if err := rows.Scan(&i.UserID, &i.AccessType); err != nil {
+		if err := rows.Scan(&i.UserID, &i.AccessType, &i.GroupID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

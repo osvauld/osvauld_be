@@ -8,9 +8,10 @@ type UserFields struct {
 }
 
 type UserFieldsWithAccessType struct {
-	UserID     uuid.UUID `json:"userId"`
-	Fields     []Field   `json:"fields"`
-	AccessType string    `json:"accessType"`
+	UserID     uuid.UUID     `json:"userId"`
+	Fields     []Field       `json:"fields"`
+	AccessType string        `json:"accessType"`
+	GroupID    uuid.NullUUID `json:"groupId"`
 }
 
 type Field struct {

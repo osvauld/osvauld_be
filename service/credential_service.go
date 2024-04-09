@@ -10,6 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type AccessInfo struct {
+	AccessType string
+	GroupID    uuid.NullUUID
+}
+
 func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) (uuid.UUID, error) {
 
 	if err := VerifyFolderManageAccessForUser(ctx, request.FolderID, caller); err != nil {
@@ -20,19 +25,13 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	if err != nil {
 		return uuid.UUID{}, err
 	}
-
-	userFolderAccessType := make(map[uuid.UUID]string)
+	userFolderAccessType := make(map[uuid.UUID][]AccessInfo)
 
 	for _, access := range accessList {
-
-		// Find the higest access level for a user
-		currentAccess, exists := userFolderAccessType[access.UserID]
-		if !exists {
-			userFolderAccessType[access.UserID] = access.AccessType
-		} else if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[currentAccess] {
-			userFolderAccessType[access.UserID] = access.AccessType
-		}
-
+		userFolderAccessType[access.UserID] = append(userFolderAccessType[access.UserID], AccessInfo{
+			AccessType: access.AccessType,
+			GroupID:    access.GroupID,
+		})
 	}
 
 	/* Convert UserFields to UserFieldsWithAccessType
@@ -40,18 +39,22 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	 */
 	var UserFieldsWithAccessTypeSlice []dto.UserFieldsWithAccessType
 	for _, userFields := range request.UserFields {
-		accessType, exists := userFolderAccessType[userFields.UserID]
+		accessInfos, exists := userFolderAccessType[userFields.UserID]
+
 		if !exists {
 			// TODO: send appropriate error
 			continue
 		}
-		userFieldsWithAccessType := dto.UserFieldsWithAccessType{
-			UserID:     userFields.UserID,
-			Fields:     userFields.Fields,
-			AccessType: accessType,
-		}
+		for _, accessInfo := range accessInfos {
+			userFieldsWithAccessType := dto.UserFieldsWithAccessType{
+				UserID:     userFields.UserID,
+				Fields:     userFields.Fields,
+				AccessType: accessInfo.AccessType,
+				GroupID:    accessInfo.GroupID,
+			}
 
-		UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
+			UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
+		}
 	}
 
 	payload := db.AddCredentialTransactionParams{

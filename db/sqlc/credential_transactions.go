@@ -59,6 +59,8 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 				CredentialID: credentialID,
 				UserID:       userFields.UserID,
 				AccessType:   userFields.AccessType,
+				FolderID:     uuid.NullUUID{UUID: args.FolderID, Valid: true},
+				GroupID:      userFields.GroupID,
 			}
 			_, err := q.AddCredentialAccess(ctx, accessListParams)
 			if err != nil {

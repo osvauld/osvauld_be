@@ -33,7 +33,7 @@ WHERE folder_id = $1 AND user_id = $2;
 
 
 -- name: GetAccessTypeAndUserByFolder :many
-SELECT user_id, access_type
+SELECT user_id, access_type, group_id
 FROM folder_access
 WHERE folder_id = $1;
 
