@@ -9,13 +9,14 @@ import (
 )
 
 type AddCredentialTransactionParams struct {
-	Name                     string
-	Description              sql.NullString
-	FolderID                 uuid.UUID
-	CredentialType           string
-	CreatedBy                uuid.UUID
-	UserFieldsWithAccessType []dto.UserFieldsWithAccessType
-	Domain                   string
+	Name                 string
+	Description          sql.NullString
+	FolderID             uuid.UUID
+	CredentialType       string
+	CreatedBy            uuid.UUID
+	UserFields           []dto.UserFields
+	CredentialAccessArgs []AddCredentialAccessParams
+	Domain               string
 }
 
 func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCredentialTransactionParams) (uuid.UUID, error) {
@@ -40,7 +41,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 		}
 
 		// Create field records
-		for _, userFields := range args.UserFieldsWithAccessType {
+		for _, userFields := range args.UserFields {
 			for _, field := range userFields.Fields {
 				_, err = q.AddField(ctx, AddFieldParams{
 					FieldName:    field.FieldName,
@@ -54,13 +55,12 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 					return err
 				}
 			}
+		}
 
-			accessListParams := AddCredentialAccessParams{
-				CredentialID: credentialID,
-				UserID:       userFields.UserID,
-				AccessType:   userFields.AccessType,
-			}
-			_, err := q.AddCredentialAccess(ctx, accessListParams)
+		for _, accessRow := range args.CredentialAccessArgs {
+
+			accessRow.CredentialID = credentialID
+			_, err := q.AddCredentialAccess(ctx, accessRow)
 			if err != nil {
 				return err
 			}

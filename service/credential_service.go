@@ -21,47 +21,27 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 		return uuid.UUID{}, err
 	}
 
-	userFolderAccessType := make(map[uuid.UUID]string)
+	credentialAccessRecords := []db.AddCredentialAccessParams{}
+	for _, accessRow := range accessList {
 
-	for _, access := range accessList {
-
-		// Find the higest access level for a user
-		currentAccess, exists := userFolderAccessType[access.UserID]
-		if !exists {
-			userFolderAccessType[access.UserID] = access.AccessType
-		} else if CredentialAccessLevels[access.AccessType] > CredentialAccessLevels[currentAccess] {
-			userFolderAccessType[access.UserID] = access.AccessType
+		credentialAccessRecord := db.AddCredentialAccessParams{
+			UserID:     accessRow.UserID,
+			AccessType: accessRow.AccessType,
+			FolderID:   uuid.NullUUID{UUID: request.FolderID, Valid: true},
+			GroupID:    accessRow.GroupID,
 		}
-
-	}
-
-	/* Convert UserFields to UserFieldsWithAccessType
-	 * access type is derived from the users forlder access
-	 */
-	var UserFieldsWithAccessTypeSlice []dto.UserFieldsWithAccessType
-	for _, userFields := range request.UserFields {
-		accessType, exists := userFolderAccessType[userFields.UserID]
-		if !exists {
-			// TODO: send appropriate error
-			continue
-		}
-		userFieldsWithAccessType := dto.UserFieldsWithAccessType{
-			UserID:     userFields.UserID,
-			Fields:     userFields.Fields,
-			AccessType: accessType,
-		}
-
-		UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
+		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 	}
 
 	payload := db.AddCredentialTransactionParams{
-		Name:                     request.Name,
-		Description:              sql.NullString{String: request.Description, Valid: true},
-		FolderID:                 request.FolderID,
-		CredentialType:           request.CredentialType,
-		CreatedBy:                caller,
-		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
-		Domain:                   request.Domain,
+		Name:                 request.Name,
+		Description:          sql.NullString{String: request.Description, Valid: true},
+		FolderID:             request.FolderID,
+		CredentialType:       request.CredentialType,
+		CreatedBy:            caller,
+		UserFields:           request.UserFields,
+		CredentialAccessArgs: credentialAccessRecords,
+		Domain:               request.Domain,
 	}
 	credentialID, err := repository.AddCredential(ctx, payload)
 	if err != nil {
