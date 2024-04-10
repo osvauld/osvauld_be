@@ -10,11 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AccessInfo struct {
-	AccessType string
-	GroupID    uuid.NullUUID
-}
-
 func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uuid.UUID) (uuid.UUID, error) {
 
 	if err := VerifyFolderManageAccessForUser(ctx, request.FolderID, caller); err != nil {
@@ -25,46 +20,28 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 	if err != nil {
 		return uuid.UUID{}, err
 	}
-	userFolderAccessType := make(map[uuid.UUID][]AccessInfo)
 
-	for _, access := range accessList {
-		userFolderAccessType[access.UserID] = append(userFolderAccessType[access.UserID], AccessInfo{
-			AccessType: access.AccessType,
-			GroupID:    access.GroupID,
-		})
-	}
+	credentialAccessRecords := []db.AddCredentialAccessParams{}
+	for _, accessRow := range accessList {
 
-	/* Convert UserFields to UserFieldsWithAccessType
-	 * access type is derived from the users forlder access
-	 */
-	var UserFieldsWithAccessTypeSlice []dto.UserFieldsWithAccessType
-	for _, userFields := range request.UserFields {
-		accessInfos, exists := userFolderAccessType[userFields.UserID]
-
-		if !exists {
-			// TODO: send appropriate error
-			continue
+		credentialAccessRecord := db.AddCredentialAccessParams{
+			UserID:     accessRow.UserID,
+			AccessType: accessRow.AccessType,
+			FolderID:   uuid.NullUUID{UUID: request.FolderID, Valid: true},
+			GroupID:    accessRow.GroupID,
 		}
-		for _, accessInfo := range accessInfos {
-			userFieldsWithAccessType := dto.UserFieldsWithAccessType{
-				UserID:     userFields.UserID,
-				Fields:     userFields.Fields,
-				AccessType: accessInfo.AccessType,
-				GroupID:    accessInfo.GroupID,
-			}
-
-			UserFieldsWithAccessTypeSlice = append(UserFieldsWithAccessTypeSlice, userFieldsWithAccessType)
-		}
+		credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 	}
 
 	payload := db.AddCredentialTransactionParams{
-		Name:                     request.Name,
-		Description:              sql.NullString{String: request.Description, Valid: true},
-		FolderID:                 request.FolderID,
-		CredentialType:           request.CredentialType,
-		CreatedBy:                caller,
-		UserFieldsWithAccessType: UserFieldsWithAccessTypeSlice,
-		Domain:                   request.Domain,
+		Name:                 request.Name,
+		Description:          sql.NullString{String: request.Description, Valid: true},
+		FolderID:             request.FolderID,
+		CredentialType:       request.CredentialType,
+		CreatedBy:            caller,
+		UserFields:           request.UserFields,
+		CredentialAccessArgs: credentialAccessRecords,
+		Domain:               request.Domain,
 	}
 	credentialID, err := repository.AddCredential(ctx, payload)
 	if err != nil {
