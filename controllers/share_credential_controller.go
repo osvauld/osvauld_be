@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/infra/logger"
 	"osvauld/service"
@@ -15,87 +16,103 @@ func ShareCredentialsWithUsers(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
 		return
 	}
 
 	var req dto.ShareCredentialsWithUsersRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	response, err := service.ShareCredentialsWithUsers(ctx, req.UserData, caller)
 	if err != nil {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
 		logger.Errorf(err.Error())
-		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, response, "Success", nil)
+	SendResponse(ctx, http.StatusOK, response, "Success", nil)
 }
 
 func ShareCredentialsWithGroups(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusUnauthorized, nil, "Unauthorized", errors.New("unauthorized"))
 		return
 	}
 
 	var req dto.ShareCredentialsWithGroupsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	response, err := service.ShareCredentialsWithGroups(ctx, req.GroupData, caller)
 	if err != nil {
-		SendResponse(ctx, 500, nil, "Failed to share credential", errors.New("failed to share credential"))
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, response, "Success", nil)
+	SendResponse(ctx, http.StatusOK, response, "Success", nil)
 }
 
 func ShareFolderWithUsers(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
 		return
 	}
 
 	var req dto.ShareFolderWithUsersRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	responses, err := service.ShareFolderWithUsers(ctx, req, caller)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "", errors.New("failed to share"))
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, responses, "Success", nil)
+	SendResponse(ctx, http.StatusOK, responses, "Success", nil)
 }
 
 func ShareFolderWithGroups(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
-		SendResponse(ctx, 401, nil, "Unauthorized", errors.New("unauthorized"))
+		SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
 		return
 	}
 
 	var req dto.ShareFolderWithGroupsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
 	}
 
 	response, err := service.ShareFolderWithGroups(ctx, req, caller)
 	if err != nil {
-		SendResponse(ctx, 400, nil, "Failed to share folder with groups", nil)
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, 200, response, "Success", nil)
+	SendResponse(ctx, http.StatusOK, response, "Success", nil)
 }

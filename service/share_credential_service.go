@@ -70,6 +70,14 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 
 		for _, credential := range userData.CredentialData {
 
+			// Check the user who is sharing the credential has manager access to the credential
+			// This check is really inefficient because same check will be done for multiple users
+			// TODO: this should be kept in a validation layer where this can be done efficiently
+			err := VerifyCredentialManageAccessForUser(ctx, credential.CredentialID, caller)
+			if err != nil {
+				return nil, err
+			}
+
 			// Check credential already shared for user
 			exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 				UserID:       userData.UserID,
@@ -156,6 +164,14 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 
 			for _, credential := range userData.CredentialData {
 
+				// Check the user who is sharing the credential has manager access to the credential
+				// This check is really inefficient because same check will be done for multiple users
+				// TODO: this should be kept in a validation layer where this can be done efficiently
+				err := VerifyCredentialManageAccessForUser(ctx, credential.CredentialID, caller)
+				if err != nil {
+					return nil, err
+				}
+
 				// Check credential already shared for user
 				exists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 					UserID:       userData.UserID,
@@ -231,13 +247,18 @@ type ShareFolderWithUserResponse struct {
 }
 
 func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequest, caller uuid.UUID) ([]ShareFolderWithUserResponse, error) {
-	// TODO: modify the payload to add only to access list or add to encrypted table and access list
-	// TODO: make this idempotent
+
+		err := VerifyFolderManageAccessForUser(ctx, payload.FolderID, caller)
+		if err != nil {
+			return nil, err
+		}
+
 
 	// the following loop is for grouping the credentials shared for a single user
 	// so that we can share all the credentials for a single user in a single transaction
 	var responses []ShareFolderWithUserResponse
 	for _, userData := range payload.UserData {
+
 
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 		userFieldRecords := []db.AddFieldParams{}
@@ -247,6 +268,14 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 		userShareResponse.UserID = userData.UserID
 
 		for _, credential := range userData.CredentialData {
+
+			// Check the user who is sharing the credential has manager access to the credential
+			// This check is really inefficient because same check will be done for multiple users
+			// TODO: this should be kept in a validation layer where this can be done efficiently
+			err := VerifyCredentialManageAccessForUser(ctx, credential.CredentialID, caller)
+			if err != nil {
+				return nil, err
+			}
 
 			fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
 				UserID:       userData.UserID,
@@ -340,6 +369,11 @@ type ShareFolderWithGroupResponse struct {
 
 func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRequest, caller uuid.UUID) ([]ShareFolderWithGroupResponse, error) {
 
+	err := VerifyFolderManageAccessForUser(ctx, payload.FolderID, caller)
+	if err != nil {
+		return nil, err
+	}
+
 	var responses []ShareFolderWithGroupResponse
 	for _, groupData := range payload.GroupData {
 
@@ -350,6 +384,14 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 		for _, userData := range groupData.UserData {
 
 			for _, credential := range userData.CredentialData {
+
+				// Check the user who is sharing the credential has manager access to the credential
+				// This check is really inefficient because same check will be done for multiple users
+				// TODO: this should be kept in a validation layer where this can be done efficiently
+				err := VerifyCredentialManageAccessForUser(ctx, credential.CredentialID, caller)
+				if err != nil {
+					return nil, err
+				}
 
 				fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
 					UserID:       userData.UserID,
