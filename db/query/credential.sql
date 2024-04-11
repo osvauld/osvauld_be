@@ -72,7 +72,7 @@ WHERE
 
 -- name: GetCredentialIdsByFolder :many
 SELECT 
-    c.id AS "credentialId"
+    DISTINCT c.id AS "credentialId"
 FROM 
     credentials c
 JOIN 
