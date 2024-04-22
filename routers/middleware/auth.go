@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -29,9 +30,15 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		claims := &auth.Claims{}
 
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.GetJWTSecret()), nil // Ensure your auth package has GetJWTSecret() method that returns the secret key
-		})
+		keyFunc := func(token *jwt.Token) (interface{}, error) {
+			_, ok := token.Method.(*jwt.SigningMethodHMAC)
+			if !ok {
+				return nil, errors.New("invalid token")
+			}
+			return []byte(config.GetJWTSecret()), nil
+		}
+
+		token, err := jwt.ParseWithClaims(tokenString, claims, keyFunc)
 
 		if err != nil {
 			logger.Errorf(err.Error())
