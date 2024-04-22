@@ -22,7 +22,8 @@ type Claims struct {
 // GenerateToken creates a JWT token for authenticated users.
 func GenerateToken(username string, id uuid.UUID) (string, error) {
 	jwtSecret := config.GetJWTSecret()
-	expirationTime := time.Now().Add(10 * time.Hour)
+	// expiry time is 1 week
+	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),

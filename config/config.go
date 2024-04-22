@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"osvauld/infra/logger"
 
 	"github.com/spf13/viper"
@@ -34,10 +35,23 @@ func SetupConfig() error {
 		return err
 	}
 
+	err = ValidateJWTSecret()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func GetJWTSecret() string {
-	jwtSecret := viper.GetString("SECRET")
+	jwtSecret := viper.GetString("AUTH_SECRET")
 	return jwtSecret
+}
+
+func ValidateJWTSecret() error {
+	jwtSecret := GetJWTSecret()
+	if len(jwtSecret) < 32 {
+		return fmt.Errorf("JWT secret must be at least 32 characters")
+	}
+	return nil
 }
