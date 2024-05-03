@@ -1,13 +1,18 @@
 package middleware
 
 import (
+	"bytes"
+	"crypto/sha512"
+	"encoding/base64"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"osvauld/auth"
 	"osvauld/config"
 	"osvauld/infra/logger"
+	"osvauld/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -62,5 +67,68 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		c.Set("userId", userID)
 
 		c.Next() // Proceed to the route handler
+	}
+}
+
+func SignatureMiddleware(paramName ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Extract userId from JWT token
+		userId := c.MustGet("userId").(uuid.UUID)
+
+		// Extract signature from header
+		signature := c.GetHeader("Signature")
+		if signature == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No signature provided"})
+			c.Abort()
+			return
+		}
+
+		var hashedStr string
+		if len(paramName) > 0 {
+			// Extract the parameter from the route
+			paramValue := c.Param(paramName[0])
+			if paramValue == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "No parameter provided"})
+				c.Abort()
+				return
+			}
+
+			encodedParam := base64.StdEncoding.EncodeToString([]byte(paramValue))
+			hashedParam := sha512.Sum512([]byte(encodedParam))
+			hashedStr = base64.StdEncoding.EncodeToString(hashedParam[:])
+		} else {
+			// Extract the body
+			body, err := c.GetRawData()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+				c.Abort()
+				return
+			}
+
+			// Replace the body so it can be read again later
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+			encodedBody := base64.StdEncoding.EncodeToString(body)
+			hashedBody := sha512.Sum512([]byte(encodedBody))
+			hashedStr = base64.StdEncoding.EncodeToString(hashedBody[:])
+		}
+
+		// Get the public key
+		publicKey, err := service.GetUserDeviceKey(c, userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get public key"})
+			c.Abort()
+			return
+		}
+
+		// Verify the signature
+		isValid, err := auth.VerifySignature(signature, publicKey, hashedStr)
+		if err != nil || !isValid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid signature"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
 	}
 }

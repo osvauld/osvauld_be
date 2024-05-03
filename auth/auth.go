@@ -66,6 +66,7 @@ func VerifySignature(armoredSignature string, armoredPublicKey string, challenge
 		logger.Debugf("Error: decoding signature %v", err)
 		return false, err
 	}
+
 	// Verify the signature
 	err = pubKeyRing.VerifyDetached(message, signature, crypto.GetUnixTime())
 	if err != nil {
