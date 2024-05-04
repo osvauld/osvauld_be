@@ -78,3 +78,7 @@ SELECT id, username, name, type FROM users WHERE id = $1;
 
 -- name: GetAllUsers :many
 SELECT id,name,username, status, type FROM users ;
+
+
+-- name: GetUserDeviceKey :one
+SELECT COALESCE(device_key,'') as "deviceKey" FROM users WHERE id = $1;

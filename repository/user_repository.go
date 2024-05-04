@@ -73,3 +73,7 @@ func GetUserByID(ctx *gin.Context, userID uuid.UUID) (db.GetUserByIDRow, error) 
 func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	return database.Store.GetAllUsers(ctx)
 }
+
+func GetUserDeviceKey(ctx *gin.Context, userID uuid.UUID) (string, error) {
+	return database.Store.GetUserDeviceKey(ctx, userID)
+}

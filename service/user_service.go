@@ -190,3 +190,7 @@ func GetUser(ctx *gin.Context, userID uuid.UUID) (db.GetUserByIDRow, error) {
 func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 	return repository.GetAllUsers(ctx)
 }
+
+func GetUserDeviceKey(ctx *gin.Context, userID uuid.UUID) (string, error) {
+	return repository.GetUserDeviceKey(ctx, userID)
+}

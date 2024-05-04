@@ -273,6 +273,17 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 	return i, err
 }
 
+const getUserDeviceKey = `-- name: GetUserDeviceKey :one
+SELECT COALESCE(device_key,'') as "deviceKey" FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserDeviceKey(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, getUserDeviceKey, id)
+	var deviceKey string
+	err := row.Scan(&deviceKey)
+	return deviceKey, err
+}
+
 const getUserTempPassword = `-- name: GetUserTempPassword :one
 SELECT temp_password, status FROM users WHERE username = $1
 `
