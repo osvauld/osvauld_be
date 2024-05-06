@@ -17,6 +17,7 @@ ssh ubuntu@3.110.128.10 << 'EOF'
     sudo docker build -t osvauld_be:latest .
 
     sudo docker run --name osvauld_backend \
+    --restart=unless-stopped \
     -d \
     -p 80:8000 \
     -e MASTER_DB_HOST=$MASTER_DB_HOST \
