@@ -271,6 +271,28 @@ func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCr
 
 }
 
+func EditCredentialDetails(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCredentialDetailsRequest, caller uuid.UUID) error {
+
+	if err := VerifyCredentialManageAccessForUser(ctx, credentialID, caller); err != nil {
+		return err
+	}
+
+	err := repository.EditCredentialDetails(ctx, db.EditCredentialDetailsParams{
+		ID:             credentialID,
+		Name:           request.Name,
+		Description:    sql.NullString{String: request.Description, Valid: true},
+		CredentialType: request.CredentialType,
+		UpdatedBy:      uuid.NullUUID{UUID: caller, Valid: true},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func GetSearchData(ctx *gin.Context, userID uuid.UUID) ([]db.GetCredentialsForSearchByUserIDRow, error) {
 	credentials, err := repository.GetSearchData(ctx, userID)
 	if err != nil {
