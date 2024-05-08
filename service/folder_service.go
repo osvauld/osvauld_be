@@ -31,7 +31,7 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolderRequest, caller uuid.
 	return folderDetails, nil
 }
 
-func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.FetchAccessibleFoldersForUserRow, error) {
+func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]dto.FolderDetails, error) {
 	folders, err := repository.FetchAccessibleFoldersForUser(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,20 @@ func FetchAccessibleFoldersForUser(ctx *gin.Context, userID uuid.UUID) ([]db.Fet
 	if err != nil {
 		return nil, err
 	}
-	return uniqueFolders, nil
+
+	uniqueFoldersDtos := []dto.FolderDetails{}
+	for _, folder := range uniqueFolders {
+		uniqueFoldersDtos = append(uniqueFoldersDtos, dto.FolderDetails{
+			FolderID:    folder.ID,
+			Name:        folder.Name,
+			Description: folder.Description.String,
+			CreatedAt:   folder.CreatedAt,
+			CreatedBy:   folder.CreatedBy.UUID,
+			AccessType:  folder.AccessType,
+		})
+	}
+
+	return uniqueFoldersDtos, nil
 }
 
 func RemoveFolder(ctx *gin.Context, folderID uuid.UUID, caller uuid.UUID) error {

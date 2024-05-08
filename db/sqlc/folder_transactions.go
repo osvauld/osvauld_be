@@ -45,6 +45,7 @@ func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateF
 		folderDetails.Name = args.Name
 		folderDetails.Description = args.Description.String
 		folderDetails.CreatedBy = args.CreatedBy
+		folderDetails.AccessType = "manager"
 
 		return nil
 	})

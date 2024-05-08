@@ -17,6 +17,7 @@ type FolderDetails struct {
 	Description string    `json:"description"`
 	CreatedBy   uuid.UUID `json:"createdBy"`
 	CreatedAt   time.Time `json:"createdAt"`
+	AccessType  string    `json:"accessType"`
 }
 
 type EditFolder struct {
