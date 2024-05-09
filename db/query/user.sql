@@ -82,3 +82,31 @@ SELECT id,name,username, status, type FROM users ;
 
 -- name: GetUserDeviceKey :one
 SELECT COALESCE(device_key,'') as "deviceKey" FROM users WHERE id = $1;
+
+
+-- name: CreateCliUser :one
+INSERT INTO users (
+
+    username, 
+    name, 
+    encryption_key, 
+    device_key, 
+    temp_password, 
+    registration_challenge, 
+    signed_up, 
+    type, 
+    status, 
+    created_by
+) VALUES (
+    $1, 
+    $2, 
+    $3, 
+    $4, 
+    $5, 
+    $6, 
+    $7, 
+    $8, 
+    $9, 
+    $10 
+)
+RETURNING id;

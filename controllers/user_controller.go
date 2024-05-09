@@ -236,3 +236,22 @@ func GetAllUsers(ctx *gin.Context) {
 	}
 	SendResponse(ctx, http.StatusOK, users, "fetched users", nil)
 }
+
+func CreateCLIUser(ctx *gin.Context) {
+	var req dto.CreateCLIUser
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	user, err := service.CreateCLIUser(ctx, req, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusCreated, user, "created user", nil)
+}

@@ -37,3 +37,9 @@ type CheckUserAvailability struct {
 	UserName string `json:"username" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 }
+
+type CreateCLIUser struct {
+	Name          string `json:"name" binding:"required"`
+	DeviceKey     string `json:"deviceKey" binding:"required"`
+	EncryptionKey string `json:"encryptionKey" binding:"required"`
+}

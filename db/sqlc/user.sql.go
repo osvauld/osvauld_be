@@ -78,6 +78,65 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 	return i, err
 }
 
+const createCliUser = `-- name: CreateCliUser :one
+INSERT INTO users (
+
+    username, 
+    name, 
+    encryption_key, 
+    device_key, 
+    temp_password, 
+    registration_challenge, 
+    signed_up, 
+    type, 
+    status, 
+    created_by
+) VALUES (
+    $1, 
+    $2, 
+    $3, 
+    $4, 
+    $5, 
+    $6, 
+    $7, 
+    $8, 
+    $9, 
+    $10 
+)
+RETURNING id
+`
+
+type CreateCliUserParams struct {
+	Username              string         `json:"username"`
+	Name                  string         `json:"name"`
+	EncryptionKey         sql.NullString `json:"encryptionKey"`
+	DeviceKey             sql.NullString `json:"deviceKey"`
+	TempPassword          string         `json:"tempPassword"`
+	RegistrationChallenge sql.NullString `json:"registrationChallenge"`
+	SignedUp              bool           `json:"signedUp"`
+	Type                  string         `json:"type"`
+	Status                string         `json:"status"`
+	CreatedBy             uuid.NullUUID  `json:"createdBy"`
+}
+
+func (q *Queries) CreateCliUser(ctx context.Context, arg CreateCliUserParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, createCliUser,
+		arg.Username,
+		arg.Name,
+		arg.EncryptionKey,
+		arg.DeviceKey,
+		arg.TempPassword,
+		arg.RegistrationChallenge,
+		arg.SignedUp,
+		arg.Type,
+		arg.Status,
+		arg.CreatedBy,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (username, name, temp_password, type)
 VALUES ($1, $2, $3, COALESCE($4, 'user'))

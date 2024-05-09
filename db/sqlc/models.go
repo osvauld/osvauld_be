@@ -35,6 +35,27 @@ type CredentialAccess struct {
 	FolderID     uuid.NullUUID `json:"folderId"`
 }
 
+type Environment struct {
+	ID        uuid.UUID     `json:"id"`
+	CliUser   uuid.NullUUID `json:"cliUser"`
+	Name      string        `json:"name"`
+	Createdat time.Time     `json:"createdat"`
+	Updatedat time.Time     `json:"updatedat"`
+	CreatedBy uuid.NullUUID `json:"createdBy"`
+}
+
+type EnvironmentField struct {
+	ID            uuid.UUID      `json:"id"`
+	FieldName     string         `json:"fieldName"`
+	FieldValue    sql.NullString `json:"fieldValue"`
+	ParentFieldID uuid.NullUUID  `json:"parentFieldId"`
+	FieldID       uuid.NullUUID  `json:"fieldId"`
+	EnvID         uuid.NullUUID  `json:"envId"`
+	CredentialID  uuid.NullUUID  `json:"credentialId"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+}
+
 type Field struct {
 	ID           uuid.UUID     `json:"id"`
 	FieldName    string        `json:"fieldName"`
@@ -107,4 +128,5 @@ type User struct {
 	SignedUp              bool           `json:"signedUp"`
 	Type                  string         `json:"type"`
 	Status                string         `json:"status"`
+	CreatedBy             uuid.NullUUID  `json:"createdBy"`
 }
