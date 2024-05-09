@@ -29,5 +29,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ env.RELEASE_VERSION }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ env.RELEASE_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
