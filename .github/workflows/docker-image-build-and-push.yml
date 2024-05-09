@@ -30,4 +30,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ env.RELEASE_VERSION }}
-
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
