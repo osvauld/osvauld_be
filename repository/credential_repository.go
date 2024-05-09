@@ -24,6 +24,10 @@ func EditCredential(ctx *gin.Context, args db.EditCredentialTransactionParams) e
 	return database.Store.EditCredentialTransaction(ctx, args)
 }
 
+func EditCredentialDetails(ctx *gin.Context, args db.EditCredentialDetailsParams) error {
+	return database.Store.EditCredentialDetails(ctx, args)
+}
+
 func GetCredentialDetailsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID) ([]db.GetCredentialDetailsByIDsRow, error) {
 	return database.Store.GetCredentialDetailsByIDs(ctx, credentialIDs)
 }

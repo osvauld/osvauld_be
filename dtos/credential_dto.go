@@ -77,3 +77,9 @@ type EditCredentialRequest struct {
 	CredentialType string       `json:"credentialType"`
 	UserFields     []UserFields `json:"userFields"`
 }
+
+type EditCredentialDetailsRequest struct {
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	CredentialType string `json:"credentialType"`
+}
