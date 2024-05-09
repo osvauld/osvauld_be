@@ -21,6 +21,7 @@ type Store interface {
 	EditFolderAccessForUserTransaction(context.Context, EditFolderAccessForUserParams) error
 	EditFolderAccessForGroupTransaction(context.Context, EditFolderAccessForGroupParams) error
 	RemoveMemberFromGroupTransaction(context.Context, RemoveMemberFromGroupTransactionParams) error
+	AddCredentialFieldToEnvTxn(context.Context, []dto.CredentialEnvData) error
 }
 
 type SQLStore struct {

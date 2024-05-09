@@ -13,11 +13,13 @@ import (
 
 type Querier interface {
 	AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error)
+	AddEnvironment(ctx context.Context, arg AddEnvironmentParams) (uuid.UUID, error)
 	AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error)
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
 	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
+	CheckCredentialExistsForEnv(ctx context.Context, arg CheckCredentialExistsForEnvParams) (bool, error)
 	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
 	CheckFolderAccessEntryExists(ctx context.Context, arg CheckFolderAccessEntryExistsParams) (bool, error)
 	CheckIfUsersExist(ctx context.Context) (bool, error)
@@ -29,6 +31,7 @@ type Querier interface {
 	CreateCliUser(ctx context.Context, arg CreateCliUserParams) (uuid.UUID, error)
 	// sql/create_credential.sql
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (uuid.UUID, error)
+	CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams) (uuid.UUID, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (CreateGroupRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
 	DeleteAccessRemovedFields(ctx context.Context) error

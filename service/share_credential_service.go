@@ -248,17 +248,15 @@ type ShareFolderWithUserResponse struct {
 
 func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequest, caller uuid.UUID) ([]ShareFolderWithUserResponse, error) {
 
-		err := VerifyFolderManageAccessForUser(ctx, payload.FolderID, caller)
-		if err != nil {
-			return nil, err
-		}
-
+	err := VerifyFolderManageAccessForUser(ctx, payload.FolderID, caller)
+	if err != nil {
+		return nil, err
+	}
 
 	// the following loop is for grouping the credentials shared for a single user
 	// so that we can share all the credentials for a single user in a single transaction
 	var responses []ShareFolderWithUserResponse
 	for _, userData := range payload.UserData {
-
 
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 		userFieldRecords := []db.AddFieldParams{}
@@ -483,4 +481,38 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 	}
 
 	return responses, nil
+}
+
+func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredentialsWithEnvironmentRequest, caller uuid.UUID) error {
+	var credentialEnvDataList []dto.CredentialEnvData
+	for _, credential := range payload.Credentials {
+
+		// Check the user who is sharing the credential has manager access to the credential
+		// This check is really inefficient because same check will be done for multiple users
+		err := VerifyCredentialManageAccessForUser(ctx, credential.CredentialID, caller)
+		if err != nil {
+			return err
+		}
+		exists, err := repository.CheckCredentialExistsInEnvironment(ctx, credential.CredentialID, payload.EnvId)
+		if err != nil {
+			return err
+		}
+		if exists {
+			logger.Infof("Credential %s already shared for environment %s", credential.CredentialID, payload.EnvId)
+			continue
+		}
+		for _, field := range credential.Fields {
+			credentialEnvData := dto.CredentialEnvData{
+				CliUser:       credential.CliUser,
+				CredentialID:  credential.CredentialID,
+				FieldValue:    field.FieldValue,
+				FieldName:     field.FieldName,
+				ParentFieldId: field.ParentFieldId,
+				EnvID:         payload.EnvId,
+			}
+			credentialEnvDataList = append(credentialEnvDataList, credentialEnvData)
+		}
+	}
+	repository.AddCredentialFieldsToEnvironment(ctx, credentialEnvDataList)
+	return nil
 }

@@ -77,3 +77,29 @@ type EditCredentialRequest struct {
 	CredentialType string       `json:"credentialType"`
 	UserFields     []UserFields `json:"userFields"`
 }
+
+type EnvField struct {
+	ParentFieldId uuid.UUID `json:"parentFieldId"`
+	FieldName     string    `json:"fieldName"`
+	FieldValue    string    `json:"fieldValue"`
+}
+
+type CredentialsData struct {
+	CliUser      uuid.UUID  `json:"cliUser"`
+	CredentialID uuid.UUID  `json:"credentialId"`
+	Fields       []EnvField `json:"fields"`
+}
+
+type ShareCredentialsWithEnvironmentRequest struct {
+	EnvId       uuid.UUID         `json:"envId"`
+	Credentials []CredentialsData `json:"credentials"`
+}
+
+type CredentialEnvData struct {
+	CredentialID  uuid.UUID
+	EnvID         uuid.UUID
+	ParentFieldId uuid.UUID
+	FieldValue    string
+	FieldName     string
+	CliUser       uuid.UUID
+}

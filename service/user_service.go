@@ -198,3 +198,7 @@ func GetUserDeviceKey(ctx *gin.Context, userID uuid.UUID) (string, error) {
 func CreateCLIUser(ctx *gin.Context, user dto.CreateCLIUser, caller uuid.UUID) (uuid.UUID, error) {
 	return repository.CreateCLIUser(ctx, user, caller)
 }
+
+func AddEnvironment(ctx *gin.Context, environment dto.AddEnvironment, caller uuid.UUID) (uuid.UUID, error) {
+	return repository.AddEnvironment(ctx, environment, caller)
+}

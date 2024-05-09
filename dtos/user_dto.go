@@ -43,3 +43,8 @@ type CreateCLIUser struct {
 	DeviceKey     string `json:"deviceKey" binding:"required"`
 	EncryptionKey string `json:"encryptionKey" binding:"required"`
 }
+
+type AddEnvironment struct {
+	Name    string `json:"name" binding:"required"`
+	CliUser string `json:"cliUser" binding:"required"`
+}

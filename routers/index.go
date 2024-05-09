@@ -18,6 +18,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/user/", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.CreateUser)
 	route.GET("/user", middleware.JWTAuthMiddleware(), controllers.GetUser)
+	route.POST("user/environment", middleware.JWTAuthMiddleware(), controllers.AddEnvironment)
 	route.POST("/user/cli-user", middleware.JWTAuthMiddleware(), controllers.CreateCLIUser)
 	route.POST("/user/temp-login", controllers.TempLogin)
 	route.POST("/user/name-availability", middleware.JWTAuthMiddleware(), controllers.CheckUserAvailability)
@@ -33,6 +34,7 @@ func RegisterRoutes(route *gin.Engine) {
 
 	route.POST("/share-credentials/users", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithUsers)
 	route.POST("/share-credentials/groups", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithGroups)
+	route.POST("/share-credentials/environment", middleware.JWTAuthMiddleware(), controllers.ShareCredentialsWithEnvironment)
 	route.POST("share-folder/users", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareFolderWithUsers)
 	route.POST("share-folder/groups", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareFolderWithGroups)
 

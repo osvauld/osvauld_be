@@ -45,15 +45,15 @@ type Environment struct {
 }
 
 type EnvironmentField struct {
-	ID            uuid.UUID      `json:"id"`
-	FieldName     string         `json:"fieldName"`
-	FieldValue    sql.NullString `json:"fieldValue"`
-	ParentFieldID uuid.NullUUID  `json:"parentFieldId"`
-	FieldID       uuid.NullUUID  `json:"fieldId"`
-	EnvID         uuid.NullUUID  `json:"envId"`
-	CredentialID  uuid.NullUUID  `json:"credentialId"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	UpdatedAt     time.Time      `json:"updatedAt"`
+	ID            uuid.UUID `json:"id"`
+	FieldName     string    `json:"fieldName"`
+	FieldValue    string    `json:"fieldValue"`
+	ParentFieldID uuid.UUID `json:"parentFieldId"`
+	EnvID         uuid.UUID `json:"envId"`
+	CliUser       uuid.UUID `json:"cliUser"`
+	CredentialID  uuid.UUID `json:"credentialId"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 type Field struct {

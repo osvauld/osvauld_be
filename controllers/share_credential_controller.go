@@ -116,3 +116,30 @@ func ShareFolderWithGroups(ctx *gin.Context) {
 	}
 	SendResponse(ctx, http.StatusOK, response, "Success", nil)
 }
+
+func ShareCredentialsWithEnvironment(ctx *gin.Context) {
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
+		return
+	}
+
+	var req dto.ShareCredentialsWithEnvironmentRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+
+	err = service.ShareCredentialsWithEnvironment(ctx, req, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "Success", nil)
+
+}
