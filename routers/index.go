@@ -44,6 +44,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/credential/", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.AddCredential)
 	route.GET("/credential/:id", middleware.JWTAuthMiddleware(), controllers.GetCredentialDataByID)
 	route.PUT("/credential/:id", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.EditCredential)
+	route.PUT("/credential/:id/details", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.EditCredentialDetails)
 	route.GET("/credential/:id/sensitive", middleware.JWTAuthMiddleware(), controllers.GetSensitiveFieldsByCredentialID)
 
 	route.GET("/credential/:id/users-data-sync", middleware.JWTAuthMiddleware(), controllers.GetCredentialUsersForDataSync)

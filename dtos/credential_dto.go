@@ -78,6 +78,7 @@ type EditCredentialRequest struct {
 	UserFields     []UserFields `json:"userFields"`
 }
 
+
 type EnvField struct {
 	FieldID    uuid.UUID `json:"fieldId"`
 	FieldValue string    `json:"fieldValue"`
@@ -100,4 +101,10 @@ type CredentialEnvData struct {
 	FieldValue    string
 	FieldName     string
 	CliUser       uuid.UUID
+}
+type EditCredentialDetailsRequest struct {
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	CredentialType string `json:"credentialType"`
+
 }

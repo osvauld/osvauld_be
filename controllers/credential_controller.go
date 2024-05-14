@@ -256,6 +256,41 @@ func EditCredential(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusOK, nil, "", nil)
 }
 
+func EditCredentialDetails(ctx *gin.Context) {
+	var req dto.EditCredentialDetailsRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	credentialIDStr := ctx.Param("id")
+	credentailID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	err = service.EditCredentialDetails(ctx, credentailID, req, caller)
+	if err != nil {
+		logger.Errorf(err.Error())
+
+		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "Failed to edit credential", nil)
+		return
+	}
+
+	SendResponse(ctx, http.StatusOK, nil, "", nil)
+}
+
 func GetSearchData(ctx *gin.Context) {
 
 	caller, err := utils.FetchUserIDFromCtx(ctx)
