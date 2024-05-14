@@ -110,3 +110,7 @@ INSERT INTO users (
     $10 
 )
 RETURNING id;
+
+
+-- name: GetCliUsers :many
+SELECT id, username FROM users WHERE type = 'cli' and created_by = $1;

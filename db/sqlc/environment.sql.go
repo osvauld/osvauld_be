@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -25,9 +26,9 @@ RETURNING Id
 `
 
 type AddEnvironmentParams struct {
-	CliUser   uuid.NullUUID `json:"cliUser"`
-	Name      string        `json:"name"`
-	CreatedBy uuid.NullUUID `json:"createdBy"`
+	CliUser   uuid.UUID `json:"cliUser"`
+	Name      string    `json:"name"`
+	CreatedBy uuid.UUID `json:"createdBy"`
 }
 
 func (q *Queries) AddEnvironment(ctx context.Context, arg AddEnvironmentParams) (uuid.UUID, error) {
@@ -97,4 +98,122 @@ func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getEnvFields = `-- name: GetEnvFields :many
+SELECT pf.field_value, ef.field_name, ef.id ,ef.credential_id 
+FROM environment_fields ef
+JOIN fields f ON ef.parent_field_id = f.id
+JOIN fields pf ON ef.parent_field_id = pf.id
+WHERE ef.env_id = $1
+`
+
+type GetEnvFieldsRow struct {
+	FieldValue   string    `json:"fieldValue"`
+	FieldName    string    `json:"fieldName"`
+	ID           uuid.UUID `json:"id"`
+	CredentialID uuid.UUID `json:"credentialId"`
+}
+
+func (q *Queries) GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFieldsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEnvFields, envID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetEnvFieldsRow{}
+	for rows.Next() {
+		var i GetEnvFieldsRow
+		if err := rows.Scan(
+			&i.FieldValue,
+			&i.FieldName,
+			&i.ID,
+			&i.CredentialID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEnvironmentByID = `-- name: GetEnvironmentByID :one
+SELECT id, cli_user, name, createdat, updatedat, created_by from environments WHERE id = $1 and created_by = $2
+`
+
+type GetEnvironmentByIDParams struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+}
+
+func (q *Queries) GetEnvironmentByID(ctx context.Context, arg GetEnvironmentByIDParams) (Environment, error) {
+	row := q.db.QueryRowContext(ctx, getEnvironmentByID, arg.ID, arg.CreatedBy)
+	var i Environment
+	err := row.Scan(
+		&i.ID,
+		&i.CliUser,
+		&i.Name,
+		&i.Createdat,
+		&i.Updatedat,
+		&i.CreatedBy,
+	)
+	return i, err
+}
+
+const getEnvironmentsForUser = `-- name: GetEnvironmentsForUser :many
+SELECT e.id, e.cli_user, e.name, e.createdat, e.updatedat, e.created_by,   COALESCE( u.encryption_key, '') as "publicKey"
+FROM environments e
+JOIN users u ON e.cli_user = u.id
+WHERE e.cli_user IN (
+    SELECT id 
+    FROM users 
+    WHERE u.created_by = $1 AND type = 'cli'
+)
+`
+
+type GetEnvironmentsForUserRow struct {
+	ID        uuid.UUID `json:"id"`
+	CliUser   uuid.UUID `json:"cliUser"`
+	Name      string    `json:"name"`
+	Createdat time.Time `json:"createdat"`
+	Updatedat time.Time `json:"updatedat"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+	PublicKey string    `json:"publicKey"`
+}
+
+func (q *Queries) GetEnvironmentsForUser(ctx context.Context, createdBy uuid.NullUUID) ([]GetEnvironmentsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEnvironmentsForUser, createdBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetEnvironmentsForUserRow{}
+	for rows.Next() {
+		var i GetEnvironmentsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CliUser,
+			&i.Name,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.CreatedBy,
+			&i.PublicKey,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

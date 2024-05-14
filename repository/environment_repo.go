@@ -12,8 +12,8 @@ import (
 func AddEnvironment(ctx *gin.Context, args dto.AddEnvironment, caller uuid.UUID) (uuid.UUID, error) {
 	return database.Store.AddEnvironment(ctx, db.AddEnvironmentParams{
 		Name:      args.Name,
-		CliUser:   uuid.NullUUID{UUID: caller, Valid: true},
-		CreatedBy: uuid.NullUUID{UUID: caller, Valid: true},
+		CliUser:   args.CliUser,
+		CreatedBy: caller,
 	})
 }
 
@@ -26,4 +26,14 @@ func CheckCredentialExistsInEnvironment(ctx *gin.Context, credentialID uuid.UUID
 
 func AddCredentialFieldsToEnvironment(ctx *gin.Context, args []dto.CredentialEnvData) error {
 	return database.Store.AddCredentialFieldToEnvTxn(ctx, args)
+}
+
+func GetEnvironmentByID(ctx *gin.Context, environmentID uuid.UUID, caller uuid.UUID) (db.Environment, error) {
+	return database.Store.GetEnvironmentByID(ctx, db.GetEnvironmentByIDParams{
+		ID:        environmentID,
+		CreatedBy: caller,
+	})
+}
+func GetEnvironmentCredentials(ctx *gin.Context, envID uuid.UUID) ([]db.GetEnvFieldsRow, error) {
+	return database.Store.GetEnvFields(ctx, envID)
 }

@@ -36,12 +36,12 @@ type CredentialAccess struct {
 }
 
 type Environment struct {
-	ID        uuid.UUID     `json:"id"`
-	CliUser   uuid.NullUUID `json:"cliUser"`
-	Name      string        `json:"name"`
-	Createdat time.Time     `json:"createdat"`
-	Updatedat time.Time     `json:"updatedat"`
-	CreatedBy uuid.NullUUID `json:"createdBy"`
+	ID        uuid.UUID `json:"id"`
+	CliUser   uuid.UUID `json:"cliUser"`
+	Name      string    `json:"name"`
+	Createdat time.Time `json:"createdat"`
+	Updatedat time.Time `json:"updatedat"`
+	CreatedBy uuid.UUID `json:"createdBy"`
 }
 
 type EnvironmentField struct {

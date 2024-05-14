@@ -256,21 +256,17 @@ func CreateCLIUser(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusCreated, user, "created user", nil)
 }
 
-func AddEnvironment(ctx *gin.Context) {
+func GetCliUsers(ctx *gin.Context) {
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
 		return
 	}
-	var req dto.AddEnvironment
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
-		return
-	}
-	_, err = service.AddEnvironment(ctx, req, caller)
+	cliUsers, err := service.GetCliUsers(ctx, caller)
+
 	if err != nil {
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, http.StatusOK, nil, "added environment", nil)
+	SendResponse(ctx, http.StatusCreated, cliUsers, "fetched cli users user", nil)
 }

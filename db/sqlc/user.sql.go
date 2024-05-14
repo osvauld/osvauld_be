@@ -253,6 +253,38 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 	return items, nil
 }
 
+const getCliUsers = `-- name: GetCliUsers :many
+SELECT id, username FROM users WHERE type = 'cli' and created_by = $1
+`
+
+type GetCliUsersRow struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+}
+
+func (q *Queries) GetCliUsers(ctx context.Context, createdBy uuid.NullUUID) ([]GetCliUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCliUsers, createdBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCliUsersRow{}
+	for rows.Next() {
+		var i GetCliUsersRow
+		if err := rows.Scan(&i.ID, &i.Username); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRegistrationChallenge = `-- name: GetRegistrationChallenge :one
 SELECT registration_challenge, status FROM users WHERE username = $1
 `

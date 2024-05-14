@@ -106,3 +106,57 @@ func EditFolder(ctx *gin.Context) {
 
 	SendResponse(ctx, http.StatusOK, nil, "Folder edited successfully", nil)
 }
+
+func AddEnvironment(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	var req dto.AddEnvironment
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+	_, err = service.AddEnvironment(ctx, req, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "added environment", nil)
+}
+
+func GetEnvironments(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	environments, err := service.GetEnvironments(ctx, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, environments, "fetched environments", nil)
+}
+
+func GetEnvironmentCredentials(ctx *gin.Context) {
+	// caller, err := utils.FetchUserIDFromCtx(ctx)
+	// if err != nil {
+	// 	SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+	// 	return
+	// }
+	environmentIDStr := ctx.Param("id")
+	environmentID, err := uuid.Parse(environmentIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid environment id"))
+		return
+	}
+	// TODO: Add check for user access to environment
+	credentials, err := service.GetEnvironmentCredentials(ctx, environmentID)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, credentials, "fetched credentials", nil)
+}

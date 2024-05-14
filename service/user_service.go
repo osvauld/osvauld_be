@@ -202,3 +202,11 @@ func CreateCLIUser(ctx *gin.Context, user dto.CreateCLIUser, caller uuid.UUID) (
 func AddEnvironment(ctx *gin.Context, environment dto.AddEnvironment, caller uuid.UUID) (uuid.UUID, error) {
 	return repository.AddEnvironment(ctx, environment, caller)
 }
+
+func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsForUserRow, error) {
+	return repository.GetEnvironments(ctx, userID)
+}
+
+func GetCliUsers(ctx *gin.Context, caller uuid.UUID) ([]db.GetCliUsersRow, error) {
+	return repository.GetCliUsers(ctx, caller)
+}

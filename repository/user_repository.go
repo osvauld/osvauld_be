@@ -92,3 +92,11 @@ func CreateCLIUser(ctx *gin.Context, userDetails dto.CreateCLIUser, caller uuid.
 		SignedUp:      true,
 	})
 }
+
+func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsForUserRow, error) {
+	return database.Store.GetEnvironmentsForUser(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+}
+
+func GetCliUsers(ctx *gin.Context, userID uuid.UUID) ([]db.GetCliUsersRow, error) {
+	return database.Store.GetCliUsers(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+}

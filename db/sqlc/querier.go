@@ -58,6 +58,7 @@ type Querier interface {
 	GetAllSignedUpUsers(ctx context.Context) ([]GetAllSignedUpUsersRow, error)
 	GetAllUrlsForUser(ctx context.Context, userID uuid.UUID) ([]GetAllUrlsForUserRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
+	GetCliUsers(ctx context.Context, createdBy uuid.NullUUID) ([]GetCliUsersRow, error)
 	//-----------------------------------------------------------------------------------------------------
 	GetCredentialAccessDetailsWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetCredentialAccessDetailsWithGroupAccessRow, error)
 	GetCredentialAccessTypeForUser(ctx context.Context, arg GetCredentialAccessTypeForUserParams) ([]GetCredentialAccessTypeForUserRow, error)
@@ -69,6 +70,9 @@ type Querier interface {
 	GetCredentialUsersForDataSync(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersForDataSyncRow, error)
 	GetCredentialUsersWithDirectAccess(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersWithDirectAccessRow, error)
 	GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error)
+	GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFieldsRow, error)
+	GetEnvironmentByID(ctx context.Context, arg GetEnvironmentByIDParams) (Environment, error)
+	GetEnvironmentsForUser(ctx context.Context, createdBy uuid.NullUUID) ([]GetEnvironmentsForUserRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)
 	GetFolderGroups(ctx context.Context, folderID uuid.UUID) ([]GetFolderGroupsRow, error)
 	GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetFolderIDAndTypeWithGroupAccessRow, error)

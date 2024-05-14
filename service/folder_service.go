@@ -97,3 +97,11 @@ func GetFolderWithHighestAccess(folders []db.FetchAccessibleFoldersForUserRow) (
 	return uniqueFolders, nil
 
 }
+
+func GetEnvironmentCredentials(ctx *gin.Context, envID uuid.UUID) ([]db.GetEnvFieldsRow, error) {
+	envFields, err := repository.GetEnvironmentCredentials(ctx, envID)
+	if err != nil {
+		return []db.GetEnvFieldsRow{}, err
+	}
+	return envFields, nil
+}

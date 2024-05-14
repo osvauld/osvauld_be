@@ -133,10 +133,7 @@ func ShareCredentialsWithEnvironment(ctx *gin.Context) {
 
 	err = service.ShareCredentialsWithEnvironment(ctx, req, caller)
 	if err != nil {
-		if _, ok := err.(*customerrors.UserNotManagerOfCredentialError); ok {
-			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
-			return
-		}
+
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}

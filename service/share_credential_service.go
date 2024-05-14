@@ -485,14 +485,27 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 
 func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredentialsWithEnvironmentRequest, caller uuid.UUID) error {
 	var credentialEnvDataList []dto.CredentialEnvData
+	var credentialIDs []uuid.UUID
+	for _, credentialData := range payload.Credentials {
+		credentialIDs = append(credentialIDs, credentialData.CredentialID)
+	}
+	credentialFields, err := repository.GetAllFieldsForCredentialIDs(ctx, db.GetAllFieldsForCredentialIDsParams{
+		UserID:      caller,
+		Credentials: credentialIDs,
+	})
+	if err != nil {
+		return err
+	}
+	env, err := repository.GetEnvironmentByID(ctx, payload.EnvId, caller)
+	if err != nil {
+		return err
+	}
+	fieldMap := make(map[uuid.UUID]db.GetAllFieldsForCredentialIDsRow)
+	for _, field := range credentialFields {
+		fieldMap[field.ID] = field
+	}
 	for _, credential := range payload.Credentials {
 
-		// Check the user who is sharing the credential has manager access to the credential
-		// This check is really inefficient because same check will be done for multiple users
-		err := VerifyCredentialManageAccessForUser(ctx, credential.CredentialID, caller)
-		if err != nil {
-			return err
-		}
 		exists, err := repository.CheckCredentialExistsInEnvironment(ctx, credential.CredentialID, payload.EnvId)
 		if err != nil {
 			return err
@@ -503,11 +516,11 @@ func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredenti
 		}
 		for _, field := range credential.Fields {
 			credentialEnvData := dto.CredentialEnvData{
-				CliUser:       credential.CliUser,
+				CliUser:       env.CliUser,
 				CredentialID:  credential.CredentialID,
 				FieldValue:    field.FieldValue,
-				FieldName:     field.FieldName,
-				ParentFieldId: field.ParentFieldId,
+				FieldName:     fieldMap[field.FieldID].FieldName,
+				ParentFieldId: field.FieldID,
 				EnvID:         payload.EnvId,
 			}
 			credentialEnvDataList = append(credentialEnvDataList, credentialEnvData)

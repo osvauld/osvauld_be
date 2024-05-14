@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/google/uuid"
+
 type CreateUser struct {
 	UserName     string `json:"username" binding:"required"`
 	Name         string `json:"name" binding:"required"`
@@ -45,6 +47,6 @@ type CreateCLIUser struct {
 }
 
 type AddEnvironment struct {
-	Name    string `json:"name" binding:"required"`
-	CliUser string `json:"cliUser" binding:"required"`
+	Name    string    `json:"name" binding:"required"`
+	CliUser uuid.UUID `json:"cliUser" binding:"required"`
 }
