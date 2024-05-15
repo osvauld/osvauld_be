@@ -28,7 +28,11 @@ func GetEnvironmentByName(ctx *gin.Context, environmentName string, userID uuid.
 
 func AddEnvironment(ctx *gin.Context, environment dto.AddEnvironment, caller uuid.UUID) (uuid.UUID, error) {
 	// TODO: verify no duplicate name for user
-	return repository.AddEnvironment(ctx, environment, caller)
+	return repository.AddEnvironment(ctx, db.AddEnvironmentParams{
+		Name:      environment.Name,
+		CliUser:   environment.CliUser,
+		CreatedBy: caller,
+	})
 }
 
 func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsForUserRow, error) {

@@ -9,12 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddEnvironment(ctx *gin.Context, args dto.AddEnvironment, caller uuid.UUID) (uuid.UUID, error) {
-	return database.Store.AddEnvironment(ctx, db.AddEnvironmentParams{
-		Name:      args.Name,
-		CliUser:   args.CliUser,
-		CreatedBy: caller,
-	})
+func AddEnvironment(ctx *gin.Context, args db.AddEnvironmentParams) (uuid.UUID, error) {
+	return database.Store.AddEnvironment(ctx, args)
 }
 
 func CheckCredentialExistsInEnvironment(ctx *gin.Context, credentialID uuid.UUID, environmentID uuid.UUID) (bool, error) {
