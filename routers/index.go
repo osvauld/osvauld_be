@@ -25,7 +25,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.POST("/user/name-availability", middleware.JWTAuthMiddleware(), controllers.CheckUserAvailability)
 	route.DELETE("/user/:id", controllers.RemoveUserFromAll)
 	route.GET("/user/environments", middleware.JWTAuthMiddleware(), controllers.GetEnvironments)
-	route.GET("/user/environment/:id", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentCredentials)
+	route.GET("/user/environment/:id", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentFields)
 	route.POST("/user/register", controllers.Register)
 	route.POST("/user/challenge", controllers.GetChallenge)
 	route.POST("/user/verify", controllers.VerifyChallenge)
