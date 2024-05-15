@@ -311,3 +311,11 @@ func RemoveCredential(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID
 	}
 	return nil
 }
+
+func GetEnvironmentByName(ctx *gin.Context, environmentName string, userID uuid.UUID) ([]db.GetEnvironmentFieldsByNameRow, error) {
+	environment, err := repository.GetEnvironmentFieldsByName(ctx, environmentName)
+	if err != nil {
+		return []db.GetEnvironmentFieldsByNameRow{}, err
+	}
+	return environment, nil
+}

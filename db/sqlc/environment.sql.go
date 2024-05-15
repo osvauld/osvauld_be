@@ -166,6 +166,48 @@ func (q *Queries) GetEnvironmentByID(ctx context.Context, arg GetEnvironmentByID
 	return i, err
 }
 
+const getEnvironmentFieldsByName = `-- name: GetEnvironmentFieldsByName :many
+SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id 
+FROM environment_fields ef
+JOIN environments e ON ef.env_id = e.Id
+WHERE e.name = $1
+`
+
+type GetEnvironmentFieldsByNameRow struct {
+	ID           uuid.UUID `json:"id"`
+	FieldName    string    `json:"fieldName"`
+	FieldValue   string    `json:"fieldValue"`
+	CredentialID uuid.UUID `json:"credentialId"`
+}
+
+func (q *Queries) GetEnvironmentFieldsByName(ctx context.Context, name string) ([]GetEnvironmentFieldsByNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEnvironmentFieldsByName, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetEnvironmentFieldsByNameRow{}
+	for rows.Next() {
+		var i GetEnvironmentFieldsByNameRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FieldName,
+			&i.FieldValue,
+			&i.CredentialID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEnvironmentsForUser = `-- name: GetEnvironmentsForUser :many
 SELECT e.id, e.cli_user, e.name, e.createdat, e.updatedat, e.created_by,   COALESCE( u.encryption_key, '') as "publicKey"
 FROM environments e

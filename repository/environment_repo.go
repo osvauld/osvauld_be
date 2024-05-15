@@ -37,3 +37,7 @@ func GetEnvironmentByID(ctx *gin.Context, environmentID uuid.UUID, caller uuid.U
 func GetEnvironmentCredentials(ctx *gin.Context, envID uuid.UUID) ([]db.GetEnvFieldsRow, error) {
 	return database.Store.GetEnvFields(ctx, envID)
 }
+
+func GetEnvironmentFieldsByName(ctx *gin.Context, name string) ([]db.GetEnvironmentFieldsByNameRow, error) {
+	return database.Store.GetEnvironmentFieldsByName(ctx, name)
+}

@@ -72,6 +72,7 @@ type Querier interface {
 	GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error)
 	GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFieldsRow, error)
 	GetEnvironmentByID(ctx context.Context, arg GetEnvironmentByIDParams) (Environment, error)
+	GetEnvironmentFieldsByName(ctx context.Context, name string) ([]GetEnvironmentFieldsByNameRow, error)
 	GetEnvironmentsForUser(ctx context.Context, createdBy uuid.NullUUID) ([]GetEnvironmentsForUserRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)
 	GetFolderGroups(ctx context.Context, folderID uuid.UUID) ([]GetFolderGroupsRow, error)

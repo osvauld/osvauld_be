@@ -326,3 +326,18 @@ func RemoveCredential(ctx *gin.Context) {
 	}
 	SendResponse(ctx, http.StatusOK, nil, "Credential removed successfully", nil)
 }
+
+func GetEnvironmentByName(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	environmentName := ctx.Param("name")
+	environment, err := service.GetEnvironmentByName(ctx, environmentName, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to fetch environment"))
+		return
+	}
+	SendResponse(ctx, http.StatusOK, environment, "Fetched environment", nil)
+}

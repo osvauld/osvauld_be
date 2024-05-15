@@ -59,3 +59,10 @@ JOIN fields pf ON ef.parent_field_id = pf.id
 WHERE ef.env_id = $1;
 
 
+
+
+-- name: GetEnvironmentFieldsByName :many
+SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id 
+FROM environment_fields ef
+JOIN environments e ON ef.env_id = e.Id
+WHERE e.name = $1;

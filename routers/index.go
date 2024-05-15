@@ -92,4 +92,5 @@ func RegisterRoutes(route *gin.Engine) {
 	route.PUT("/folder/:id", middleware.JWTAuthMiddleware(), controllers.EditFolder)
 	route.PUT("/group/:id", middleware.JWTAuthMiddleware(), controllers.EditGroup)
 
+	route.GET("/environment/:name", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentByName)
 }

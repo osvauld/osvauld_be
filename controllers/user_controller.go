@@ -91,6 +91,7 @@ func Register(ctx *gin.Context) {
 
 func GetChallenge(ctx *gin.Context) {
 	var req dto.CreateChallenge
+	logger.Infof("%v", req)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
