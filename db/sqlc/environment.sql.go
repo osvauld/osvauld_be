@@ -22,7 +22,7 @@ INSERT INTO environments (
     $2, 
     $3
 )
-RETURNING Id
+RETURNING id
 `
 
 type AddEnvironmentParams struct {
@@ -60,7 +60,6 @@ func (q *Queries) CheckCredentialExistsForEnv(ctx context.Context, arg CheckCred
 
 const createEnvFields = `-- name: CreateEnvFields :one
 INSERT INTO environment_fields (
-    cli_user, 
     credential_id, 
     field_value, 
     field_name, 
@@ -71,14 +70,12 @@ INSERT INTO environment_fields (
     $2, 
     $3, 
     $4, 
-    $5, 
-    $6
+    $5 
 )
 RETURNING id
 `
 
 type CreateEnvFieldsParams struct {
-	CliUser       uuid.UUID `json:"cliUser"`
 	CredentialID  uuid.UUID `json:"credentialId"`
 	FieldValue    string    `json:"fieldValue"`
 	FieldName     string    `json:"fieldName"`
@@ -88,7 +85,6 @@ type CreateEnvFieldsParams struct {
 
 func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, createEnvFields,
-		arg.CliUser,
 		arg.CredentialID,
 		arg.FieldValue,
 		arg.FieldName,

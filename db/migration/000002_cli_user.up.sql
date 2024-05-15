@@ -18,7 +18,6 @@ CREATE TABLE environment_fields (
     field_value TEXT NOT NULL,
     parent_field_id UUID NOT NULL REFERENCES fields(id),
     env_id UUID NOT NULL REFERENCES environments(Id),
-    cli_user UUID NOT NULL REFERENCES users(id),
     credential_id UUID NOT NULL REFERENCES credentials(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

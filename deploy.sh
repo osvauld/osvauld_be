@@ -4,7 +4,7 @@ ssh ubuntu@3.110.128.10 << 'EOF'
 
     cd osvauld_be
 
-    git checkout main
+    git checkout develop
     
     git pull
 

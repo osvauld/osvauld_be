@@ -15,7 +15,6 @@ func (store *SQLStore) AddCredentialFieldToEnvTxn(ctx context.Context, args []dt
 				FieldValue:    arg.FieldValue,
 				FieldName:     arg.FieldName,
 				CredentialID:  arg.CredentialID,
-				CliUser:       arg.CliUser,
 			})
 			if err != nil {
 				return err

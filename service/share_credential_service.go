@@ -496,10 +496,6 @@ func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredenti
 	if err != nil {
 		return err
 	}
-	env, err := repository.GetEnvironmentByID(ctx, payload.EnvId, caller)
-	if err != nil {
-		return err
-	}
 	fieldMap := make(map[uuid.UUID]db.GetAllFieldsForCredentialIDsRow)
 	for _, field := range credentialFields {
 		fieldMap[field.ID] = field
@@ -516,7 +512,6 @@ func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredenti
 		}
 		for _, field := range credential.Fields {
 			credentialEnvData := dto.CredentialEnvData{
-				CliUser:       env.CliUser,
 				CredentialID:  credential.CredentialID,
 				FieldValue:    field.FieldValue,
 				FieldName:     fieldMap[field.FieldID].FieldName,

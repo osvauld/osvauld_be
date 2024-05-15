@@ -21,7 +21,6 @@ SELECT EXISTS (
 
 -- name: CreateEnvFields :one
 INSERT INTO environment_fields (
-    cli_user, 
     credential_id, 
     field_value, 
     field_name, 
@@ -32,8 +31,7 @@ INSERT INTO environment_fields (
     $2, 
     $3, 
     $4, 
-    $5, 
-    $6
+    $5 
 )
 RETURNING id;
 

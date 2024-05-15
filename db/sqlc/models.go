@@ -50,7 +50,6 @@ type EnvironmentField struct {
 	FieldValue    string    `json:"fieldValue"`
 	ParentFieldID uuid.UUID `json:"parentFieldId"`
 	EnvID         uuid.UUID `json:"envId"`
-	CliUser       uuid.UUID `json:"cliUser"`
 	CredentialID  uuid.UUID `json:"credentialId"`
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
