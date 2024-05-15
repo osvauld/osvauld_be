@@ -200,6 +200,7 @@ func CreateCLIUser(ctx *gin.Context, user dto.CreateCLIUser, caller uuid.UUID) (
 }
 
 func AddEnvironment(ctx *gin.Context, environment dto.AddEnvironment, caller uuid.UUID) (uuid.UUID, error) {
+	// TODO: verify no duplicate name for user
 	return repository.AddEnvironment(ctx, environment, caller)
 }
 
