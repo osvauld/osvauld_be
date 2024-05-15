@@ -8,7 +8,7 @@ INSERT INTO environments (
     $2, 
     $3
 )
-RETURNING Id;
+RETURNING id;
 
 
 -- name: CheckCredentialExistsForEnv :one
