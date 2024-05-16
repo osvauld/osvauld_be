@@ -64,3 +64,10 @@ SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id
 FROM environment_fields ef
 JOIN environments e ON ef.env_id = e.Id
 WHERE e.name = $1;
+
+
+-- name: EditEnvironmentFieldNameByID :one
+UPDATE environment_fields
+SET field_name = $1, updated_at = NOW()
+WHERE id = $2
+RETURNING id;

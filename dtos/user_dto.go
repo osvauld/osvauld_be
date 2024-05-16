@@ -50,3 +50,8 @@ type AddEnvironment struct {
 	Name    string    `json:"name" binding:"required"`
 	CliUser uuid.UUID `json:"cliUser" binding:"required"`
 }
+
+type EditEnvFieldName struct {
+	FieldID   uuid.UUID `json:"fieldID" binding:"required"`
+	FieldName string    `json:"fieldName" binding:"required"`
+}

@@ -37,3 +37,7 @@ func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]db.GetEnvFieldsR
 func GetEnvironmentFieldsByName(ctx *gin.Context, name string) ([]db.GetEnvironmentFieldsByNameRow, error) {
 	return database.Store.GetEnvironmentFieldsByName(ctx, name)
 }
+
+func EditEnvironmentFieldName(ctx *gin.Context, args db.EditEnvironmentFieldNameByIDParams) (uuid.Time) error {
+	return database.Store.EditEnvironmentFieldNameByID(ctx, args)
+}

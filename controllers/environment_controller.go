@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"osvauld/customerrors"
 	dto "osvauld/dtos"
 	"osvauld/service"
 	"osvauld/utils"
@@ -78,4 +79,30 @@ func GetEnvironmentByName(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, http.StatusOK, environment, "Fetched environment", nil)
+}
+
+func EditEnvFieldName(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+
+	var req dto.EditEnvFieldName
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+
+	err = service.EditEnvFieldName(ctx, req, caller)
+	if err != nil {
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusOK, nil, "edited field name", nil)
+
 }

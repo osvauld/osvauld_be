@@ -38,3 +38,13 @@ func AddEnvironment(ctx *gin.Context, environment dto.AddEnvironment, caller uui
 func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsForUserRow, error) {
 	return repository.GetEnvironments(ctx, userID)
 }
+
+
+func EditEnvFieldName(ctx *gin.Context, payload dto.EditEnvFieldName, caller uuid.UUID) {
+
+	return repository.EditEnvFieldName(ctx, db.EditEnvFieldNameParams{
+		FieldID:   payload.FieldID,
+		FieldName: payload.FieldName,
+		UpdatedBy: caller,
+	})
+}
