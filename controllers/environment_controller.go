@@ -81,7 +81,7 @@ func GetEnvironmentByName(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusOK, environment, "Fetched environment", nil)
 }
 
-func EditEnvFieldName(ctx *gin.Context) {
+func EditEnvironmentFieldName(ctx *gin.Context) {
 	caller, err := utils.FetchUserIDFromCtx(ctx)
 	if err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
@@ -94,15 +94,15 @@ func EditEnvFieldName(ctx *gin.Context) {
 		return
 	}
 
-	err = service.EditEnvFieldName(ctx, req, caller)
+	response, err := service.EditEnvFieldName(ctx, req, caller)
 	if err != nil {
-		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+		if _, ok := err.(*customerrors.UserDoesNotHaveEnvironmentAccess); ok {
 			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
 			return
 		}
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
 		return
 	}
-	SendResponse(ctx, http.StatusOK, nil, "edited field name", nil)
+	SendResponse(ctx, http.StatusOK, response, "", nil)
 
 }

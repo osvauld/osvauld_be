@@ -38,6 +38,10 @@ func GetEnvironmentFieldsByName(ctx *gin.Context, name string) ([]db.GetEnvironm
 	return database.Store.GetEnvironmentFieldsByName(ctx, name)
 }
 
-func EditEnvironmentFieldName(ctx *gin.Context, args db.EditEnvironmentFieldNameByIDParams) (uuid.Time) error {
+func EditEnvironmentFieldName(ctx *gin.Context, args db.EditEnvironmentFieldNameByIDParams) (string, error) {
 	return database.Store.EditEnvironmentFieldNameByID(ctx, args)
+}
+
+func IsEnvironmentOwner(ctx *gin.Context, args db.IsEnvironmentOwnerParams) (bool, error) {
+	return database.Store.IsEnvironmentOwner(ctx, args)
 }

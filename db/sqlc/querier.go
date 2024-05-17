@@ -41,6 +41,7 @@ type Querier interface {
 	EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error
 	EditCredentialAccessForUserWithFolderID(ctx context.Context, arg EditCredentialAccessForUserWithFolderIDParams) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
+	EditEnvironmentFieldNameByID(ctx context.Context, arg EditEnvironmentFieldNameByIDParams) (string, error)
 	EditFolder(ctx context.Context, arg EditFolderParams) error
 	EditFolderAccessForGroup(ctx context.Context, arg EditFolderAccessForGroupParams) error
 	EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error
@@ -97,6 +98,7 @@ type Querier interface {
 	HasManageAccessForFolder(ctx context.Context, arg HasManageAccessForFolderParams) (bool, error)
 	HasReadAccessForCredential(ctx context.Context, arg HasReadAccessForCredentialParams) (bool, error)
 	HasReadAccessForFolder(ctx context.Context, arg HasReadAccessForFolderParams) (bool, error)
+	IsEnvironmentOwner(ctx context.Context, arg IsEnvironmentOwnerParams) (bool, error)
 	IsUserManagerOrOwner(ctx context.Context, arg IsUserManagerOrOwnerParams) (bool, error)
 	RemoveCredential(ctx context.Context, id uuid.UUID) error
 	RemoveCredentialAccessForGroupMember(ctx context.Context, arg RemoveCredentialAccessForGroupMemberParams) error

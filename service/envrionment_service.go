@@ -1,6 +1,7 @@
 package service
 
 import (
+	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/repository"
@@ -8,6 +9,22 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+func VerifyEnvironmentAccessForUser(ctx *gin.Context, environmentID uuid.UUID, userID uuid.UUID) error {
+
+	hasAccess, err := repository.IsEnvironmentOwner(ctx, db.IsEnvironmentOwnerParams{
+		ID:        environmentID,
+		CreatedBy: userID,
+	})
+	if err != nil {
+		return err
+	}
+	if !hasAccess {
+		return &customerrors.UserDoesNotHaveEnvironmentAccess{UserID: userID, EnvironmentID: environmentID}
+	}
+
+	return nil
+}
 
 func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]db.GetEnvFieldsRow, error) {
 	envFields, err := repository.GetEnvironmentFields(ctx, envID)
@@ -39,12 +56,20 @@ func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsFo
 	return repository.GetEnvironments(ctx, userID)
 }
 
+func EditEnvFieldName(ctx *gin.Context, payload dto.EditEnvFieldName, caller uuid.UUID) (map[string]string, error) {
 
-func EditEnvFieldName(ctx *gin.Context, payload dto.EditEnvFieldName, caller uuid.UUID) {
+	if err := VerifyEnvironmentAccessForUser(ctx, payload.EnvironmentID, caller); err != nil {
+		return nil, err
+	}
 
-	return repository.EditEnvFieldName(ctx, db.EditEnvFieldNameParams{
-		FieldID:   payload.FieldID,
+	fieldName, err := repository.EditEnvironmentFieldName(ctx, db.EditEnvironmentFieldNameByIDParams{
+		ID:        payload.FieldID,
 		FieldName: payload.FieldName,
-		UpdatedBy: caller,
+		EnvID:     payload.EnvironmentID,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"fieldName": fieldName}, nil
 }

@@ -69,5 +69,13 @@ WHERE e.name = $1;
 -- name: EditEnvironmentFieldNameByID :one
 UPDATE environment_fields
 SET field_name = $1, updated_at = NOW()
-WHERE id = $2
-RETURNING id;
+WHERE id = $2 and env_id = $3
+RETURNING field_name;
+
+
+-- name: IsEnvironmentOwner :one
+SELECT EXISTS (
+    SELECT 1 
+    FROM environments 
+    WHERE id = $1 AND created_by = $2
+);
