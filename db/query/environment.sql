@@ -36,15 +36,14 @@ INSERT INTO environment_fields (
 RETURNING id;
 
 -- name: GetEnvironmentsForUser :many
-SELECT e.*,   COALESCE( u.encryption_key, '') as "publicKey"
+SELECT e.*,   COALESCE( u.encryption_key, '') as "publicKey", u.username as "cliUsername"
 FROM environments e
 JOIN users u ON e.cli_user = u.id
 WHERE e.cli_user IN (
-    SELECT id 
+    SELECT id
     FROM users 
     WHERE u.created_by = $1 AND type = 'cli'
 );
-
 
 -- name: GetEnvironmentByID :one
 SELECT * from environments WHERE id = $1 and created_by = $2;
