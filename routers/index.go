@@ -94,5 +94,5 @@ func RegisterRoutes(route *gin.Engine) {
 
 	route.GET("/environment/:name", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentByName)
 
-	route.POST("/environment/:id/edit-field-name/:fieldId", middleware.JWTAuthMiddleware(), controllers.EditEnvironmentFieldName)
+	route.POST("/environment/edit-field-name", middleware.JWTAuthMiddleware(), controllers.EditEnvironmentFieldName)
 }
