@@ -96,6 +96,26 @@ func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams
 	return id, err
 }
 
+const editEnvironmentFieldNameByID = `-- name: EditEnvironmentFieldNameByID :one
+UPDATE environment_fields
+SET field_name = $1, updated_at = NOW()
+WHERE id = $2 and env_id = $3
+RETURNING field_name
+`
+
+type EditEnvironmentFieldNameByIDParams struct {
+	FieldName string    `json:"fieldName"`
+	ID        uuid.UUID `json:"id"`
+	EnvID     uuid.UUID `json:"envId"`
+}
+
+func (q *Queries) EditEnvironmentFieldNameByID(ctx context.Context, arg EditEnvironmentFieldNameByIDParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, editEnvironmentFieldNameByID, arg.FieldName, arg.ID, arg.EnvID)
+	var field_name string
+	err := row.Scan(&field_name)
+	return field_name, err
+}
+
 const getEnvFields = `-- name: GetEnvFields :many
 SELECT pf.field_value, ef.field_name, ef.id ,ef.credential_id 
 FROM environment_fields ef
@@ -205,24 +225,25 @@ func (q *Queries) GetEnvironmentFieldsByName(ctx context.Context, name string) (
 }
 
 const getEnvironmentsForUser = `-- name: GetEnvironmentsForUser :many
-SELECT e.id, e.cli_user, e.name, e.createdat, e.updatedat, e.created_by,   COALESCE( u.encryption_key, '') as "publicKey"
+SELECT e.id, e.cli_user, e.name, e.createdat, e.updatedat, e.created_by,   COALESCE( u.encryption_key, '') as "publicKey", u.username as "cliUsername"
 FROM environments e
 JOIN users u ON e.cli_user = u.id
 WHERE e.cli_user IN (
-    SELECT id 
+    SELECT id
     FROM users 
     WHERE u.created_by = $1 AND type = 'cli'
 )
 `
 
 type GetEnvironmentsForUserRow struct {
-	ID        uuid.UUID `json:"id"`
-	CliUser   uuid.UUID `json:"cliUser"`
-	Name      string    `json:"name"`
-	Createdat time.Time `json:"createdat"`
-	Updatedat time.Time `json:"updatedat"`
-	CreatedBy uuid.UUID `json:"createdBy"`
-	PublicKey string    `json:"publicKey"`
+	ID          uuid.UUID `json:"id"`
+	CliUser     uuid.UUID `json:"cliUser"`
+	Name        string    `json:"name"`
+	Createdat   time.Time `json:"createdat"`
+	Updatedat   time.Time `json:"updatedat"`
+	CreatedBy   uuid.UUID `json:"createdBy"`
+	PublicKey   string    `json:"publicKey"`
+	CliUsername string    `json:"cliUsername"`
 }
 
 func (q *Queries) GetEnvironmentsForUser(ctx context.Context, createdBy uuid.NullUUID) ([]GetEnvironmentsForUserRow, error) {
@@ -242,6 +263,7 @@ func (q *Queries) GetEnvironmentsForUser(ctx context.Context, createdBy uuid.Nul
 			&i.Updatedat,
 			&i.CreatedBy,
 			&i.PublicKey,
+			&i.CliUsername,
 		); err != nil {
 			return nil, err
 		}
@@ -254,4 +276,24 @@ func (q *Queries) GetEnvironmentsForUser(ctx context.Context, createdBy uuid.Nul
 		return nil, err
 	}
 	return items, nil
+}
+
+const isEnvironmentOwner = `-- name: IsEnvironmentOwner :one
+SELECT EXISTS (
+    SELECT 1 
+    FROM environments 
+    WHERE id = $1 AND created_by = $2
+)
+`
+
+type IsEnvironmentOwnerParams struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+}
+
+func (q *Queries) IsEnvironmentOwner(ctx context.Context, arg IsEnvironmentOwnerParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, isEnvironmentOwner, arg.ID, arg.CreatedBy)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

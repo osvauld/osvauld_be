@@ -1,6 +1,7 @@
 package service
 
 import (
+	"osvauld/customerrors"
 	db "osvauld/db/sqlc"
 	dto "osvauld/dtos"
 	"osvauld/repository"
@@ -9,12 +10,46 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]db.GetEnvFieldsRow, error) {
-	envFields, err := repository.GetEnvironmentFields(ctx, envID)
+func VerifyEnvironmentAccessForUser(ctx *gin.Context, environmentID uuid.UUID, userID uuid.UUID) error {
+
+	hasAccess, err := repository.IsEnvironmentOwner(ctx, db.IsEnvironmentOwnerParams{
+		ID:        environmentID,
+		CreatedBy: userID,
+	})
 	if err != nil {
-		return []db.GetEnvFieldsRow{}, err
+		return err
 	}
-	return envFields, nil
+	if !hasAccess {
+		return &customerrors.UserDoesNotHaveEnvironmentAccess{UserID: userID, EnvironmentID: environmentID}
+	}
+
+	return nil
+}
+
+func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]dto.CredentialEnvFields, error) {
+	envFields, err := repository.GetEnvironmentFields(ctx, envID)
+	credentialFieldMap := make(map[uuid.UUID][]dto.EnvFieldData)
+	for _, field := range envFields {
+		credentialFieldMap[field.CredentialID] = append(credentialFieldMap[field.CredentialID], dto.EnvFieldData{
+			FieldID:    field.ID,
+			FieldName:  field.FieldName,
+			FieldValue: field.FieldValue,
+		})
+	}
+
+	if err != nil {
+		return []dto.CredentialEnvFields{}, err
+	}
+
+	var credentialEnvData = []dto.CredentialEnvFields{}
+
+	for credentialID, fields := range credentialFieldMap {
+		credentialEnvData = append(credentialEnvData, dto.CredentialEnvFields{
+			CredentialID: credentialID,
+			Fields:       fields,
+		})
+	}
+	return credentialEnvData, nil
 }
 
 func GetEnvironmentByName(ctx *gin.Context, environmentName string, userID uuid.UUID) ([]db.GetEnvironmentFieldsByNameRow, error) {
@@ -37,4 +72,22 @@ func AddEnvironment(ctx *gin.Context, environment dto.AddEnvironment, caller uui
 
 func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsForUserRow, error) {
 	return repository.GetEnvironments(ctx, userID)
+}
+
+func EditEnvFieldName(ctx *gin.Context, payload dto.EditEnvFieldName, caller uuid.UUID) (map[string]string, error) {
+
+	if err := VerifyEnvironmentAccessForUser(ctx, payload.EnvironmentID, caller); err != nil {
+		return nil, err
+	}
+
+	fieldName, err := repository.EditEnvironmentFieldName(ctx, db.EditEnvironmentFieldNameByIDParams{
+		ID:        payload.FieldID,
+		FieldName: payload.FieldName,
+		EnvID:     payload.EnvironmentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"fieldName": fieldName}, nil
 }

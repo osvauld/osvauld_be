@@ -36,15 +36,14 @@ INSERT INTO environment_fields (
 RETURNING id;
 
 -- name: GetEnvironmentsForUser :many
-SELECT e.*,   COALESCE( u.encryption_key, '') as "publicKey"
+SELECT e.*,   COALESCE( u.encryption_key, '') as "publicKey", u.username as "cliUsername"
 FROM environments e
 JOIN users u ON e.cli_user = u.id
 WHERE e.cli_user IN (
-    SELECT id 
+    SELECT id
     FROM users 
     WHERE u.created_by = $1 AND type = 'cli'
 );
-
 
 -- name: GetEnvironmentByID :one
 SELECT * from environments WHERE id = $1 and created_by = $2;
@@ -64,3 +63,18 @@ SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id
 FROM environment_fields ef
 JOIN environments e ON ef.env_id = e.Id
 WHERE e.name = $1;
+
+
+-- name: EditEnvironmentFieldNameByID :one
+UPDATE environment_fields
+SET field_name = $1, updated_at = NOW()
+WHERE id = $2 and env_id = $3
+RETURNING field_name;
+
+
+-- name: IsEnvironmentOwner :one
+SELECT EXISTS (
+    SELECT 1 
+    FROM environments 
+    WHERE id = $1 AND created_by = $2
+);
