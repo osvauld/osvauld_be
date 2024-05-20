@@ -167,7 +167,7 @@ func CreateFirstAdmin(ctx *gin.Context) {
 		return
 	}
 
-	req.Type = "admin"
+	req.Type = "superadmin"
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
