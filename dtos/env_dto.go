@@ -39,6 +39,7 @@ type EnvFieldData struct {
 }
 
 type CredentialEnvFields struct {
-	CredentialID uuid.UUID      `json:"credentialId"`
-	Fields       []EnvFieldData `json:"fields"`
+	CredentialID   uuid.UUID      `json:"credentialId"`
+	CredentialName string         `json:"credentialName"`
+	Fields         []EnvFieldData `json:"fields"`
 }

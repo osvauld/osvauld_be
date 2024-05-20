@@ -49,17 +49,15 @@ WHERE e.cli_user IN (
 SELECT * from environments WHERE id = $1 and created_by = $2;
 
 -- name: GetEnvFields :many
-SELECT pf.field_value, ef.field_name, ef.id ,ef.credential_id 
+SELECT f.field_value, ef.field_name, ef.id ,ef.credential_id, c.name as "credentialName"
 FROM environment_fields ef
 JOIN fields f ON ef.parent_field_id = f.id
-JOIN fields pf ON ef.parent_field_id = pf.id
+JOIN credentials c ON ef.credential_id = c.id
 WHERE ef.env_id = $1;
 
 
-
-
 -- name: GetEnvironmentFieldsByName :many
-SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id 
+SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id
 FROM environment_fields ef
 JOIN environments e ON ef.env_id = e.Id
 WHERE e.name = $1;
