@@ -29,12 +29,14 @@ func VerifyEnvironmentAccessForUser(ctx *gin.Context, environmentID uuid.UUID, u
 func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]dto.CredentialEnvFields, error) {
 	envFields, err := repository.GetEnvironmentFields(ctx, envID)
 	credentialFieldMap := make(map[uuid.UUID][]dto.EnvFieldData)
+	credentialIDNameMap := make(map[uuid.UUID]string)
 	for _, field := range envFields {
 		credentialFieldMap[field.CredentialID] = append(credentialFieldMap[field.CredentialID], dto.EnvFieldData{
 			FieldID:    field.ID,
 			FieldName:  field.FieldName,
 			FieldValue: field.FieldValue,
 		})
+		credentialIDNameMap[field.CredentialID] = field.CredentialName
 	}
 
 	if err != nil {
@@ -46,6 +48,7 @@ func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]dto.CredentialEn
 	for credentialID, fields := range credentialFieldMap {
 		credentialEnvData = append(credentialEnvData, dto.CredentialEnvFields{
 			CredentialID: credentialID,
+			CredentialName: credentialIDNameMap[credentialID],
 			Fields:       fields,
 		})
 	}

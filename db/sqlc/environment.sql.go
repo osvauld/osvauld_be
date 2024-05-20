@@ -117,18 +117,19 @@ func (q *Queries) EditEnvironmentFieldNameByID(ctx context.Context, arg EditEnvi
 }
 
 const getEnvFields = `-- name: GetEnvFields :many
-SELECT pf.field_value, ef.field_name, ef.id ,ef.credential_id 
+SELECT f.field_value, ef.field_name, ef.id ,ef.credential_id, c.name as "credentialName"
 FROM environment_fields ef
 JOIN fields f ON ef.parent_field_id = f.id
-JOIN fields pf ON ef.parent_field_id = pf.id
+JOIN credentials c ON ef.credential_id = c.id
 WHERE ef.env_id = $1
 `
 
 type GetEnvFieldsRow struct {
-	FieldValue   string    `json:"fieldValue"`
-	FieldName    string    `json:"fieldName"`
-	ID           uuid.UUID `json:"id"`
-	CredentialID uuid.UUID `json:"credentialId"`
+	FieldValue     string    `json:"fieldValue"`
+	FieldName      string    `json:"fieldName"`
+	ID             uuid.UUID `json:"id"`
+	CredentialID   uuid.UUID `json:"credentialId"`
+	CredentialName string    `json:"credentialName"`
 }
 
 func (q *Queries) GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFieldsRow, error) {
@@ -145,6 +146,7 @@ func (q *Queries) GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFi
 			&i.FieldName,
 			&i.ID,
 			&i.CredentialID,
+			&i.CredentialName,
 		); err != nil {
 			return nil, err
 		}
@@ -183,7 +185,7 @@ func (q *Queries) GetEnvironmentByID(ctx context.Context, arg GetEnvironmentByID
 }
 
 const getEnvironmentFieldsByName = `-- name: GetEnvironmentFieldsByName :many
-SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id 
+SELECT ef.id, ef.field_name, ef.field_value, ef.credential_id
 FROM environment_fields ef
 JOIN environments e ON ef.env_id = e.Id
 WHERE e.name = $1
