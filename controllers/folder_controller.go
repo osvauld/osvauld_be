@@ -27,6 +27,7 @@ func CreateFolder(ctx *gin.Context) {
 
 	folderDetails, err := service.CreateFolder(ctx, req, caller)
 	if err != nil {
+		logger.Errorf(err.Error())
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to create folder"))
 		return
 	}

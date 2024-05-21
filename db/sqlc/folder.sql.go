@@ -14,8 +14,8 @@ import (
 )
 
 const addFolder = `-- name: AddFolder :one
-INSERT INTO folders (name, description, created_by)
-VALUES ($1, $2, $3)
+INSERT INTO folders (name, description, created_by, type)
+VALUES ($1, $2, $3, $4)
 RETURNING id, created_at
 `
 
@@ -23,6 +23,7 @@ type AddFolderParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedBy   uuid.NullUUID  `json:"createdBy"`
+	Type        string         `json:"type"`
 }
 
 type AddFolderRow struct {
@@ -31,7 +32,12 @@ type AddFolderRow struct {
 }
 
 func (q *Queries) AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error) {
-	row := q.db.QueryRowContext(ctx, addFolder, arg.Name, arg.Description, arg.CreatedBy)
+	row := q.db.QueryRowContext(ctx, addFolder,
+		arg.Name,
+		arg.Description,
+		arg.CreatedBy,
+		arg.Type,
+	)
 	var i AddFolderRow
 	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err
@@ -55,7 +61,7 @@ func (q *Queries) EditFolder(ctx context.Context, arg EditFolderParams) error {
 }
 
 const fetchAccessibleFoldersForUser = `-- name: FetchAccessibleFoldersForUser :many
-SELECT folders.id, folders.name, folders.description, folders.created_at, folders.created_by, COALESCE(folder_access.access_type, 'none') as "accessType"
+SELECT folders.id, folders.name,  folders.created_at, folders.created_by, COALESCE(folder_access.access_type, 'none') as "accessType", folders.type, COALESCE(folders.description, '') as "description"
 FROM folders
 LEFT JOIN folder_access ON folders.id = folder_access.folder_id AND folder_access.user_id = $1
 WHERE folders.id IN (
@@ -71,12 +77,13 @@ WHERE folders.id IN (
 `
 
 type FetchAccessibleFoldersForUserRow struct {
-	ID          uuid.UUID      `json:"id"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	CreatedBy   uuid.NullUUID  `json:"createdBy"`
-	AccessType  string         `json:"accessType"`
+	ID          uuid.UUID     `json:"id"`
+	Name        string        `json:"name"`
+	CreatedAt   time.Time     `json:"createdAt"`
+	CreatedBy   uuid.NullUUID `json:"createdBy"`
+	AccessType  string        `json:"accessType"`
+	Type        string        `json:"type"`
+	Description string        `json:"description"`
 }
 
 func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid.UUID) ([]FetchAccessibleFoldersForUserRow, error) {
@@ -91,10 +98,11 @@ func (q *Queries) FetchAccessibleFoldersForUser(ctx context.Context, userID uuid
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.Description,
 			&i.CreatedAt,
 			&i.CreatedBy,
 			&i.AccessType,
+			&i.Type,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}

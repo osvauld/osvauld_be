@@ -301,6 +301,32 @@ func (q *Queries) GetRegistrationChallenge(ctx context.Context, username string)
 	return i, err
 }
 
+const getSuperUser = `-- name: GetSuperUser :one
+
+select id, created_at, updated_at, username, name, encryption_key, device_key, temp_password, registration_challenge, signed_up, type, status, created_by from users where type = 'superadmin' limit 1
+`
+
+func (q *Queries) GetSuperUser(ctx context.Context) (User, error) {
+	row := q.db.QueryRowContext(ctx, getSuperUser)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Username,
+		&i.Name,
+		&i.EncryptionKey,
+		&i.DeviceKey,
+		&i.TempPassword,
+		&i.RegistrationChallenge,
+		&i.SignedUp,
+		&i.Type,
+		&i.Status,
+		&i.CreatedBy,
+	)
+	return i, err
+}
+
 const getUserByID = `-- name: GetUserByID :one
 SELECT id, username, name, type FROM users WHERE id = $1
 `

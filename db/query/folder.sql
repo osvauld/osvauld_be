@@ -1,12 +1,12 @@
 
 -- name: AddFolder :one
-INSERT INTO folders (name, description, created_by)
-VALUES ($1, $2, $3)
+INSERT INTO folders (name, description, created_by, type)
+VALUES ($1, $2, $3, $4)
 RETURNING id, created_at;
 
 
 -- name: FetchAccessibleFoldersForUser :many
-SELECT folders.id, folders.name, folders.description, folders.created_at, folders.created_by, COALESCE(folder_access.access_type, 'none') as "accessType"
+SELECT folders.id, folders.name,  folders.created_at, folders.created_by, COALESCE(folder_access.access_type, 'none') as "accessType", folders.type, COALESCE(folders.description, '') as "description"
 FROM folders
 LEFT JOIN folder_access ON folders.id = folder_access.folder_id AND folder_access.user_id = $1
 WHERE folders.id IN (
