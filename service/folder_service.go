@@ -23,6 +23,13 @@ func CreateFolder(ctx *gin.Context, folder dto.CreateFolderRequest, caller uuid.
 		Description: sql.NullString{String: folder.Description, Valid: true},
 		CreatedBy:   caller,
 	}
+	if folder.SharedFolder {
+		user, err := repository.GetSuperUser(ctx)
+		if err != nil {
+			return dto.FolderDetails{}, err
+		}
+		createFolderParams.SuperUser = &user.ID
+	}
 
 	folderDetails, err := repository.CreateFolder(ctx, createFolderParams)
 	if err != nil {

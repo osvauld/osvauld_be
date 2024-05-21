@@ -168,9 +168,17 @@ func GetFolderUsersWithDirectAccess(ctx *gin.Context, folderID uuid.UUID, caller
 	if err != nil {
 		return nil, err
 	}
+	superUser, err := repository.GetSuperUser(ctx)
+	if err != nil {
+		return []dto.FolderUserWithAccess{}, err
+	}
 
 	userAccessObjs := []dto.FolderUserWithAccess{}
 	for _, access := range userAccess {
+		// Do not include super user in the list
+		if access.UserID == superUser.ID {
+			continue
+		}
 		userAccessObjs = append(userAccessObjs, dto.FolderUserWithAccess{
 			UserID:       access.UserID,
 			Name:         access.Name,

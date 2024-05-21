@@ -114,3 +114,8 @@ RETURNING id;
 
 -- name: GetCliUsers :many
 SELECT id, username FROM users WHERE type = 'cli' and created_by = $1;
+
+
+-- name: GetSuperUser :one
+
+select * from users where type = 'superadmin' limit 1;

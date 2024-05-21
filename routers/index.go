@@ -33,7 +33,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/users/all", middleware.JWTAuthMiddleware(), controllers.GetAllUsers)
 	route.POST("/folder/", middleware.JWTAuthMiddleware(), controllers.CreateFolder)
 	route.GET("/folder/:id/credential", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByFolder)
-	route.GET("/folders/", middleware.JWTAuthMiddleware(), controllers.FetchAccessibleFoldersForUser)
+	route.GET("/folders", middleware.JWTAuthMiddleware(), controllers.FetchAccessibleFoldersForUser)
 
 	route.POST("/share-credentials/users", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithUsers)
 	route.POST("/share-credentials/groups", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithGroups)

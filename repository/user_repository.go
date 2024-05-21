@@ -100,3 +100,7 @@ func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsFo
 func GetCliUsers(ctx *gin.Context, userID uuid.UUID) ([]db.GetCliUsersRow, error) {
 	return database.Store.GetCliUsers(ctx, uuid.NullUUID{UUID: userID, Valid: true})
 }
+
+func GetSuperUser(ctx *gin.Context) (db.User, error) {
+	return database.Store.GetSuperUser(ctx)
+}

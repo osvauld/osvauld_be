@@ -75,6 +75,7 @@ type Folder struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedBy   uuid.NullUUID  `json:"createdBy"`
+	Type        string         `json:"type"`
 }
 
 type FolderAccess struct {
