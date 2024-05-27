@@ -27,7 +27,7 @@ func GetSensitiveFields(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UU
 			ID:         field.ID,
 			FieldName:  field.FieldName,
 			FieldValue: field.FieldValue,
-			FieldType:  "sensitive",
+			FieldType:  field.FieldType,
 		})
 	}
 

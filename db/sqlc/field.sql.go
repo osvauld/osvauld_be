@@ -162,7 +162,7 @@ SELECT
     f.field_type
 FROM fields as f
 WHERE
-field_type != 'sensitive' 
+(field_type = 'meta' OR field_type = 'additional')
 AND f.user_id = $1 
 AND f.credential_id = ANY($2::UUID[])
 `
@@ -213,10 +213,11 @@ const getSensitiveFields = `-- name: GetSensitiveFields :many
 SELECT
     f.id,
     f.field_name,
-    f.field_value
+    f.field_value,
+    f.field_type
 FROM fields as f
 WHERE
-field_type = 'sensitive'
+(field_type = 'sensitive' OR field_type = 'totp')
 AND f.credential_id = $1
 AND f.user_id = $2
 `
@@ -230,6 +231,7 @@ type GetSensitiveFieldsRow struct {
 	ID         uuid.UUID `json:"id"`
 	FieldName  string    `json:"fieldName"`
 	FieldValue string    `json:"fieldValue"`
+	FieldType  string    `json:"fieldType"`
 }
 
 func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFieldsParams) ([]GetSensitiveFieldsRow, error) {
@@ -241,7 +243,12 @@ func (q *Queries) GetSensitiveFields(ctx context.Context, arg GetSensitiveFields
 	items := []GetSensitiveFieldsRow{}
 	for rows.Next() {
 		var i GetSensitiveFieldsRow
-		if err := rows.Scan(&i.ID, &i.FieldName, &i.FieldValue); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.FieldName,
+			&i.FieldValue,
+			&i.FieldType,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
