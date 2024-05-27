@@ -20,7 +20,7 @@ SELECT
     f.field_type
 FROM fields as f
 WHERE
-field_type != 'sensitive' 
+(field_type = 'meta' OR field_type = 'additional')
 AND f.user_id = $1 
 AND f.credential_id = ANY(@credentials::UUID[]);
 
@@ -49,10 +49,11 @@ SELECT EXISTS (
 SELECT
     f.id,
     f.field_name,
-    f.field_value
+    f.field_value,
+    f.field_type
 FROM fields as f
 WHERE
-field_type = 'sensitive'
+(field_type = 'sensitive' OR field_type = 'totp')
 AND f.credential_id = $1
 AND f.user_id = $2;
 
