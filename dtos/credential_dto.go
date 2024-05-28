@@ -16,11 +16,11 @@ type AddCredentialRequest struct {
 }
 
 type Fields struct {
-	FieldName string      `json:"fieldName,omitempty"`
-	FieldType string      `json:"fieldType,omitempty"`
-	FieldData []FieldData `json:"fieldData"`
+	FieldName   string       `json:"fieldName"`
+	FieldType   string       `json:"fieldType"`
+	FieldValues []FieldValue `json:"fieldValues"`
 }
-type FieldData struct {
+type FieldValue struct {
 	UserID     uuid.UUID `json:"userId"`
 	FieldValue string    `json:"fieldValue"`
 }

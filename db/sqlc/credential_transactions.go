@@ -52,7 +52,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 			if err != nil {
 				return err
 			}
-			for _, field := range fields.FieldData {
+			for _, field := range fields.FieldValues {
 				err := q.AddFieldValue(ctx, AddFieldValueParams{
 					FieldID:    fieldID,
 					FieldValue: field.FieldValue,
