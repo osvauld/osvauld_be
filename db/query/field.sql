@@ -13,29 +13,31 @@ WHERE credential_id = $1;
 
 -- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT
-    f.id,
-    f.credential_id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.credential_id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-(field_type = 'meta' OR field_type = 'additional')
-AND f.user_id = $1 
-AND f.credential_id = ANY(@credentials::UUID[]);
+fd.field_type != 'sensitive' 
+AND fv.user_id = $1 
+AND fd.credential_id = ANY(@credentialIDs::UUID[]);
 
 
 -- name: GetAllFieldsForCredentialIDs :many
 SELECT
-    f.id,
-    f.credential_id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type,
+    fd.credential_id
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-f.user_id = $1 
-AND f.credential_id = ANY(@credentials::UUID[]);
+fv.user_id = $1 
+AND fd.credential_id = ANY(@credentials::UUID[]);
 
 
 -- name: CheckFieldEntryExists :one
@@ -47,16 +49,16 @@ SELECT EXISTS (
 
 -- name: GetSensitiveFields :many
 SELECT
-    f.id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-(field_type = 'sensitive' OR field_type = 'totp')
-AND f.credential_id = $1
-AND f.user_id = $2;
-
+(fd.field_type = 'sensitive' OR fd.field_type = 'totp')
+AND fd.credential_id = $1
+AND fv.user_id = $2;
 
 -- name: RemoveCredentialFieldsForUsers :exec
 DELETE FROM fields WHERE credential_id = $1 AND user_id = ANY(@user_ids::UUID[]);

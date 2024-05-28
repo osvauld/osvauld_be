@@ -10,32 +10,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID, caller uuid.UUID) ([]db.AddFieldParams, error) {
+func CreateFieldDataRecords(ctx *gin.Context, credential dto.ShareCredentialPayload, userID uuid.UUID, caller uuid.UUID) ([]db.AddFieldValueParams, error) {
 
-	fieldData, err := repository.GetAllFieldsForCredentialIDs(ctx, db.GetAllFieldsForCredentialIDsParams{
-		UserID:      caller,
-		Credentials: []uuid.UUID{credential.CredentialID},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	fieldMap := make(map[uuid.UUID]db.GetAllFieldsForCredentialIDsRow)
-	for _, field := range fieldData {
-		fieldMap[field.ID] = field
-	}
-
-	userFieldRecords := []db.AddFieldParams{}
-
+	userFieldRecords := []db.AddFieldValueParams{}
 	for _, field := range credential.Fields {
 
-		userFieldRecord := db.AddFieldParams{
-			FieldName:    fieldMap[field.ID].FieldName,
-			FieldType:    fieldMap[field.ID].FieldType,
-			FieldValue:   field.FieldValue,
-			UserID:       userID,
-			CredentialID: credential.CredentialID,
-			CreatedBy:    uuid.NullUUID{UUID: caller, Valid: true},
+		userFieldRecord := db.AddFieldValueParams{
+			FieldID:    field.ID,
+			FieldValue: field.FieldValue,
+			UserID:     userID,
 		}
 
 		userFieldRecords = append(userFieldRecords, userFieldRecord)
@@ -62,7 +45,7 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 	// we share all the credentials for a single user in a single transaction
 	for _, userData := range payload {
 
-		userFieldRecords := []db.AddFieldParams{}
+		userFieldRecords := []db.AddFieldValueParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 		userShareResponse := ShareCredentialsWithUserResponse{
 			UserID: userData.UserID,
@@ -87,7 +70,6 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 				return nil, err
 			}
 			if exists {
-				logger.Infof("Credential %s already shared for user %s", credential.CredentialID, userData.UserID)
 				continue
 			} else {
 
@@ -100,27 +82,12 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 
 			}
 
-			///////////////////////////////////////////////////////////////////////////////////////////
-			// Check Fields already shared for user
-
-			fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
-				UserID:       userData.UserID,
-				CredentialID: credential.CredentialID,
-			})
+			userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
 			if err != nil {
 				return nil, err
 			}
 
-			if !fieldDataExists {
-				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
-				if err != nil {
-					return nil, err
-				}
-
-				userFieldRecords = append(userFieldRecords, userFields...)
-			} else {
-				logger.Infof("Field data already exists for credential %s and user %s", credential.CredentialID, userData.UserID)
-			}
+			userFieldRecords = append(userFieldRecords, userFields...)
 
 			//////////////////////////////////////////////////////////////////////////////////////////////
 		}

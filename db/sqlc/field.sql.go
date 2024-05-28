@@ -100,15 +100,16 @@ func (q *Queries) DeleteCredentialFields(ctx context.Context, credentialID uuid.
 
 const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many
 SELECT
-    f.id,
-    f.credential_id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type,
+    fd.credential_id
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-f.user_id = $1 
-AND f.credential_id = ANY($2::UUID[])
+fv.user_id = $1 
+AND fd.credential_id = ANY($2::UUID[])
 `
 
 type GetAllFieldsForCredentialIDsParams struct {
@@ -118,10 +119,10 @@ type GetAllFieldsForCredentialIDsParams struct {
 
 type GetAllFieldsForCredentialIDsRow struct {
 	ID           uuid.UUID `json:"id"`
-	CredentialID uuid.UUID `json:"credentialId"`
 	FieldName    string    `json:"fieldName"`
 	FieldValue   string    `json:"fieldValue"`
 	FieldType    string    `json:"fieldType"`
+	CredentialID uuid.UUID `json:"credentialId"`
 }
 
 func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFieldsForCredentialIDsParams) ([]GetAllFieldsForCredentialIDsRow, error) {
@@ -135,10 +136,10 @@ func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFi
 		var i GetAllFieldsForCredentialIDsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.CredentialID,
 			&i.FieldName,
 			&i.FieldValue,
 			&i.FieldType,
+			&i.CredentialID,
 		); err != nil {
 			return nil, err
 		}
@@ -155,21 +156,22 @@ func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFi
 
 const getNonSensitiveFieldsForCredentialIDs = `-- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT
-    f.id,
-    f.credential_id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.credential_id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-(field_type = 'meta' OR field_type = 'additional')
-AND f.user_id = $1 
-AND f.credential_id = ANY($2::UUID[])
+fd.field_type != 'sensitive' 
+AND fv.user_id = $1 
+AND fd.credential_id = ANY($2::UUID[])
 `
 
 type GetNonSensitiveFieldsForCredentialIDsParams struct {
-	UserID      uuid.UUID   `json:"userId"`
-	Credentials []uuid.UUID `json:"credentials"`
+	UserID        uuid.UUID   `json:"userId"`
+	Credentialids []uuid.UUID `json:"credentialids"`
 }
 
 type GetNonSensitiveFieldsForCredentialIDsRow struct {
@@ -181,7 +183,7 @@ type GetNonSensitiveFieldsForCredentialIDsRow struct {
 }
 
 func (q *Queries) GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentials))
+	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentialids))
 	if err != nil {
 		return nil, err
 	}
@@ -211,15 +213,16 @@ func (q *Queries) GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg
 
 const getSensitiveFields = `-- name: GetSensitiveFields :many
 SELECT
-    f.id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-(field_type = 'sensitive' OR field_type = 'totp')
-AND f.credential_id = $1
-AND f.user_id = $2
+(fd.field_type = 'sensitive' OR fd.field_type = 'totp')
+AND fd.credential_id = $1
+AND fv.user_id = $2
 `
 
 type GetSensitiveFieldsParams struct {
