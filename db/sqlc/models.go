@@ -68,6 +68,24 @@ type Field struct {
 	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
 }
 
+type FieldDatum struct {
+	ID           uuid.UUID     `json:"id"`
+	FieldName    string        `json:"fieldName"`
+	FieldType    string        `json:"fieldType"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	CreatedBy    uuid.NullUUID `json:"createdBy"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
+}
+
+type FieldValue struct {
+	ID         uuid.UUID `json:"id"`
+	FieldID    uuid.UUID `json:"fieldId"`
+	FieldValue string    `json:"fieldValue"`
+	UserID     uuid.UUID `json:"userId"`
+}
+
 type Folder struct {
 	ID          uuid.UUID      `json:"id"`
 	CreatedAt   time.Time      `json:"createdAt"`
