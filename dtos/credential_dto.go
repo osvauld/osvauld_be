@@ -7,12 +7,22 @@ import (
 )
 
 type AddCredentialRequest struct {
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
-	FolderID       uuid.UUID    `json:"folderId"`
-	CredentialType string       `json:"credentialType"`
-	UserFields     []UserFields `json:"userFields"`
-	Domain         string       `json:"domain"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	FolderID       uuid.UUID `json:"folderId"`
+	CredentialType string    `json:"credentialType"`
+	Fields         []Fields  `json:"fields"`
+	Domain         string    `json:"domain"`
+}
+
+type Fields struct {
+	FieldName string      `json:"fieldName,omitempty"`
+	FieldType string      `json:"fieldType,omitempty"`
+	FieldData []FieldData `json:"fieldData"`
+}
+type FieldData struct {
+	UserID     uuid.UUID `json:"userId"`
+	FieldValue string    `json:"fieldValue"`
 }
 
 type CredentialForUser struct {

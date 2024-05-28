@@ -12,7 +12,7 @@ CREATE TABLE field_data (
 
 CREATE TABLE field_values (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    field_id UUID NOT NULL REFERENCES fields(id) ON DELETE CASCADE,
+    field_id UUID NOT NULL REFERENCES field_data(id) ON DELETE CASCADE,
     field_value TEXT NOT NULL,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );

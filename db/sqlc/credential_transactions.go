@@ -14,7 +14,7 @@ type AddCredentialTransactionParams struct {
 	FolderID             uuid.UUID
 	CredentialType       string
 	CreatedBy            uuid.UUID
-	UserFields           []dto.UserFields
+	Fields               []dto.Fields
 	CredentialAccessArgs []AddCredentialAccessParams
 	Domain               string
 }
@@ -41,15 +41,22 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 		}
 
 		// Create field records
-		for _, userFields := range args.UserFields {
-			for _, field := range userFields.Fields {
-				_, err = q.AddField(ctx, AddFieldParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					FieldType:    field.FieldType,
-					CredentialID: credentialID,
-					UserID:       userFields.UserID,
-					CreatedBy:    uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
+		for _, fields := range args.Fields {
+
+			fieldID, err := q.AddFieldData(ctx, AddFieldDataParams{
+				FieldName:    fields.FieldName,
+				FieldType:    fields.FieldType,
+				CredentialID: credentialID,
+				CreatedBy:    uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
+			})
+			if err != nil {
+				return err
+			}
+			for _, field := range fields.FieldData {
+				err := q.AddFieldValue(ctx, AddFieldValueParams{
+					FieldID:    fieldID,
+					FieldValue: field.FieldValue,
+					UserID:     field.UserID,
 				})
 				if err != nil {
 					return err

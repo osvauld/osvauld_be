@@ -15,6 +15,8 @@ type Querier interface {
 	AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error)
 	AddEnvironment(ctx context.Context, arg AddEnvironmentParams) (uuid.UUID, error)
 	AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error)
+	AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error)
+	AddFieldValue(ctx context.Context, arg AddFieldValueParams) error
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
