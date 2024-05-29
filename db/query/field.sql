@@ -65,24 +65,19 @@ DELETE FROM fields WHERE credential_id = $1 AND user_id = ANY(@user_ids::UUID[])
 
 
 -- name: DeleteAccessRemovedFields :exec
-DELETE FROM fields
-WHERE
-    EXISTS (
-        -- Select fields rows that don't have a corresponding entry in credential_access
-        SELECT 1
-        FROM fields f
-        WHERE
-            NOT EXISTS (
-                -- Look for a matching entry in credential_access
-                SELECT 1
-                FROM credential_access ca
-                WHERE
-                    ca.credential_id = f.credential_id
-                    AND ca.user_id = f.user_id
-            )
-            AND f.credential_id = fields.credential_id
-            AND f.user_id = fields.user_id
-    );
-
-
-
+DELETE FROM field_values fv
+WHERE EXISTS (
+    -- Select fields_values rows that don't have a corresponding entry in credential_access
+    SELECT 1
+    FROM field_data fd
+    WHERE
+        fd.id = fv.field_id
+        AND NOT EXISTS (
+            -- Look for a matching entry in credential_access
+            SELECT 1
+            FROM credential_access ca
+            WHERE
+                ca.credential_id = fd.credential_id
+                AND ca.user_id = fv.user_id
+        )
+);
