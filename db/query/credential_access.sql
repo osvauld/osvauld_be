@@ -44,6 +44,12 @@ SELECT EXISTS (
     AND ((folder_id IS NOT NULL AND folder_id = $4) OR (folder_id is null and $4 is null))
 );
 
+-- name: CheckAnyCredentialAccessEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM credential_access
+    WHERE user_id = $1 AND credential_id = $2 
+);
 
 -- name: RemoveCredentialAccessForUsers :exec
 DELETE FROM credential_access WHERE group_id IS NULL AND folder_id IS NULL 

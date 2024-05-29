@@ -82,13 +82,23 @@ func ShareCredentialsWithUsers(ctx *gin.Context, payload []dto.ShareCredentialsF
 
 			}
 
-			userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
+			fieldExists, err := repository.CheckAnyCredentialAccessEntryExists(ctx, db.CheckAnyCredentialAccessEntryExistsParams{
+				UserID:       userData.UserID,
+				CredentialID: credential.CredentialID,
+			})
 			if err != nil {
 				return nil, err
 			}
 
-			userFieldRecords = append(userFieldRecords, userFields...)
+			if !fieldExists {
+				userFields, err := CreateFieldDataRecords(ctx, credential, userData.UserID, caller)
 
+				if err != nil {
+					return nil, err
+				}
+
+				userFieldRecords = append(userFieldRecords, userFields...)
+			}
 			//////////////////////////////////////////////////////////////////////////////////////////////
 		}
 
@@ -163,7 +173,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 
 				}
 				//if access entry exists dont need to add field
-				fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+				fieldDataExists, err := repository.CheckAnyCredentialAccessEntryExists(ctx, db.CheckAnyCredentialAccessEntryExistsParams{
 					UserID:       userData.UserID,
 					CredentialID: credential.CredentialID,
 				})
@@ -243,7 +253,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 			}
 
 			logger.Infof("Sharing credential %s with user %s", credential.CredentialID, userData.UserID)
-			fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+			fieldDataExists, err := repository.CheckAnyCredentialAccessEntryExists(ctx, db.CheckAnyCredentialAccessEntryExistsParams{
 				UserID:       userData.UserID,
 				CredentialID: credential.CredentialID,
 			})
@@ -359,7 +369,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 					return nil, err
 				}
 
-				fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+				fieldDataExists, err := repository.CheckAnyCredentialAccessEntryExists(ctx, db.CheckAnyCredentialAccessEntryExistsParams{
 					UserID:       userData.UserID,
 					CredentialID: credential.CredentialID,
 				})
