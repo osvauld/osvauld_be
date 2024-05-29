@@ -124,7 +124,7 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 	var responses []ShareCredentialsWithGroupResponse
 	for _, groupData := range payload {
 
-		groupFieldRecords := []db.AddFieldParams{}
+		groupFieldRecords := []db.AddFieldValueParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 
 		for _, userData := range groupData.UserData {
@@ -162,8 +162,8 @@ func ShareCredentialsWithGroups(ctx *gin.Context, payload []dto.CredentialsForGr
 					credentialAccessRecords = append(credentialAccessRecords, credentialAccessRecord)
 
 				}
-
-				fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+				//if access entry exists dont need to add field
+				fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 					UserID:       userData.UserID,
 					CredentialID: credential.CredentialID,
 				})
@@ -226,7 +226,7 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 	for _, userData := range payload.UserData {
 
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
-		userFieldRecords := []db.AddFieldParams{}
+		userFieldRecords := []db.AddFieldValueParams{}
 		folderAccessRecords := []db.AddFolderAccessParams{}
 
 		userShareResponse := ShareFolderWithUserResponse{}
@@ -242,7 +242,8 @@ func ShareFolderWithUsers(ctx *gin.Context, payload dto.ShareFolderWithUsersRequ
 				return nil, err
 			}
 
-			fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+			logger.Infof("Sharing credential %s with user %s", credential.CredentialID, userData.UserID)
+			fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 				UserID:       userData.UserID,
 				CredentialID: credential.CredentialID,
 			})
@@ -342,7 +343,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 	var responses []ShareFolderWithGroupResponse
 	for _, groupData := range payload.GroupData {
 
-		groupFieldRecords := []db.AddFieldParams{}
+		groupFieldRecords := []db.AddFieldValueParams{}
 		credentialAccessRecords := []db.AddCredentialAccessParams{}
 		folderAccessRecords := []db.AddFolderAccessParams{}
 
@@ -358,7 +359,7 @@ func ShareFolderWithGroups(ctx *gin.Context, payload dto.ShareFolderWithGroupsRe
 					return nil, err
 				}
 
-				fieldDataExists, err := repository.CheckFieldEntryExists(ctx, db.CheckFieldEntryExistsParams{
+				fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
 					UserID:       userData.UserID,
 					CredentialID: credential.CredentialID,
 				})

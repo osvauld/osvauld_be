@@ -39,7 +39,7 @@ func (store *SQLStore) CreateGroupAndAddManager(ctx context.Context, groupData d
 }
 
 type AddMembersToGroupTransactionParams struct {
-	FieldArgs            []AddFieldParams            `json:"fieldArgs"`
+	FieldArgs            []AddFieldValueParams       `json:"fieldArgs"`
 	CredentialAccessArgs []AddCredentialAccessParams `json:"credentialAccessArgs"`
 	FolderAccessArgs     []AddFolderAccessParams     `json:"folderAccessArgs"`
 	GroupMembershipArgs  []AddGroupMemberParams      `json:"groupMembershipArgs"`
@@ -51,7 +51,7 @@ func (store *SQLStore) AddMembersToGroupTransaction(ctx context.Context, args Ad
 
 		for _, fieldRecord := range args.FieldArgs {
 
-			_, err := q.AddField(ctx, fieldRecord)
+			err := q.AddFieldValue(ctx, fieldRecord)
 			if err != nil {
 				return err
 			}
