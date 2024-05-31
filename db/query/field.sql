@@ -81,3 +81,15 @@ WHERE EXISTS (
                 AND ca.user_id = fv.user_id
         )
 );
+
+
+-- name: EditFieldData :exec
+UPDATE field_data
+SET field_name = $1, field_type = $2, updated_by = $3, updated_at = NOW()
+WHERE id = $4;
+
+
+-- name: EditFieldValue :exec
+UPDATE field_values
+SET field_value = $1
+WHERE field_id = $2 AND user_id = $3;

@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const checkCliUser = `-- name: CheckCliUser :one
+SELECT EXISTS(SELECT 1 FROM users WHERE id = $1 AND type = 'cli')
+`
+
+func (q *Queries) CheckCliUser(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkCliUser, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkIfUsersExist = `-- name: CheckIfUsersExist :one
 SELECT EXISTS(SELECT 1 FROM users)
 `
@@ -302,7 +313,6 @@ func (q *Queries) GetRegistrationChallenge(ctx context.Context, username string)
 }
 
 const getSuperUser = `-- name: GetSuperUser :one
-
 select id, created_at, updated_at, username, name, encryption_key, device_key, temp_password, registration_challenge, signed_up, type, status, created_by from users where type = 'superadmin' limit 1
 `
 

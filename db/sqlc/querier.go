@@ -21,6 +21,7 @@ type Querier interface {
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
 	CheckAnyCredentialAccessEntryExists(ctx context.Context, arg CheckAnyCredentialAccessEntryExistsParams) (bool, error)
+	CheckCliUser(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
 	CheckCredentialExistsForEnv(ctx context.Context, arg CheckCredentialExistsForEnvParams) (bool, error)
 	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
@@ -44,7 +45,10 @@ type Querier interface {
 	EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error
 	EditCredentialAccessForUserWithFolderID(ctx context.Context, arg EditCredentialAccessForUserWithFolderIDParams) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
+	EditEnvFieldValue(ctx context.Context, arg EditEnvFieldValueParams) error
 	EditEnvironmentFieldNameByID(ctx context.Context, arg EditEnvironmentFieldNameByIDParams) (string, error)
+	EditFieldData(ctx context.Context, arg EditFieldDataParams) error
+	EditFieldValue(ctx context.Context, arg EditFieldValueParams) error
 	EditFolder(ctx context.Context, arg EditFolderParams) error
 	EditFolderAccessForGroup(ctx context.Context, arg EditFolderAccessForGroupParams) error
 	EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error
@@ -94,6 +98,7 @@ type Querier interface {
 	GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserDeviceKey(ctx context.Context, id uuid.UUID) (string, error)
+	GetUserEnvsForCredential(ctx context.Context, arg GetUserEnvsForCredentialParams) ([]uuid.UUID, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUserType(ctx context.Context, id uuid.UUID) (string, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)

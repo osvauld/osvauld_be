@@ -15,16 +15,6 @@ type AddCredentialRequest struct {
 	Domain         string    `json:"domain"`
 }
 
-type Fields struct {
-	FieldName   string       `json:"fieldName"`
-	FieldType   string       `json:"fieldType"`
-	FieldValues []FieldValue `json:"fieldValues"`
-}
-type FieldValue struct {
-	UserID     uuid.UUID `json:"userId"`
-	FieldValue string    `json:"fieldValue"`
-}
-
 type CredentialForUser struct {
 	CredentialID   uuid.UUID `json:"credentialId"`
 	Name           string    `json:"name"`
@@ -82,10 +72,11 @@ type ShareFolderWithGroupsRequest struct {
 }
 
 type EditCredentialRequest struct {
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
-	CredentialType string       `json:"credentialType"`
-	UserFields     []UserFields `json:"userFields"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	CredentialType string   `json:"credentialType"`
+	EditedFields   []Fields `json:"editedFields"`
+	AddFields      []Fields `json:"addFields"`
 }
 
 type EditCredentialDetailsRequest struct {

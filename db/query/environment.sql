@@ -29,6 +29,7 @@ INSERT INTO environment_fields (
 ) VALUES (
     $1, 
     $2, 
+
     $3, 
     $4, 
     $5 
@@ -76,3 +77,15 @@ SELECT EXISTS (
     FROM environments 
     WHERE id = $1 AND created_by = $2
 );
+
+
+-- name: GetUserEnvsForCredential :many
+SELECT e.id
+FROM environments e
+JOIN environment_fields ef ON e.id = ef.env_id
+WHERE ef.credential_id = $1 AND cli_user = $2;
+
+-- name: EditEnvFieldValue :exec
+UPDATE environment_fields
+SET field_value = $1, updated_at = NOW()
+WHERE parent_field_id = $2 AND env_id = $3;

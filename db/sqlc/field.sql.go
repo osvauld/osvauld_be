@@ -96,6 +96,46 @@ func (q *Queries) DeleteCredentialFields(ctx context.Context, credentialID uuid.
 	return err
 }
 
+const editFieldData = `-- name: EditFieldData :exec
+UPDATE field_data
+SET field_name = $1, field_type = $2, updated_by = $3, updated_at = NOW()
+WHERE id = $4
+`
+
+type EditFieldDataParams struct {
+	FieldName string        `json:"fieldName"`
+	FieldType string        `json:"fieldType"`
+	UpdatedBy uuid.NullUUID `json:"updatedBy"`
+	ID        uuid.UUID     `json:"id"`
+}
+
+func (q *Queries) EditFieldData(ctx context.Context, arg EditFieldDataParams) error {
+	_, err := q.db.ExecContext(ctx, editFieldData,
+		arg.FieldName,
+		arg.FieldType,
+		arg.UpdatedBy,
+		arg.ID,
+	)
+	return err
+}
+
+const editFieldValue = `-- name: EditFieldValue :exec
+UPDATE field_values
+SET field_value = $1
+WHERE field_id = $2 AND user_id = $3
+`
+
+type EditFieldValueParams struct {
+	FieldValue string    `json:"fieldValue"`
+	FieldID    uuid.UUID `json:"fieldId"`
+	UserID     uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) EditFieldValue(ctx context.Context, arg EditFieldValueParams) error {
+	_, err := q.db.ExecContext(ctx, editFieldValue, arg.FieldValue, arg.FieldID, arg.UserID)
+	return err
+}
+
 const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many
 SELECT
     fd.id,

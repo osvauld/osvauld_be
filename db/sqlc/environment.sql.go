@@ -68,6 +68,7 @@ INSERT INTO environment_fields (
 ) VALUES (
     $1, 
     $2, 
+
     $3, 
     $4, 
     $5 
@@ -94,6 +95,23 @@ func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const editEnvFieldValue = `-- name: EditEnvFieldValue :exec
+UPDATE environment_fields
+SET field_value = $1, updated_at = NOW()
+WHERE parent_field_id = $2 AND env_id = $3
+`
+
+type EditEnvFieldValueParams struct {
+	FieldValue    string    `json:"fieldValue"`
+	ParentFieldID uuid.UUID `json:"parentFieldId"`
+	EnvID         uuid.UUID `json:"envId"`
+}
+
+func (q *Queries) EditEnvFieldValue(ctx context.Context, arg EditEnvFieldValueParams) error {
+	_, err := q.db.ExecContext(ctx, editEnvFieldValue, arg.FieldValue, arg.ParentFieldID, arg.EnvID)
+	return err
 }
 
 const editEnvironmentFieldNameByID = `-- name: EditEnvironmentFieldNameByID :one
@@ -270,6 +288,41 @@ func (q *Queries) GetEnvironmentsForUser(ctx context.Context, createdBy uuid.Nul
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserEnvsForCredential = `-- name: GetUserEnvsForCredential :many
+SELECT e.id
+FROM environments e
+JOIN environment_fields ef ON e.id = ef.env_id
+WHERE ef.credential_id = $1 AND cli_user = $2
+`
+
+type GetUserEnvsForCredentialParams struct {
+	CredentialID uuid.UUID `json:"credentialId"`
+	CliUser      uuid.UUID `json:"cliUser"`
+}
+
+func (q *Queries) GetUserEnvsForCredential(ctx context.Context, arg GetUserEnvsForCredentialParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getUserEnvsForCredential, arg.CredentialID, arg.CliUser)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

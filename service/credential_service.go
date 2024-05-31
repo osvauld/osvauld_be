@@ -259,7 +259,8 @@ func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCr
 		Name:           request.Name,
 		Description:    sql.NullString{String: request.Description, Valid: true},
 		CredentialType: request.CredentialType,
-		UserFields:     request.UserFields,
+		EditedFields:   request.EditedFields,
+		AddFields:      request.AddFields,
 		EditedBy:       caller,
 	})
 
