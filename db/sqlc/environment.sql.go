@@ -100,17 +100,16 @@ func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams
 const editEnvFieldValue = `-- name: EditEnvFieldValue :exec
 UPDATE environment_fields
 SET field_value = $1, updated_at = NOW()
-WHERE parent_field_id = $2 AND env_id = $3
+WHERE id = $2
 `
 
 type EditEnvFieldValueParams struct {
-	FieldValue    string    `json:"fieldValue"`
-	ParentFieldID uuid.UUID `json:"parentFieldId"`
-	EnvID         uuid.UUID `json:"envId"`
+	FieldValue string    `json:"fieldValue"`
+	ID         uuid.UUID `json:"id"`
 }
 
 func (q *Queries) EditEnvFieldValue(ctx context.Context, arg EditEnvFieldValueParams) error {
-	_, err := q.db.ExecContext(ctx, editEnvFieldValue, arg.FieldValue, arg.ParentFieldID, arg.EnvID)
+	_, err := q.db.ExecContext(ctx, editEnvFieldValue, arg.FieldValue, arg.ID)
 	return err
 }
 

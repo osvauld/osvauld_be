@@ -90,7 +90,7 @@ type EditCredentialTransactionParams struct {
 	EditedBy       uuid.UUID
 }
 
-func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditCredentialTransactionParams) error {
+func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args dto.EditCredentialRequest, editedBy uuid.UUID) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 
@@ -99,124 +99,109 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 		editCredentialDetailsParams := EditCredentialDetailsParams{
 			ID:             args.CredentialID,
 			Name:           args.Name,
-			Description:    args.Description,
+			Description:    sql.NullString{String: args.Description, Valid: true},
 			CredentialType: args.CredentialType,
-			UpdatedBy:      uuid.NullUUID{UUID: args.EditedBy, Valid: true},
+			UpdatedBy:      uuid.NullUUID{UUID: editedBy, Valid: true},
 		}
 		err = q.EditCredentialDetails(ctx, editCredentialDetailsParams)
 		if err != nil {
 			return err
 		}
 
-		// Create field records
-		for _, field := range args.AddFields {
-
-			// Add field data
-			fieldID, err := q.AddFieldData(ctx, AddFieldDataParams{
-				FieldName:    field.FieldName,
-				FieldType:    field.FieldType,
-				CredentialID: args.CredentialID,
-				CreatedBy:    uuid.NullUUID{UUID: args.EditedBy, Valid: true},
-			})
-			if err != nil {
-				return err
-			}
-
-			// Add field values
-			for _, userField := range field.FieldValues {
-
-				isCliUser, err := q.CheckCliUser(ctx, userField.UserID)
-				if err != nil {
-					return err
-				}
-
-				if isCliUser {
-					envs, err := q.GetUserEnvsForCredential(ctx, GetUserEnvsForCredentialParams{
-						CredentialID: args.CredentialID,
-						CliUser:      userField.UserID,
-					})
-					if err != nil {
-						return err
-					}
-
-					for _, envID := range envs {
-						_, err := q.CreateEnvFields(ctx, CreateEnvFieldsParams{
-							CredentialID:  args.CredentialID,
-							FieldValue:    userField.FieldValue,
-							FieldName:     field.FieldName,
-							ParentFieldID: fieldID,
-							EnvID:         envID,
-						})
-						if err != nil {
-							return err
-						}
-					}
-				} else {
-					err := q.AddFieldValue(ctx, AddFieldValueParams{
-						FieldID:    fieldID,
-						FieldValue: userField.FieldValue,
-						UserID:     userField.UserID,
-					})
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-		}
-		// Edit field records
-		for _, field := range args.EditedFields {
+		// Edit User Fields
+		for _, field := range args.EditedUserFields {
 
 			// Edit field data
 			err = q.EditFieldData(ctx, EditFieldDataParams{
 				ID:        field.FieldID,
 				FieldName: field.FieldName,
 				FieldType: field.FieldType,
-				UpdatedBy: uuid.NullUUID{UUID: args.EditedBy, Valid: true},
+				UpdatedBy: uuid.NullUUID{UUID: editedBy, Valid: true},
 			})
 			if err != nil {
 				return err
 			}
 
-			// Edit field values
 			for _, userValue := range field.FieldValues {
-				isCliUser, err := q.CheckCliUser(ctx, userValue.UserID)
+				err = q.EditFieldValue(ctx, EditFieldValueParams{
+					FieldValue: userValue.FieldValue,
+					UserID:     userValue.UserID,
+					FieldID:    field.FieldID,
+				})
 				if err != nil {
 					return err
 				}
-
-				if isCliUser {
-
-					envs, err := q.GetUserEnvsForCredential(ctx, GetUserEnvsForCredentialParams{
-						CredentialID: args.CredentialID,
-						CliUser:      userValue.UserID,
-					})
-					if err != nil {
-						return err
-					}
-
-					for _, envID := range envs {
-						err = q.EditEnvFieldValue(ctx, EditEnvFieldValueParams{
-							FieldValue:    userValue.FieldValue,
-							ParentFieldID: field.FieldID,
-							EnvID:         envID,
-						})
-						if err != nil {
-							return err
-						}
-					}
-				} else {
-					err = q.EditFieldValue(ctx, EditFieldValueParams{
-						FieldValue: userValue.FieldValue,
-						UserID:     userValue.UserID,
-						FieldID:    field.FieldID,
-					})
-					if err != nil {
-						return err
-					}
-				}
 			}
 		}
+
+		// Edit Env Fields
+		for _, field := range args.EditedEnvFields {
+			err = q.EditEnvFieldValue(ctx, EditEnvFieldValueParams{
+				FieldValue: field.FieldValue,
+				ID:         field.EnvFieldID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// // Create field records
+		// for _, field := range args.NewFields {
+
+		// 	// Add field data
+		// 	fieldID, err := q.AddFieldData(ctx, AddFieldDataParams{
+		// 		FieldName:    field.FieldName,
+		// 		FieldType:    field.FieldType,
+		// 		CredentialID: args.CredentialID,
+		// 		CreatedBy:    uuid.NullUUID{UUID: args.EditedBy, Valid: true},
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
+
+		// 	// Add field values
+		// 	for _, userField := range field.FieldValues {
+
+		// 		isCliUser, err := q.CheckCliUser(ctx, userField.UserID)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+
+		// 		if isCliUser {
+		// 			envs, err := q.GetUserEnvsForCredential(ctx, GetUserEnvsForCredentialParams{
+		// 				CredentialID: args.CredentialID,
+		// 				CliUser:      userField.UserID,
+		// 			})
+		// 			if err != nil {
+		// 				return err
+		// 			}
+
+		// 			for _, envID := range envs {
+		// 				_, err := q.CreateEnvFields(ctx, CreateEnvFieldsParams{
+		// 					CredentialID:  args.CredentialID,
+		// 					FieldValue:    userField.FieldValue,
+		// 					FieldName:     field.FieldName,
+		// 					ParentFieldID: fieldID,
+		// 					EnvID:         envID,
+		// 				})
+		// 				if err != nil {
+		// 					return err
+		// 				}
+		// 			}
+		// 		} else {
+		// 			err := q.AddFieldValue(ctx, AddFieldValueParams{
+		// 				FieldID:    fieldID,
+		// 				FieldValue: userField.FieldValue,
+		// 				UserID:     userField.UserID,
+		// 			})
+		// 			if err != nil {
+		// 				return err
+		// 			}
+		// 		}
+		// 	}
+
+		// }
+		
 
 		return nil
 	})

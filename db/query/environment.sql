@@ -88,4 +88,4 @@ WHERE ef.credential_id = $1 AND cli_user = $2;
 -- name: EditEnvFieldValue :exec
 UPDATE environment_fields
 SET field_value = $1, updated_at = NOW()
-WHERE parent_field_id = $2 AND env_id = $3;
+WHERE id = $2;
