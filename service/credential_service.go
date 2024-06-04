@@ -254,16 +254,7 @@ func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCr
 		return err
 	}
 
-	err := repository.EditCredential(ctx, db.EditCredentialTransactionParams{
-		CredentialID:   credentialID,
-		Name:           request.Name,
-		Description:    sql.NullString{String: request.Description, Valid: true},
-		CredentialType: request.CredentialType,
-		EditedFields:   request.EditedFields,
-		AddFields:      request.AddFields,
-		EditedBy:       caller,
-	})
-
+	err := repository.EditCredential(ctx, request, caller)
 	if err != nil {
 		return err
 	}

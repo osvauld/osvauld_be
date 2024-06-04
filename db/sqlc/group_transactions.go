@@ -51,7 +51,7 @@ func (store *SQLStore) AddMembersToGroupTransaction(ctx context.Context, args Ad
 
 		for _, fieldRecord := range args.FieldArgs {
 
-			err := q.AddFieldValue(ctx, fieldRecord)
+			_, err := q.AddFieldValue(ctx, fieldRecord)
 			if err != nil {
 				return err
 			}

@@ -1,6 +1,5 @@
 
 ALTER TABLE users ADD COLUMN created_by UUID;
--- SQL Definition for environments
 
 CREATE TABLE environments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -10,7 +9,6 @@ CREATE TABLE environments (
     updatedAt TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by UUID NOT NULL REFERENCES users(id)
 );
--- SQL Definition for environment fields
 
 CREATE TABLE environment_fields (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

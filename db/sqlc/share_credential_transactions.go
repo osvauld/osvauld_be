@@ -16,7 +16,7 @@ func (store *SQLStore) ShareCredentialsTransaction(ctx context.Context, args Sha
 
 		for _, fieldRecord := range args.FieldArgs {
 
-			err := q.AddFieldValue(ctx, fieldRecord)
+			_, err := q.AddFieldValue(ctx, fieldRecord)
 			if err != nil {
 				return err
 			}

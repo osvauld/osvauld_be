@@ -11,9 +11,9 @@ import (
 	"github.com/google/uuid"
 )
 
-const addFieldValue = `-- name: AddFieldValue :exec
+const addFieldValue = `-- name: AddFieldValue :one
 INSERT INTO field_values (field_id, field_value, user_id)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3) RETURNING id
 `
 
 type AddFieldValueParams struct {
@@ -22,7 +22,9 @@ type AddFieldValueParams struct {
 	UserID     uuid.UUID `json:"userId"`
 }
 
-func (q *Queries) AddFieldValue(ctx context.Context, arg AddFieldValueParams) error {
-	_, err := q.db.ExecContext(ctx, addFieldValue, arg.FieldID, arg.FieldValue, arg.UserID)
-	return err
+func (q *Queries) AddFieldValue(ctx context.Context, arg AddFieldValueParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addFieldValue, arg.FieldID, arg.FieldValue, arg.UserID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
