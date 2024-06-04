@@ -63,12 +63,11 @@ INSERT INTO environment_fields (
     credential_id, 
     field_value, 
     field_name, 
-    parent_field_id, 
+    parent_field_value_id,
     env_id
 ) VALUES (
     $1, 
     $2, 
-
     $3, 
     $4, 
     $5 
@@ -77,11 +76,11 @@ RETURNING id
 `
 
 type CreateEnvFieldsParams struct {
-	CredentialID  uuid.UUID `json:"credentialId"`
-	FieldValue    string    `json:"fieldValue"`
-	FieldName     string    `json:"fieldName"`
-	ParentFieldID uuid.UUID `json:"parentFieldId"`
-	EnvID         uuid.UUID `json:"envId"`
+	CredentialID       uuid.UUID `json:"credentialId"`
+	FieldValue         string    `json:"fieldValue"`
+	FieldName          string    `json:"fieldName"`
+	ParentFieldValueID uuid.UUID `json:"parentFieldValueId"`
+	EnvID              uuid.UUID `json:"envId"`
 }
 
 func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams) (uuid.UUID, error) {
@@ -89,7 +88,7 @@ func (q *Queries) CreateEnvFields(ctx context.Context, arg CreateEnvFieldsParams
 		arg.CredentialID,
 		arg.FieldValue,
 		arg.FieldName,
-		arg.ParentFieldID,
+		arg.ParentFieldValueID,
 		arg.EnvID,
 	)
 	var id uuid.UUID

@@ -474,10 +474,27 @@ func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredenti
 	if err != nil {
 		return err
 	}
+
+	fieldIDs := []uuid.UUID{}
 	fieldMap := make(map[uuid.UUID]db.GetAllFieldsForCredentialIDsRow)
 	for _, field := range credentialFields {
 		fieldMap[field.ID] = field
+		fieldIDs = append(fieldIDs, field.ID)
 	}
+
+	fieldValues, err := repository.GetFieldValueIDsForFieldIDs(ctx, db.GetFieldValueIDsForFieldIDsParams{
+		UserID:   caller,
+		Fieldids: fieldIDs,
+	})
+	if err != nil {
+		return err
+	}
+
+	fieldIDfieldValueIDMap := make(map[uuid.UUID]uuid.UUID)
+	for _, fieldValue := range fieldValues {
+		fieldIDfieldValueIDMap[fieldValue.FieldID] = fieldValue.ID
+	}
+
 	for _, credential := range payload.Credentials {
 
 		exists, err := repository.CheckCredentialExistsInEnvironment(ctx, credential.CredentialID, payload.EnvId)
@@ -490,11 +507,11 @@ func ShareCredentialsWithEnvironment(ctx *gin.Context, payload dto.ShareCredenti
 		}
 		for _, field := range credential.Fields {
 			credentialEnvData := dto.CredentialEnvData{
-				CredentialID:  credential.CredentialID,
-				FieldValue:    field.FieldValue,
-				FieldName:     fieldMap[field.FieldID].FieldName,
-				ParentFieldId: field.FieldID,
-				EnvID:         payload.EnvId,
+				CredentialID:       credential.CredentialID,
+				FieldValue:         field.FieldValue,
+				FieldName:          fieldMap[field.FieldID].FieldName,
+				ParentFieldValueID: fieldIDfieldValueIDMap[field.FieldID],
+				EnvID:              payload.EnvId,
 			}
 			credentialEnvDataList = append(credentialEnvDataList, credentialEnvData)
 		}

@@ -14,7 +14,7 @@ CREATE TABLE environment_fields (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     field_name VARCHAR(255) NOT NULL,
     field_value TEXT NOT NULL,
-    parent_field_id UUID NOT NULL REFERENCES fields(id),
+    parent_field_value_id UUID NOT NULL REFERENCES field_values(id),
     env_id UUID NOT NULL REFERENCES environments(Id),
     credential_id UUID NOT NULL REFERENCES credentials(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

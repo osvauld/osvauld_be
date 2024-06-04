@@ -161,11 +161,11 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args dto.E
 
 				for _, envField := range userField.EnvFieldValues {
 					_, err = q.CreateEnvFields(ctx, CreateEnvFieldsParams{
-						CredentialID:  args.CredentialID,
-						FieldValue:    envField.FieldValue,
-						FieldName:     field.FieldName,
-						ParentFieldID: fieldValueID,
-						EnvID:         envField.EnvID,
+						CredentialID:       args.CredentialID,
+						FieldValue:         envField.FieldValue,
+						FieldName:          field.FieldName,
+						ParentFieldValueID: fieldValueID,
+						EnvID:              envField.EnvID,
 					})
 					if err != nil {
 						return err

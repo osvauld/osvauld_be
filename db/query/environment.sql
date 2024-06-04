@@ -24,12 +24,11 @@ INSERT INTO environment_fields (
     credential_id, 
     field_value, 
     field_name, 
-    parent_field_id, 
+    parent_field_value_id,
     env_id
 ) VALUES (
     $1, 
     $2, 
-
     $3, 
     $4, 
     $5 

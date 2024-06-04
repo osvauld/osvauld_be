@@ -24,11 +24,11 @@ type ShareCredentialsWithEnvironmentRequest struct {
 }
 
 type CredentialEnvData struct {
-	CredentialID  uuid.UUID
-	EnvID         uuid.UUID
-	ParentFieldId uuid.UUID
-	FieldValue    string
-	FieldName     string
+	CredentialID       uuid.UUID
+	EnvID              uuid.UUID
+	ParentFieldValueID uuid.UUID
+	FieldValue         string
+	FieldName          string
 }
 
 // Todo: later merge this struct and EnvField stuct
