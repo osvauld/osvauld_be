@@ -88,3 +88,13 @@ WHERE ef.credential_id = $1 AND cli_user = $2;
 UPDATE environment_fields
 SET field_value = $1, updated_at = NOW()
 WHERE id = $2;
+
+
+-- name: GetEnvFieldsForCredential :many
+SELECT ef.id as envFieldID, ef.env_id, fd.id as fieldID, u.id as userID, u.encryption_key as "publicKey"
+FROM environment_fields as ef
+    JOIN environments e ON ef.env_id = e.id
+    JOIN field_values fv ON ef.parent_field_value_id = fv.id
+    JOIN field_data fd ON fv.field_id = fd.id
+    JOIN users u ON e.user_id = e.id
+WHERE ef.credential_id = $1;

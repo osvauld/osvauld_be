@@ -43,3 +43,10 @@ type CredentialEnvFields struct {
 	CredentialName string         `json:"credentialName"`
 	Fields         []EnvFieldData `json:"fields"`
 }
+
+type CredentialEnvFieldsForEditDataSync struct {
+	EnvFieldID       uuid.UUID `json:"envFieldId"`
+	EnvID            uuid.UUID `json:"envId"`
+	CliUserID        uuid.UUID `json:"cliUserId"`
+	CliUserPublicKey string    `json:"cliUserPublicKey"`
+}

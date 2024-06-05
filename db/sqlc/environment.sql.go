@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -163,6 +164,53 @@ func (q *Queries) GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFi
 			&i.ID,
 			&i.CredentialID,
 			&i.CredentialName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEnvFieldsForCredential = `-- name: GetEnvFieldsForCredential :many
+SELECT ef.id as envFieldID, ef.env_id, fd.id as fieldID, u.id as userID, u.encryption_key as "publicKey"
+FROM environment_fields as ef
+    JOIN environments e ON ef.env_id = e.id
+    JOIN field_values fv ON ef.parent_field_value_id = fv.id
+    JOIN field_data fd ON fv.field_id = fd.id
+    JOIN users u ON e.user_id = e.id
+WHERE ef.credential_id = $1
+`
+
+type GetEnvFieldsForCredentialRow struct {
+	Envfieldid uuid.UUID      `json:"envfieldid"`
+	EnvID      uuid.UUID      `json:"envId"`
+	Fieldid    uuid.UUID      `json:"fieldid"`
+	Userid     uuid.UUID      `json:"userid"`
+	PublicKey  sql.NullString `json:"publicKey"`
+}
+
+func (q *Queries) GetEnvFieldsForCredential(ctx context.Context, credentialID uuid.UUID) ([]GetEnvFieldsForCredentialRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEnvFieldsForCredential, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetEnvFieldsForCredentialRow{}
+	for rows.Next() {
+		var i GetEnvFieldsForCredentialRow
+		if err := rows.Scan(
+			&i.Envfieldid,
+			&i.EnvID,
+			&i.Fieldid,
+			&i.Userid,
+			&i.PublicKey,
 		); err != nil {
 			return nil, err
 		}
