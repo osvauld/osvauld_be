@@ -21,7 +21,8 @@ SELECT
 FROM field_data as fd
 JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-fd.field_type != 'sensitive' 
+fd.field_type != 'sensitive'
+AND fd.field_type != 'totp'
 AND fv.user_id = $1 
 AND fd.credential_id = ANY(@credentialIDs::UUID[]);
 

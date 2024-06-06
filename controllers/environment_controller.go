@@ -114,7 +114,7 @@ func GetCredentialEnvFieldsForEditDataSync(ctx *gin.Context) {
 		return
 	}
 
-	credentialIDStr := ctx.Param("id")
+	credentialIDStr := ctx.Param("credentialId")
 	credentailID, err := uuid.Parse(credentialIDStr)
 	if err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))

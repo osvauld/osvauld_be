@@ -134,9 +134,14 @@ func (q *Queries) EditEnvironmentFieldNameByID(ctx context.Context, arg EditEnvi
 }
 
 const getEnvFields = `-- name: GetEnvFields :many
-SELECT f.field_value, ef.field_name, ef.id ,ef.credential_id, c.name as "credentialName"
+SELECT 
+    fv.field_value, 
+    ef.field_name, 
+    ef.id,
+    ef.credential_id, 
+    c.name as "credentialName"
 FROM environment_fields ef
-JOIN fields f ON ef.parent_field_id = f.id
+JOIN field_values fv ON ef.parent_field_value_id = fv.id
 JOIN credentials c ON ef.credential_id = c.id
 WHERE ef.env_id = $1
 `
@@ -184,7 +189,7 @@ FROM environment_fields as ef
     JOIN environments e ON ef.env_id = e.id
     JOIN field_values fv ON ef.parent_field_value_id = fv.id
     JOIN field_data fd ON fv.field_id = fd.id
-    JOIN users u ON e.user_id = e.id
+    JOIN users u ON e.cli_user = u.id
 WHERE ef.credential_id = $1
 `
 

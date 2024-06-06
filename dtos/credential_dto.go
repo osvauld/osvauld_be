@@ -72,7 +72,6 @@ type ShareFolderWithGroupsRequest struct {
 }
 
 type EditedEnvField struct {
-	EnvID      uuid.UUID `json:"envId"`
 	EnvFieldID uuid.UUID `json:"envFieldId"`
 	FieldValue string    `json:"fieldValue"`
 }
@@ -83,9 +82,9 @@ type NewEnvField struct {
 }
 
 type UserFieldValueWithCliUserValues struct {
-	UserID         uuid.UUID        `json:"userId"`
-	FieldValue     string           `json:"fieldValue"`
-	EnvFieldValues []EditedEnvField `json:"envFieldValues"`
+	UserID         uuid.UUID     `json:"userId"`
+	FieldValue     string        `json:"fieldValue"`
+	EnvFieldValues []NewEnvField `json:"envFieldValues"`
 }
 
 type NewFieldsWithEnvValues struct {

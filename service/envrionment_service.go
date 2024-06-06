@@ -96,10 +96,11 @@ func EditEnvFieldName(ctx *gin.Context, payload dto.EditEnvFieldName, caller uui
 }
 
 func GetCredentialEnvFieldsForEditDataSync(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (map[uuid.UUID][]dto.CredentialEnvFieldsForEditDataSync, error) {
+	// TODO: validation needs to change
 
-	if err := VerifyEnvironmentAccessForUser(ctx, credentialID, caller); err != nil {
-		return nil, err
-	}
+	// if err := VerifyEnvironmentAccessForUser(ctx, credentialID, caller); err != nil {
+	// 	return nil, err
+	// }
 
 	dataRows, err := repository.GetEnvFieldsForCredential(ctx, credentialID)
 	if err != nil {
