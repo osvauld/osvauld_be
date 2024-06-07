@@ -103,3 +103,16 @@ FROM environment_fields as ef
     JOIN field_data fd ON fv.field_id = fd.id
     JOIN users u ON e.cli_user = u.id
 WHERE ef.credential_id = $1;
+
+
+-- name: GetEnvForCredential :many
+SELECT 
+    e.id as "envId", 
+    COALESCE(u.encryption_key, '') as "cliUserPublicKey", 
+    e.cli_user as "cliUserId",
+    u.created_by as "cliUserCreatedBy"
+FROM environments e
+JOIN environment_fields ef ON e.id = ef.env_id
+JOIN users u ON e.cli_user = u.id
+WHERE ef.credential_id = $1
+GROUP BY e.id, u.encryption_key, e.cli_user, u.created_by;

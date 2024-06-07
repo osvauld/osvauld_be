@@ -49,3 +49,7 @@ func IsEnvironmentOwner(ctx *gin.Context, args db.IsEnvironmentOwnerParams) (boo
 func GetEnvFieldsForCredential(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetEnvFieldsForCredentialRow, error) {
 	return database.Store.GetEnvFieldsForCredential(ctx, credentialID)
 }
+
+func GetEnvForCredential(ctx *gin.Context, credentialId uuid.UUID) ([]db.GetEnvForCredentialRow, error) {
+	return database.Store.GetEnvForCredential(ctx, credentialId)
+}

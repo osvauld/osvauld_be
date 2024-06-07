@@ -230,6 +230,54 @@ func (q *Queries) GetEnvFieldsForCredential(ctx context.Context, credentialID uu
 	return items, nil
 }
 
+const getEnvForCredential = `-- name: GetEnvForCredential :many
+SELECT 
+    e.id as "envId", 
+    COALESCE(u.encryption_key, '') as "cliUserPublicKey", 
+    e.cli_user as "cliUserId",
+    u.created_by as "cliUserCreatedBy"
+FROM environments e
+JOIN environment_fields ef ON e.id = ef.env_id
+JOIN users u ON e.cli_user = u.id
+WHERE ef.credential_id = $1
+GROUP BY e.id, u.encryption_key, e.cli_user, u.created_by
+`
+
+type GetEnvForCredentialRow struct {
+	EnvId            uuid.UUID     `json:"envId"`
+	CliUserPublicKey string        `json:"cliUserPublicKey"`
+	CliUserId        uuid.UUID     `json:"cliUserId"`
+	CliUserCreatedBy uuid.NullUUID `json:"cliUserCreatedBy"`
+}
+
+func (q *Queries) GetEnvForCredential(ctx context.Context, credentialID uuid.UUID) ([]GetEnvForCredentialRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEnvForCredential, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetEnvForCredentialRow{}
+	for rows.Next() {
+		var i GetEnvForCredentialRow
+		if err := rows.Scan(
+			&i.EnvId,
+			&i.CliUserPublicKey,
+			&i.CliUserId,
+			&i.CliUserCreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEnvironmentByID = `-- name: GetEnvironmentByID :one
 SELECT id, cli_user, name, createdat, updatedat, created_by from environments WHERE id = $1 and created_by = $2
 `

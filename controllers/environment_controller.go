@@ -136,3 +136,32 @@ func GetCredentialEnvFieldsForEditDataSync(ctx *gin.Context) {
 	SendResponse(ctx, http.StatusOK, fieldData, "Fetched Fields", nil)
 
 }
+
+func GetEnvsForCredential(ctx *gin.Context) {
+	// userID, err := utils.FetchUserIDFromCtx(ctx)
+	// if err != nil {
+	// 	SendResponse(ctx, http.StatusUnauthorized, nil, "", errors.New("unauthorized"))
+	// 	return
+	// }
+
+	credentialIDStr := ctx.Param("credentialId")
+	credentailID, err := uuid.Parse(credentialIDStr)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid credential id"))
+		return
+	}
+
+	envs, err := service.GetEnvsForCredential(ctx, credentailID)
+	if err != nil {
+
+		if _, ok := err.(*customerrors.UserDoesNotHaveCredentialAccessError); ok {
+			SendResponse(ctx, http.StatusUnauthorized, nil, "", err)
+			return
+		}
+
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+
+	SendResponse(ctx, http.StatusOK, envs, "Fetched Environments", nil)
+}

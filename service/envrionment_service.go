@@ -119,3 +119,8 @@ func GetCredentialEnvFieldsForEditDataSync(ctx *gin.Context, credentialID uuid.U
 	return fieldIDEnvFieldMap, nil
 
 }
+
+func GetEnvsForCredential(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetEnvForCredentialRow, error) {
+	// TODO: add validations for fetching envs for credential
+	return repository.GetEnvForCredential(ctx, credentialID)
+}
