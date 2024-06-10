@@ -113,7 +113,8 @@ SELECT
     c.name, 
     COALESCE(c.description, '') AS description,
     COALESCE(c.domain, '') AS domain,
-    c.folder_id, 
+    c.folder_id,
+    f.type AS "folderType",
     COALESCE(f.name, '') AS folder_name
 FROM 
     credentials c
