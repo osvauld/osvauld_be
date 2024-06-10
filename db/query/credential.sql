@@ -108,13 +108,13 @@ WHERE
     id = $1;
 
 -- name: GetCredentialsForSearchByUserID :many
-SELECT 
+SELECT DISTINCT
     c.id as "credentialId", 
     c.name, 
     COALESCE(c.description, '') AS description,
     COALESCE(c.domain, '') AS domain,
     c.folder_id,
-    f.type AS "folderType",
+    COALESCE(f.type, '' ) AS "folderType",
     COALESCE(f.name, '') AS folder_name
 FROM 
     credentials c
