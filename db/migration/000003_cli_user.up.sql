@@ -16,7 +16,7 @@ CREATE TABLE environment_fields (
     field_value TEXT NOT NULL,
     parent_field_value_id UUID NOT NULL REFERENCES field_values(id),
     env_id UUID NOT NULL REFERENCES environments(Id),
-    credential_id UUID NOT NULL REFERENCES credentials(id),
+    credential_id UUID NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
