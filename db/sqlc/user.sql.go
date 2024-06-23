@@ -185,7 +185,7 @@ func (q *Queries) FetchChallenge(ctx context.Context, userID uuid.UUID) (string,
 }
 
 const getAllSignedUpUsers = `-- name: GetAllSignedUpUsers :many
-SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true
+SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true and type !='cli'
 `
 
 type GetAllSignedUpUsersRow struct {
