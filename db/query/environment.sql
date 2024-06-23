@@ -24,7 +24,7 @@ INSERT INTO environment_fields (
     credential_id, 
     field_value, 
     field_name, 
-    parent_field_id, 
+    parent_field_value_id,
     env_id
 ) VALUES (
     $1, 
@@ -49,9 +49,14 @@ WHERE e.cli_user IN (
 SELECT * from environments WHERE id = $1 and created_by = $2;
 
 -- name: GetEnvFields :many
-SELECT f.field_value, ef.field_name, ef.id ,ef.credential_id, c.name as "credentialName"
+SELECT 
+    fv.field_value, 
+    ef.field_name, 
+    ef.id,
+    ef.credential_id, 
+    c.name as "credentialName"
 FROM environment_fields ef
-JOIN fields f ON ef.parent_field_id = f.id
+JOIN field_values fv ON ef.parent_field_value_id = fv.id
 JOIN credentials c ON ef.credential_id = c.id
 WHERE ef.env_id = $1;
 
@@ -76,3 +81,38 @@ SELECT EXISTS (
     FROM environments 
     WHERE id = $1 AND created_by = $2
 );
+
+
+-- name: GetUserEnvsForCredential :many
+SELECT e.id
+FROM environments e
+JOIN environment_fields ef ON e.id = ef.env_id
+WHERE ef.credential_id = $1 AND cli_user = $2;
+
+-- name: EditEnvFieldValue :exec
+UPDATE environment_fields
+SET field_value = $1, updated_at = NOW()
+WHERE id = $2;
+
+
+-- name: GetEnvFieldsForCredential :many
+SELECT ef.id as envFieldID, ef.env_id, fd.id as fieldID, u.id as userID, u.encryption_key as "publicKey"
+FROM environment_fields as ef
+    JOIN environments e ON ef.env_id = e.id
+    JOIN field_values fv ON ef.parent_field_value_id = fv.id
+    JOIN field_data fd ON fv.field_id = fd.id
+    JOIN users u ON e.cli_user = u.id
+WHERE ef.credential_id = $1;
+
+
+-- name: GetEnvForCredential :many
+SELECT 
+    e.id as "envId", 
+    COALESCE(u.encryption_key, '') as "cliUserPublicKey", 
+    e.cli_user as "cliUserId",
+    u.created_by as "cliUserCreatedBy"
+FROM environments e
+JOIN environment_fields ef ON e.id = ef.env_id
+JOIN users u ON e.cli_user = u.id
+WHERE ef.credential_id = $1
+GROUP BY e.id, u.encryption_key, e.cli_user, u.created_by;

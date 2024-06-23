@@ -24,11 +24,11 @@ type ShareCredentialsWithEnvironmentRequest struct {
 }
 
 type CredentialEnvData struct {
-	CredentialID  uuid.UUID
-	EnvID         uuid.UUID
-	ParentFieldId uuid.UUID
-	FieldValue    string
-	FieldName     string
+	CredentialID       uuid.UUID
+	EnvID              uuid.UUID
+	ParentFieldValueID uuid.UUID
+	FieldValue         string
+	FieldName          string
 }
 
 // Todo: later merge this struct and EnvField stuct
@@ -42,4 +42,11 @@ type CredentialEnvFields struct {
 	CredentialID   uuid.UUID      `json:"credentialId"`
 	CredentialName string         `json:"credentialName"`
 	Fields         []EnvFieldData `json:"fields"`
+}
+
+type CredentialEnvFieldsForEditDataSync struct {
+	EnvFieldID       uuid.UUID `json:"envFieldId"`
+	EnvID            uuid.UUID `json:"envId"`
+	CliUserID        uuid.UUID `json:"cliUserId"`
+	CliUserPublicKey string    `json:"cliUserPublicKey"`
 }

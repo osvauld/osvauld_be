@@ -15,9 +15,13 @@ type Querier interface {
 	AddCredentialAccess(ctx context.Context, arg AddCredentialAccessParams) (uuid.UUID, error)
 	AddEnvironment(ctx context.Context, arg AddEnvironmentParams) (uuid.UUID, error)
 	AddField(ctx context.Context, arg AddFieldParams) (uuid.UUID, error)
+	AddFieldData(ctx context.Context, arg AddFieldDataParams) (uuid.UUID, error)
+	AddFieldValue(ctx context.Context, arg AddFieldValueParams) (uuid.UUID, error)
 	AddFolder(ctx context.Context, arg AddFolderParams) (AddFolderRow, error)
 	AddFolderAccess(ctx context.Context, arg AddFolderAccessParams) error
 	AddGroupMember(ctx context.Context, arg AddGroupMemberParams) error
+	CheckAnyCredentialAccessEntryExists(ctx context.Context, arg CheckAnyCredentialAccessEntryExistsParams) (bool, error)
+	CheckCliUser(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckCredentialAccessEntryExists(ctx context.Context, arg CheckCredentialAccessEntryExistsParams) (bool, error)
 	CheckCredentialExistsForEnv(ctx context.Context, arg CheckCredentialExistsForEnvParams) (bool, error)
 	CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntryExistsParams) (bool, error)
@@ -41,7 +45,10 @@ type Querier interface {
 	EditCredentialAccessForUser(ctx context.Context, arg EditCredentialAccessForUserParams) error
 	EditCredentialAccessForUserWithFolderID(ctx context.Context, arg EditCredentialAccessForUserWithFolderIDParams) error
 	EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error
+	EditEnvFieldValue(ctx context.Context, arg EditEnvFieldValueParams) error
 	EditEnvironmentFieldNameByID(ctx context.Context, arg EditEnvironmentFieldNameByIDParams) (string, error)
+	EditFieldData(ctx context.Context, arg EditFieldDataParams) error
+	EditFieldValue(ctx context.Context, arg EditFieldValueParams) error
 	EditFolder(ctx context.Context, arg EditFolderParams) error
 	EditFolderAccessForGroup(ctx context.Context, arg EditFolderAccessForGroupParams) error
 	EditFolderAccessForUser(ctx context.Context, arg EditFolderAccessForUserParams) error
@@ -72,9 +79,12 @@ type Querier interface {
 	GetCredentialUsersWithDirectAccess(ctx context.Context, credentialID uuid.UUID) ([]GetCredentialUsersWithDirectAccessRow, error)
 	GetCredentialsForSearchByUserID(ctx context.Context, userID uuid.UUID) ([]GetCredentialsForSearchByUserIDRow, error)
 	GetEnvFields(ctx context.Context, envID uuid.UUID) ([]GetEnvFieldsRow, error)
+	GetEnvFieldsForCredential(ctx context.Context, credentialID uuid.UUID) ([]GetEnvFieldsForCredentialRow, error)
+	GetEnvForCredential(ctx context.Context, credentialID uuid.UUID) ([]GetEnvForCredentialRow, error)
 	GetEnvironmentByID(ctx context.Context, arg GetEnvironmentByIDParams) (Environment, error)
 	GetEnvironmentFieldsByName(ctx context.Context, name string) ([]GetEnvironmentFieldsByNameRow, error)
 	GetEnvironmentsForUser(ctx context.Context, createdBy uuid.NullUUID) ([]GetEnvironmentsForUserRow, error)
+	GetFieldValueIDsForFieldIDs(ctx context.Context, arg GetFieldValueIDsForFieldIDsParams) ([]GetFieldValueIDsForFieldIDsRow, error)
 	GetFolderAccessForUser(ctx context.Context, arg GetFolderAccessForUserParams) ([]string, error)
 	GetFolderGroups(ctx context.Context, folderID uuid.UUID) ([]GetFolderGroupsRow, error)
 	GetFolderIDAndTypeWithGroupAccess(ctx context.Context, groupID uuid.NullUUID) ([]GetFolderIDAndTypeWithGroupAccessRow, error)
@@ -91,6 +101,7 @@ type Querier interface {
 	GetUserByPublicKey(ctx context.Context, deviceKey sql.NullString) (uuid.UUID, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
 	GetUserDeviceKey(ctx context.Context, id uuid.UUID) (string, error)
+	GetUserEnvsForCredential(ctx context.Context, arg GetUserEnvsForCredentialParams) ([]uuid.UUID, error)
 	GetUserTempPassword(ctx context.Context, username string) (GetUserTempPasswordRow, error)
 	GetUserType(ctx context.Context, id uuid.UUID) (string, error)
 	GetUsersByCredential(ctx context.Context, credentialID uuid.UUID) ([]GetUsersByCredentialRow, error)

@@ -68,6 +68,7 @@ func RemoveFolder(ctx *gin.Context) {
 	}
 	err = service.RemoveFolder(ctx, folderID, caller)
 	if err != nil {
+		logger.Debugf(err.Error())
 		SendResponse(ctx, http.StatusInternalServerError, nil, "", errors.New("failed to remove folder"))
 		return
 	}

@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS field_values;
+
+DROP TABLE IF EXISTS field_data;
+
+ALTER TABLE folders DROP COLUMN IF EXISTS type ;

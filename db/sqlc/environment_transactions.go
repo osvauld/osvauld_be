@@ -10,11 +10,11 @@ func (store *SQLStore) AddCredentialFieldToEnvTxn(ctx context.Context, args []dt
 	err := store.execTx(ctx, func(q *Queries) error {
 		for _, arg := range args {
 			_, err := q.CreateEnvFields(ctx, CreateEnvFieldsParams{
-				EnvID:         arg.EnvID,
-				ParentFieldID: arg.ParentFieldId,
-				FieldValue:    arg.FieldValue,
-				FieldName:     arg.FieldName,
-				CredentialID:  arg.CredentialID,
+				EnvID:              arg.EnvID,
+				ParentFieldValueID: arg.ParentFieldValueID,
+				FieldValue:         arg.FieldValue,
+				FieldName:          arg.FieldName,
+				CredentialID:       arg.CredentialID,
 			})
 			if err != nil {
 				return err

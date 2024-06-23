@@ -28,7 +28,7 @@ func CreateUser(ctx *gin.Context) {
 		SendResponse(ctx, http.StatusInternalServerError, nil, "invalid user type", err)
 		return
 	}
-	if userType != "admin" {
+	if userType != "admin" && userType != "superadmin" {
 		SendResponse(ctx, http.StatusUnauthorized, nil, "user not authorized", errors.New("user not authorized"))
 		return
 	}

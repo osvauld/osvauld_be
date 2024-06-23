@@ -39,7 +39,7 @@ func AddCredential(ctx *gin.Context, request dto.AddCredentialRequest, caller uu
 		FolderID:             request.FolderID,
 		CredentialType:       request.CredentialType,
 		CreatedBy:            caller,
-		UserFields:           request.UserFields,
+		Fields:               request.Fields,
 		CredentialAccessArgs: credentialAccessRecords,
 		Domain:               request.Domain,
 	}
@@ -63,8 +63,8 @@ func GetCredentialDataByID(ctx *gin.Context, credentialID uuid.UUID, caller uuid
 	}
 
 	fields, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
-		Credentials: []uuid.UUID{credentialID},
-		UserID:      caller,
+		Credentialids: []uuid.UUID{credentialID},
+		UserID:        caller,
 	})
 	if err != nil {
 		return dto.CredentialForUser{}, err
@@ -144,8 +144,8 @@ func GetCredentialsByFolder(ctx *gin.Context, folderID uuid.UUID, userID uuid.UU
 	}
 
 	FieldsData, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
-		Credentials: credentialIDs,
-		UserID:      userID,
+		Credentialids: credentialIDs,
+		UserID:        userID,
 	})
 	if err != nil {
 		return []dto.CredentialForUser{}, err
@@ -196,8 +196,8 @@ func GetCredentialsByIDs(ctx *gin.Context, credentialIDs []uuid.UUID, userID uui
 	}
 
 	FieldsData, err := repository.GetNonSensitiveFieldsForCredentialIDs(ctx, db.GetNonSensitiveFieldsForCredentialIDsParams{
-		Credentials: credentialIDs,
-		UserID:      userID,
+		Credentialids: credentialIDs,
+		UserID:        userID,
 	})
 	if err != nil {
 		return nil, err
@@ -254,15 +254,7 @@ func EditCredential(ctx *gin.Context, credentialID uuid.UUID, request dto.EditCr
 		return err
 	}
 
-	err := repository.EditCredential(ctx, db.EditCredentialTransactionParams{
-		CredentialID:   credentialID,
-		Name:           request.Name,
-		Description:    sql.NullString{String: request.Description, Valid: true},
-		CredentialType: request.CredentialType,
-		UserFields:     request.UserFields,
-		EditedBy:       caller,
-	})
-
+	err := repository.EditCredential(ctx, request, caller)
 	if err != nil {
 		return err
 	}

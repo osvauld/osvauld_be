@@ -15,7 +15,7 @@ type Store interface {
 	CreateGroupAndAddManager(context.Context, dto.GroupDetails) (dto.GroupDetails, error)
 	AddMembersToGroupTransaction(context.Context, AddMembersToGroupTransactionParams) error
 	ShareCredentialsTransaction(context.Context, ShareCredentialTransactionParams) error
-	EditCredentialTransaction(context.Context, EditCredentialTransactionParams) error
+	EditCredentialTransaction(context.Context, dto.EditCredentialRequest, uuid.UUID) error
 	RemoveFolderAccessForUsersTransactions(context.Context, RemoveFolderAccessForUsersParams) error
 	RemoveFolderAccessForGroupsTransactions(context.Context, RemoveFolderAccessForGroupsParams) error
 	EditFolderAccessForUserTransaction(context.Context, EditFolderAccessForUserParams) error

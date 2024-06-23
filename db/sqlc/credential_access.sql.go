@@ -39,6 +39,26 @@ func (q *Queries) AddCredentialAccess(ctx context.Context, arg AddCredentialAcce
 	return id, err
 }
 
+const checkAnyCredentialAccessEntryExists = `-- name: CheckAnyCredentialAccessEntryExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM credential_access
+    WHERE user_id = $1 AND credential_id = $2 
+)
+`
+
+type CheckAnyCredentialAccessEntryExistsParams struct {
+	UserID       uuid.UUID `json:"userId"`
+	CredentialID uuid.UUID `json:"credentialId"`
+}
+
+func (q *Queries) CheckAnyCredentialAccessEntryExists(ctx context.Context, arg CheckAnyCredentialAccessEntryExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkAnyCredentialAccessEntryExists, arg.UserID, arg.CredentialID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkCredentialAccessEntryExists = `-- name: CheckCredentialAccessEntryExists :one
 SELECT EXISTS (
     SELECT 1

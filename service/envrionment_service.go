@@ -47,9 +47,9 @@ func GetEnvironmentFields(ctx *gin.Context, envID uuid.UUID) ([]dto.CredentialEn
 
 	for credentialID, fields := range credentialFieldMap {
 		credentialEnvData = append(credentialEnvData, dto.CredentialEnvFields{
-			CredentialID: credentialID,
+			CredentialID:   credentialID,
 			CredentialName: credentialIDNameMap[credentialID],
-			Fields:       fields,
+			Fields:         fields,
 		})
 	}
 	return credentialEnvData, nil
@@ -93,4 +93,34 @@ func EditEnvFieldName(ctx *gin.Context, payload dto.EditEnvFieldName, caller uui
 	}
 
 	return map[string]string{"fieldName": fieldName}, nil
+}
+
+func GetCredentialEnvFieldsForEditDataSync(ctx *gin.Context, credentialID uuid.UUID, caller uuid.UUID) (map[uuid.UUID][]dto.CredentialEnvFieldsForEditDataSync, error) {
+	// TODO: validation needs to change
+
+	// if err := VerifyEnvironmentAccessForUser(ctx, credentialID, caller); err != nil {
+	// 	return nil, err
+	// }
+
+	dataRows, err := repository.GetEnvFieldsForCredential(ctx, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	fieldIDEnvFieldMap := make(map[uuid.UUID][]dto.CredentialEnvFieldsForEditDataSync)
+	for _, row := range dataRows {
+		fieldIDEnvFieldMap[row.Fieldid] = append(fieldIDEnvFieldMap[row.Fieldid], dto.CredentialEnvFieldsForEditDataSync{
+			EnvID:            row.EnvID,
+			EnvFieldID:       row.Envfieldid,
+			CliUserID:        row.Userid,
+			CliUserPublicKey: row.PublicKey.String,
+		})
+	}
+
+	return fieldIDEnvFieldMap, nil
+
+}
+
+func GetEnvsForCredential(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetEnvForCredentialRow, error) {
+	// TODO: add validations for fetching envs for credential
+	return repository.GetEnvForCredential(ctx, credentialID)
 }

@@ -45,3 +45,11 @@ func EditEnvironmentFieldName(ctx *gin.Context, args db.EditEnvironmentFieldName
 func IsEnvironmentOwner(ctx *gin.Context, args db.IsEnvironmentOwnerParams) (bool, error) {
 	return database.Store.IsEnvironmentOwner(ctx, args)
 }
+
+func GetEnvFieldsForCredential(ctx *gin.Context, credentialID uuid.UUID) ([]db.GetEnvFieldsForCredentialRow, error) {
+	return database.Store.GetEnvFieldsForCredential(ctx, credentialID)
+}
+
+func GetEnvForCredential(ctx *gin.Context, credentialId uuid.UUID) ([]db.GetEnvForCredentialRow, error) {
+	return database.Store.GetEnvForCredential(ctx, credentialId)
+}

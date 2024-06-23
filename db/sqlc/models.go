@@ -45,14 +45,14 @@ type Environment struct {
 }
 
 type EnvironmentField struct {
-	ID            uuid.UUID `json:"id"`
-	FieldName     string    `json:"fieldName"`
-	FieldValue    string    `json:"fieldValue"`
-	ParentFieldID uuid.UUID `json:"parentFieldId"`
-	EnvID         uuid.UUID `json:"envId"`
-	CredentialID  uuid.UUID `json:"credentialId"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
+	ID                 uuid.UUID `json:"id"`
+	FieldName          string    `json:"fieldName"`
+	FieldValue         string    `json:"fieldValue"`
+	ParentFieldValueID uuid.UUID `json:"parentFieldValueId"`
+	EnvID              uuid.UUID `json:"envId"`
+	CredentialID       uuid.UUID `json:"credentialId"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
 }
 
 type Field struct {
@@ -66,6 +66,24 @@ type Field struct {
 	CreatedBy    uuid.NullUUID `json:"createdBy"`
 	UpdatedAt    time.Time     `json:"updatedAt"`
 	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
+}
+
+type FieldDatum struct {
+	ID           uuid.UUID     `json:"id"`
+	FieldName    string        `json:"fieldName"`
+	FieldType    string        `json:"fieldType"`
+	CredentialID uuid.UUID     `json:"credentialId"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	CreatedBy    uuid.NullUUID `json:"createdBy"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	UpdatedBy    uuid.NullUUID `json:"updatedBy"`
+}
+
+type FieldValue struct {
+	ID         uuid.UUID `json:"id"`
+	FieldID    uuid.UUID `json:"fieldId"`
+	FieldValue string    `json:"fieldValue"`
+	UserID     uuid.UUID `json:"userId"`
 }
 
 type Folder struct {

@@ -95,4 +95,7 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/environment/:name", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentByName)
 
 	route.POST("/environment/edit-field-name", middleware.JWTAuthMiddleware(), controllers.EditEnvironmentFieldName)
+	route.GET("/environments/:credentialId/fields", middleware.JWTAuthMiddleware(), controllers.GetCredentialEnvFieldsForEditDataSync)
+	route.GET("/environments/:credentialId", middleware.JWTAuthMiddleware(), controllers.GetEnvsForCredential)
+
 }

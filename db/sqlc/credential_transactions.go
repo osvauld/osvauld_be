@@ -14,7 +14,7 @@ type AddCredentialTransactionParams struct {
 	FolderID             uuid.UUID
 	CredentialType       string
 	CreatedBy            uuid.UUID
-	UserFields           []dto.UserFields
+	Fields               []dto.Fields
 	CredentialAccessArgs []AddCredentialAccessParams
 	Domain               string
 }
@@ -41,15 +41,23 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 		}
 
 		// Create field records
-		for _, userFields := range args.UserFields {
-			for _, field := range userFields.Fields {
-				_, err = q.AddField(ctx, AddFieldParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					FieldType:    field.FieldType,
-					CredentialID: credentialID,
-					UserID:       userFields.UserID,
-					CreatedBy:    uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
+		for _, field := range args.Fields {
+
+			fieldID, err := q.AddFieldData(ctx, AddFieldDataParams{
+				FieldName:    field.FieldName,
+				FieldType:    field.FieldType,
+				CredentialID: credentialID,
+				CreatedBy:    uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
+			})
+			if err != nil {
+				return err
+			}
+
+			for _, userField := range field.FieldValues {
+				_, err := q.AddFieldValue(ctx, AddFieldValueParams{
+					FieldID:    fieldID,
+					FieldValue: userField.FieldValue,
+					UserID:     userField.UserID,
 				})
 				if err != nil {
 					return err
@@ -72,16 +80,7 @@ func (store *SQLStore) AddCredentialTransaction(ctx context.Context, args AddCre
 	return credentialID, err
 }
 
-type EditCredentialTransactionParams struct {
-	CredentialID   uuid.UUID
-	Name           string
-	Description    sql.NullString
-	CredentialType string
-	UserFields     []dto.UserFields
-	EditedBy       uuid.UUID
-}
-
-func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditCredentialTransactionParams) error {
+func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args dto.EditCredentialRequest, editedBy uuid.UUID) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 
@@ -90,36 +89,90 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args EditC
 		editCredentialDetailsParams := EditCredentialDetailsParams{
 			ID:             args.CredentialID,
 			Name:           args.Name,
-			Description:    args.Description,
+			Description:    sql.NullString{String: args.Description, Valid: true},
 			CredentialType: args.CredentialType,
-			UpdatedBy:      uuid.NullUUID{UUID: args.EditedBy, Valid: true},
+			UpdatedBy:      uuid.NullUUID{UUID: editedBy, Valid: true},
 		}
 		err = q.EditCredentialDetails(ctx, editCredentialDetailsParams)
 		if err != nil {
 			return err
 		}
 
-		// Delete existing field records
-		err = q.DeleteCredentialFields(ctx, args.CredentialID)
-		if err != nil {
-			return err
-		}
+		// Edit User Fields
+		for _, field := range args.EditedUserFields {
 
-		// Create field records
-		for _, userFields := range args.UserFields {
-			for _, field := range userFields.Fields {
-				_, err = q.AddField(ctx, AddFieldParams{
-					FieldName:    field.FieldName,
-					FieldValue:   field.FieldValue,
-					CredentialID: args.CredentialID,
-					UserID:       userFields.UserID,
-					FieldType:    field.FieldType,
-					CreatedBy:    uuid.NullUUID{UUID: args.EditedBy, Valid: true},
+			// Edit field data
+			err = q.EditFieldData(ctx, EditFieldDataParams{
+				ID:        field.FieldID,
+				FieldName: field.FieldName,
+				FieldType: field.FieldType,
+				UpdatedBy: uuid.NullUUID{UUID: editedBy, Valid: true},
+			})
+			if err != nil {
+				return err
+			}
+
+			for _, userValue := range field.FieldValues {
+				err = q.EditFieldValue(ctx, EditFieldValueParams{
+					FieldValue: userValue.FieldValue,
+					UserID:     userValue.UserID,
+					FieldID:    field.FieldID,
 				})
 				if err != nil {
 					return err
 				}
 			}
+		}
+
+		// Edit Env Fields
+		for _, field := range args.EditedEnvFields {
+			err = q.EditEnvFieldValue(ctx, EditEnvFieldValueParams{
+				FieldValue: field.FieldValue,
+				ID:         field.EnvFieldID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Add new fields
+		for _, field := range args.NewFields {
+
+			// Add field data
+			fieldID, err := q.AddFieldData(ctx, AddFieldDataParams{
+				FieldName:    field.FieldName,
+				FieldType:    field.FieldType,
+				CredentialID: args.CredentialID,
+				CreatedBy:    uuid.NullUUID{UUID: editedBy, Valid: true},
+			})
+			if err != nil {
+				return err
+			}
+
+			for _, userField := range field.FieldValues {
+				fieldValueID, err := q.AddFieldValue(ctx, AddFieldValueParams{
+					FieldID:    fieldID,
+					FieldValue: userField.FieldValue,
+					UserID:     userField.UserID,
+				})
+				if err != nil {
+					return err
+				}
+
+				for _, envField := range userField.EnvFieldValues {
+					_, err = q.CreateEnvFields(ctx, CreateEnvFieldsParams{
+						CredentialID:       args.CredentialID,
+						FieldValue:         envField.FieldValue,
+						FieldName:          field.FieldName,
+						ParentFieldValueID: fieldValueID,
+						EnvID:              envField.EnvID,
+					})
+					if err != nil {
+						return err
+					}
+				}
+			}
+
 		}
 
 		return nil

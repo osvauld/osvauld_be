@@ -7,12 +7,12 @@ import (
 )
 
 type AddCredentialRequest struct {
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
-	FolderID       uuid.UUID    `json:"folderId"`
-	CredentialType string       `json:"credentialType"`
-	UserFields     []UserFields `json:"userFields"`
-	Domain         string       `json:"domain"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	FolderID       uuid.UUID `json:"folderId"`
+	CredentialType string    `json:"credentialType"`
+	Fields         []Fields  `json:"fields"`
+	Domain         string    `json:"domain"`
 }
 
 type CredentialForUser struct {
@@ -71,11 +71,36 @@ type ShareFolderWithGroupsRequest struct {
 	GroupData []CredentialsForGroupsPayload `json:"groupData" binding:"required"`
 }
 
+type EditedEnvField struct {
+	EnvFieldID uuid.UUID `json:"envFieldId"`
+	FieldValue string    `json:"fieldValue"`
+}
+
+type NewEnvField struct {
+	EnvID      uuid.UUID `json:"envId"`
+	FieldValue string    `json:"fieldValue"`
+}
+
+type UserFieldValueWithCliUserValues struct {
+	UserID         uuid.UUID     `json:"userId"`
+	FieldValue     string        `json:"fieldValue"`
+	EnvFieldValues []NewEnvField `json:"envFieldValues"`
+}
+
+type NewFieldsWithEnvValues struct {
+	FieldName   string                            `json:"fieldName"`
+	FieldType   string                            `json:"fieldType"`
+	FieldValues []UserFieldValueWithCliUserValues `jNewson:"fieldValues"`
+}
+
 type EditCredentialRequest struct {
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
-	CredentialType string       `json:"credentialType"`
-	UserFields     []UserFields `json:"userFields"`
+	CredentialID     uuid.UUID                `json:"credentialId"`
+	Name             string                   `json:"name"`
+	Description      string                   `json:"description"`
+	CredentialType   string                   `json:"credentialType"`
+	EditedUserFields []Fields                 `json:"editedUserFields"`
+	EditedEnvFields  []EditedEnvField         `json:"editedEnvFields"`
+	NewFields        []NewFieldsWithEnvValues `json:"newFields"`
 }
 
 type EditCredentialDetailsRequest struct {

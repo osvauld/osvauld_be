@@ -1,1 +1,0 @@
-ALTER TABLE folders DROP COLUMN IF EXISTS type ;

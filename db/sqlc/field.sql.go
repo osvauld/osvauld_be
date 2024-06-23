@@ -63,24 +63,22 @@ func (q *Queries) CheckFieldEntryExists(ctx context.Context, arg CheckFieldEntry
 }
 
 const deleteAccessRemovedFields = `-- name: DeleteAccessRemovedFields :exec
-DELETE FROM fields
-WHERE
-    EXISTS (
-        -- Select fields rows that don't have a corresponding entry in credential_access
-        SELECT 1
-        FROM fields f
-        WHERE
-            NOT EXISTS (
-                -- Look for a matching entry in credential_access
-                SELECT 1
-                FROM credential_access ca
-                WHERE
-                    ca.credential_id = f.credential_id
-                    AND ca.user_id = f.user_id
-            )
-            AND f.credential_id = fields.credential_id
-            AND f.user_id = fields.user_id
-    )
+DELETE FROM field_values fv
+WHERE EXISTS (
+    -- Select fields_values rows that don't have a corresponding entry in credential_access
+    SELECT 1
+    FROM field_data fd
+    WHERE
+        fd.id = fv.field_id
+        AND NOT EXISTS (
+            -- Look for a matching entry in credential_access
+            SELECT 1
+            FROM credential_access ca
+            WHERE
+                ca.credential_id = fd.credential_id
+                AND ca.user_id = fv.user_id
+        )
+)
 `
 
 func (q *Queries) DeleteAccessRemovedFields(ctx context.Context) error {
@@ -98,17 +96,58 @@ func (q *Queries) DeleteCredentialFields(ctx context.Context, credentialID uuid.
 	return err
 }
 
+const editFieldData = `-- name: EditFieldData :exec
+UPDATE field_data
+SET field_name = $1, field_type = $2, updated_by = $3, updated_at = NOW()
+WHERE id = $4
+`
+
+type EditFieldDataParams struct {
+	FieldName string        `json:"fieldName"`
+	FieldType string        `json:"fieldType"`
+	UpdatedBy uuid.NullUUID `json:"updatedBy"`
+	ID        uuid.UUID     `json:"id"`
+}
+
+func (q *Queries) EditFieldData(ctx context.Context, arg EditFieldDataParams) error {
+	_, err := q.db.ExecContext(ctx, editFieldData,
+		arg.FieldName,
+		arg.FieldType,
+		arg.UpdatedBy,
+		arg.ID,
+	)
+	return err
+}
+
+const editFieldValue = `-- name: EditFieldValue :exec
+UPDATE field_values
+SET field_value = $1
+WHERE field_id = $2 AND user_id = $3
+`
+
+type EditFieldValueParams struct {
+	FieldValue string    `json:"fieldValue"`
+	FieldID    uuid.UUID `json:"fieldId"`
+	UserID     uuid.UUID `json:"userId"`
+}
+
+func (q *Queries) EditFieldValue(ctx context.Context, arg EditFieldValueParams) error {
+	_, err := q.db.ExecContext(ctx, editFieldValue, arg.FieldValue, arg.FieldID, arg.UserID)
+	return err
+}
+
 const getAllFieldsForCredentialIDs = `-- name: GetAllFieldsForCredentialIDs :many
 SELECT
-    f.id,
-    f.credential_id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type,
+    fd.credential_id
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-f.user_id = $1 
-AND f.credential_id = ANY($2::UUID[])
+fv.user_id = $1 
+AND fd.credential_id = ANY($2::UUID[])
 `
 
 type GetAllFieldsForCredentialIDsParams struct {
@@ -118,10 +157,10 @@ type GetAllFieldsForCredentialIDsParams struct {
 
 type GetAllFieldsForCredentialIDsRow struct {
 	ID           uuid.UUID `json:"id"`
-	CredentialID uuid.UUID `json:"credentialId"`
 	FieldName    string    `json:"fieldName"`
 	FieldValue   string    `json:"fieldValue"`
 	FieldType    string    `json:"fieldType"`
+	CredentialID uuid.UUID `json:"credentialId"`
 }
 
 func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFieldsForCredentialIDsParams) ([]GetAllFieldsForCredentialIDsRow, error) {
@@ -135,10 +174,10 @@ func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFi
 		var i GetAllFieldsForCredentialIDsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.CredentialID,
 			&i.FieldName,
 			&i.FieldValue,
 			&i.FieldType,
+			&i.CredentialID,
 		); err != nil {
 			return nil, err
 		}
@@ -155,21 +194,24 @@ func (q *Queries) GetAllFieldsForCredentialIDs(ctx context.Context, arg GetAllFi
 
 const getNonSensitiveFieldsForCredentialIDs = `-- name: GetNonSensitiveFieldsForCredentialIDs :many
 SELECT
-    f.id,
-    f.credential_id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.credential_id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-(field_type = 'meta' OR field_type = 'additional')
-AND f.user_id = $1 
-AND f.credential_id = ANY($2::UUID[])
+fd.field_type != 'sensitive'
+AND fd.field_type != 'totp'
+AND fv.user_id = $1 
+AND fd.credential_id = ANY($2::UUID[])
+
 `
 
 type GetNonSensitiveFieldsForCredentialIDsParams struct {
-	UserID      uuid.UUID   `json:"userId"`
-	Credentials []uuid.UUID `json:"credentials"`
+	UserID        uuid.UUID   `json:"userId"`
+	Credentialids []uuid.UUID `json:"credentialids"`
 }
 
 type GetNonSensitiveFieldsForCredentialIDsRow struct {
@@ -181,7 +223,7 @@ type GetNonSensitiveFieldsForCredentialIDsRow struct {
 }
 
 func (q *Queries) GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentials))
+	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentialids))
 	if err != nil {
 		return nil, err
 	}
@@ -211,16 +253,17 @@ func (q *Queries) GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg
 
 const getSensitiveFields = `-- name: GetSensitiveFields :many
 SELECT
-    f.id,
-    f.field_name,
-    f.field_value,
-    f.field_type
-FROM fields as f
+    fd.id,
+    fd.field_name,
+    fv.field_value,
+    fd.field_type
+FROM field_data as fd
+JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-(field_type = 'sensitive' OR field_type = 'totp')
-AND f.credential_id = $1
-AND f.user_id = $2
-`
+(fd.field_type = 'sensitive' OR fd.field_type = 'totp')
+AND fd.credential_id = $1
+AND fv.user_id = $2
+.
 
 type GetSensitiveFieldsParams struct {
 	CredentialID uuid.UUID `json:"credentialId"`

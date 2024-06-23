@@ -23,3 +23,16 @@ type CredentialFields struct {
 	CredentialID uuid.UUID `json:"credentialId"`
 	Fields       []Field   `json:"fields"`
 }
+
+type Fields struct {
+	FieldID     uuid.UUID    `json:"fieldId"`
+	FieldName   string       `json:"fieldName"`
+	FieldType   string       `json:"fieldType"`
+	FieldValues []FieldValue `json:"fieldValues"`
+}
+
+
+type FieldValue struct {
+	UserID     uuid.UUID `json:"userId"`
+	FieldValue string    `json:"fieldValue"`
+}
