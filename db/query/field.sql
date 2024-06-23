@@ -22,9 +22,9 @@ FROM field_data as fd
 JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
 (field_type = 'meta' OR field_type = 'additional')
-AND f.user_id = $1 
+AND fv.user_id = $1 
 AND fd.field_type != 'totp'
-AND f.credential_id = ANY(@credentials::UUID[]);
+AND fd.credential_id = ANY(@credentials::UUID[]);
 
 
 -- name: GetAllFieldsForCredentialIDs :many
