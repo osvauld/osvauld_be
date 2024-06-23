@@ -21,10 +21,10 @@ SELECT
 FROM field_data as fd
 JOIN field_values as fv ON fd.id = fv.field_id
 WHERE
-fd.field_type != 'sensitive'
+(field_type = 'meta' OR field_type = 'additional')
+AND f.user_id = $1 
 AND fd.field_type != 'totp'
-AND fv.user_id = $1 
-AND fd.credential_id = ANY(@credentialIDs::UUID[]);
+AND f.credential_id = ANY(@credentials::UUID[]);
 
 
 -- name: GetAllFieldsForCredentialIDs :many
@@ -60,6 +60,7 @@ WHERE
 (fd.field_type = 'sensitive' OR fd.field_type = 'totp')
 AND fd.credential_id = $1
 AND fv.user_id = $2;
+
 
 -- name: RemoveCredentialFieldsForUsers :exec
 DELETE FROM fields WHERE credential_id = $1 AND user_id = ANY(@user_ids::UUID[]);

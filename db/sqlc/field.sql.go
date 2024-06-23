@@ -206,6 +206,7 @@ fd.field_type != 'sensitive'
 AND fd.field_type != 'totp'
 AND fv.user_id = $1 
 AND fd.credential_id = ANY($2::UUID[])
+
 `
 
 type GetNonSensitiveFieldsForCredentialIDsParams struct {
@@ -262,7 +263,7 @@ WHERE
 (fd.field_type = 'sensitive' OR fd.field_type = 'totp')
 AND fd.credential_id = $1
 AND fv.user_id = $2
-`
+.
 
 type GetSensitiveFieldsParams struct {
 	CredentialID uuid.UUID `json:"credentialId"`
