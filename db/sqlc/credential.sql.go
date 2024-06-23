@@ -191,11 +191,14 @@ func (q *Queries) GetAccessTypeAndGroupsByCredentialId(ctx context.Context, cred
 
 const getAllUrlsForUser = `-- name: GetAllUrlsForUser :many
 SELECT DISTINCT
-    field_value as value, credential_id as "credentialId"
+    fv.field_value AS value,
+    fd.credential_id AS "credentialId"
 FROM 
-    fields
+    field_values fv
+JOIN 
+    field_data fd ON fv.field_id = fd.id
 WHERE 
-    user_id = $1 AND field_name = 'Domain'
+    fv.user_id = $1 AND fd.field_name = 'Domain'
 `
 
 type GetAllUrlsForUserRow struct {

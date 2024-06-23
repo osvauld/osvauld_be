@@ -24,7 +24,7 @@ WHERE
 (field_type = 'meta' OR field_type = 'additional')
 AND fv.user_id = $1 
 AND fd.field_type != 'totp'
-AND fd.credential_id = ANY(@credentials::UUID[]);
+AND fd.credential_id = ANY(@credentialids::UUID[]);
 
 
 -- name: GetAllFieldsForCredentialIDs :many

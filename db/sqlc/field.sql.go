@@ -209,8 +209,8 @@ AND fd.credential_id = ANY($2::UUID[])
 `
 
 type GetNonSensitiveFieldsForCredentialIDsParams struct {
-	UserID      uuid.UUID   `json:"userId"`
-	Credentials []uuid.UUID `json:"credentials"`
+	UserID        uuid.UUID   `json:"userId"`
+	Credentialids []uuid.UUID `json:"credentialids"`
 }
 
 type GetNonSensitiveFieldsForCredentialIDsRow struct {
@@ -222,7 +222,7 @@ type GetNonSensitiveFieldsForCredentialIDsRow struct {
 }
 
 func (q *Queries) GetNonSensitiveFieldsForCredentialIDs(ctx context.Context, arg GetNonSensitiveFieldsForCredentialIDsParams) ([]GetNonSensitiveFieldsForCredentialIDsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentials))
+	rows, err := q.db.QueryContext(ctx, getNonSensitiveFieldsForCredentialIDs, arg.UserID, pq.Array(arg.Credentialids))
 	if err != nil {
 		return nil, err
 	}
