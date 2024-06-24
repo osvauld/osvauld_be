@@ -104,7 +104,8 @@ SET
     description = $3,
     credential_type = $4,
     updated_at = NOW(),
-    updated_by = $5
+    updated_by = $5,
+    domain = $6
 WHERE
     id = $1;
 

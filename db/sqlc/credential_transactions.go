@@ -92,6 +92,7 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args dto.E
 			Description:    sql.NullString{String: args.Description, Valid: true},
 			CredentialType: args.CredentialType,
 			UpdatedBy:      uuid.NullUUID{UUID: editedBy, Valid: true},
+			Domain:         sql.NullString{String: args.Domain, Valid: true},
 		}
 		err = q.EditCredentialDetails(ctx, editCredentialDetailsParams)
 		if err != nil {

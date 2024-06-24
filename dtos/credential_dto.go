@@ -101,6 +101,7 @@ type EditCredentialRequest struct {
 	EditedUserFields []Fields                 `json:"editedUserFields"`
 	EditedEnvFields  []EditedEnvField         `json:"editedEnvFields"`
 	NewFields        []NewFieldsWithEnvValues `json:"newFields"`
+	Domain           string                   `json:"domain"`
 }
 
 type EditCredentialDetailsRequest struct {

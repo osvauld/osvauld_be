@@ -53,7 +53,8 @@ SET
     description = $3,
     credential_type = $4,
     updated_at = NOW(),
-    updated_by = $5
+    updated_by = $5,
+    domain = $6
 WHERE
     id = $1
 `
@@ -64,6 +65,7 @@ type EditCredentialDetailsParams struct {
 	Description    sql.NullString `json:"description"`
 	CredentialType string         `json:"credentialType"`
 	UpdatedBy      uuid.NullUUID  `json:"updatedBy"`
+	Domain         sql.NullString `json:"domain"`
 }
 
 func (q *Queries) EditCredentialDetails(ctx context.Context, arg EditCredentialDetailsParams) error {
@@ -73,6 +75,7 @@ func (q *Queries) EditCredentialDetails(ctx context.Context, arg EditCredentialD
 		arg.Description,
 		arg.CredentialType,
 		arg.UpdatedBy,
+		arg.Domain,
 	)
 	return err
 }
