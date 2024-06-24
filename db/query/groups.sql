@@ -88,7 +88,7 @@ WHERE g.id NOT IN (
 SELECT u.id, u.username, u.name, COALESCE(u.encryption_key,'') as "publicKey"
 FROM users u
 LEFT JOIN group_list gl ON (u.id = gl.user_id AND gl.grouping_id = $1)
-WHERE gl.grouping_id IS NULL  and u.status = 'active';
+WHERE gl.grouping_id IS NULL  and u.status = 'active' and u.type != 'cli';
 
 -- name: RemoveUserFromGroupList :exec
 DELETE FROM group_list
