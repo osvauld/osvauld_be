@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const addFieldData = `-- name: AddFieldData :one
@@ -36,4 +37,13 @@ func (q *Queries) AddFieldData(ctx context.Context, arg AddFieldDataParams) (uui
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const deleteFields = `-- name: DeleteFields :exec
+DELETE FROM field_data WHERE id = ANY($1::UUID[])
+`
+
+func (q *Queries) DeleteFields(ctx context.Context, fieldIds []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteFields, pq.Array(fieldIds))
+	return err
 }

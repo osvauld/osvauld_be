@@ -101,6 +101,7 @@ type EditCredentialRequest struct {
 	EditedUserFields []Fields                 `json:"editedUserFields"`
 	EditedEnvFields  []EditedEnvField         `json:"editedEnvFields"`
 	NewFields        []NewFieldsWithEnvValues `json:"newFields"`
+	DeletedFields    []uuid.UUID              `json:"deletedFields"`
 	Domain           string                   `json:"domain"`
 }
 

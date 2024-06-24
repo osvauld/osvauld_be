@@ -176,6 +176,11 @@ func (store *SQLStore) EditCredentialTransaction(ctx context.Context, args dto.E
 
 		}
 
+		err = q.DeleteFields(ctx, args.DeletedFields)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 
