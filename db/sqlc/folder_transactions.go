@@ -41,7 +41,7 @@ func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateF
 			UserID:     args.CreatedBy,
 			AccessType: "manager",
 		})
-		if args.SuperUser != nil {
+		if args.SuperUser != nil && args.CreatedBy != *args.SuperUser {
 			err = q.AddFolderAccess(ctx, AddFolderAccessParams{
 				FolderID:   folderData.ID,
 				UserID:     *args.SuperUser,
