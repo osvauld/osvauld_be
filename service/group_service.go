@@ -128,7 +128,7 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 	userFieldRecords := []db.AddFieldValueParams{}
 	for _, credential := range payload.Credentials {
 
-		fieldDataExists, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+		fieldDataExists, err := repository.CheckAnyCredentialAccessEntryExists(ctx, db.CheckAnyCredentialAccessEntryExistsParams{
 			UserID:       payload.MemberID,
 			CredentialID: credential.CredentialID,
 		})
@@ -152,6 +152,17 @@ func AddMemberToGroup(ctx *gin.Context, payload dto.AddMemberToGroupRequest, cal
 
 	credentialAccessRecords := []db.AddCredentialAccessParams{}
 	for _, credentialDetails := range credentialIDAndTypeWithGroupAccess {
+		accessEntry, err := repository.CheckCredentialAccessEntryExists(ctx, db.CheckCredentialAccessEntryExistsParams{
+			UserID:       payload.MemberID,
+			CredentialID: credentialDetails.CredentialID,
+			GroupID:      uuid.NullUUID{UUID: payload.GroupID, Valid: true},
+		})
+		if err != nil {
+			return err
+		}
+		if accessEntry {
+			continue
+		}
 		credentialAccessRecord := db.AddCredentialAccessParams{
 			CredentialID: credentialDetails.CredentialID,
 			UserID:       payload.MemberID,
