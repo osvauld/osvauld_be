@@ -16,6 +16,7 @@ var CredentialAccessLevels = map[string]int{
 	"manager":      2,
 }
 
+// TODO: makesure no access removal happens for superuser
 func GetCredentialAccessTypeForUser(ctx *gin.Context, credentialID uuid.UUID, userID uuid.UUID) (string, error) {
 
 	accessRows, err := repository.GetCredentialAccessTypeForUser(ctx, db.GetCredentialAccessTypeForUserParams{
@@ -238,9 +239,17 @@ func GetCredentialUsersWithDirectAccess(ctx *gin.Context, credentialID uuid.UUID
 	if err != nil {
 		return nil, err
 	}
+	superUser, err := repository.GetSuperUser(ctx)
+	if err != nil {
+		return nil, err
+
+	}
 
 	userAccessObjs := []dto.CredentialUserWithAccess{}
 	for _, access := range userAccess {
+		if access.UserID == superUser.ID {
+			continue
+		}
 		userAccessObjs = append(userAccessObjs, dto.CredentialUserWithAccess{
 			UserID:       access.UserID,
 			Name:         access.Name,

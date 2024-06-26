@@ -42,15 +42,16 @@ WHERE
     AND C.folder_id = $1
     AND A.user_id = $2;
 
-
 -- name: GetAllUrlsForUser :many
 SELECT DISTINCT
-    field_value as value, credential_id as "credentialId"
+    fv.field_value AS value,
+    fd.credential_id AS "credentialId"
 FROM 
-    fields
+    field_values fv
+JOIN 
+    field_data fd ON fv.field_id = fd.id
 WHERE 
-    user_id = $1 AND field_name = 'Domain';
-
+    fv.user_id = $1 AND fd.field_name = 'Domain';
 
 -- name: GetCredentialDetailsByIDs :many
 SELECT
@@ -103,17 +104,19 @@ SET
     description = $3,
     credential_type = $4,
     updated_at = NOW(),
-    updated_by = $5
+    updated_by = $5,
+    domain = $6
 WHERE
     id = $1;
 
 -- name: GetCredentialsForSearchByUserID :many
-SELECT 
+SELECT DISTINCT
     c.id as "credentialId", 
     c.name, 
     COALESCE(c.description, '') AS description,
     COALESCE(c.domain, '') AS domain,
-    c.folder_id, 
+    c.folder_id,
+    COALESCE(f.type, '' ) AS "folderType",
     COALESCE(f.name, '') AS folder_name
 FROM 
     credentials c

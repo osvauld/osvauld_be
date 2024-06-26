@@ -194,3 +194,11 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 func GetUserDeviceKey(ctx *gin.Context, userID uuid.UUID) (string, error) {
 	return repository.GetUserDeviceKey(ctx, userID)
 }
+
+func CreateCLIUser(ctx *gin.Context, user dto.CreateCLIUser, caller uuid.UUID) (uuid.UUID, error) {
+	return repository.CreateCLIUser(ctx, user, caller)
+}
+
+func GetCliUsers(ctx *gin.Context, caller uuid.UUID) ([]db.GetCliUsersRow, error) {
+	return repository.GetCliUsers(ctx, caller)
+}

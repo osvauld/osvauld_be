@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/google/uuid"
+
 type CreateUser struct {
 	UserName     string `json:"username" binding:"required"`
 	Name         string `json:"name" binding:"required"`
@@ -36,4 +38,21 @@ type VerifyChallenge struct {
 type CheckUserAvailability struct {
 	UserName string `json:"username" binding:"required"`
 	Name     string `json:"name" binding:"required"`
+}
+
+type CreateCLIUser struct {
+	Name          string `json:"name" binding:"required"`
+	DeviceKey     string `json:"deviceKey" binding:"required"`
+	EncryptionKey string `json:"encryptionKey" binding:"required"`
+}
+
+type AddEnvironment struct {
+	Name    string    `json:"name" binding:"required"`
+	CliUser uuid.UUID `json:"cliUser" binding:"required"`
+}
+
+type EditEnvFieldName struct {
+	FieldID       uuid.UUID `json:"fieldID" binding:"required"`
+	FieldName     string    `json:"fieldName" binding:"required"`
+	EnvironmentID uuid.UUID `json:"environmentID" binding:"required"`
 }

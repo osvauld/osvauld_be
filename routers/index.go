@@ -18,9 +18,14 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 	route.POST("/user/", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.CreateUser)
 	route.GET("/user", middleware.JWTAuthMiddleware(), controllers.GetUser)
+	route.POST("user/environment", middleware.JWTAuthMiddleware(), controllers.AddEnvironment)
+	route.POST("/user/cli-user", middleware.JWTAuthMiddleware(), controllers.CreateCLIUser)
+	route.GET("/user/cli-users", middleware.JWTAuthMiddleware(), controllers.GetCliUsers)
 	route.POST("/user/temp-login", controllers.TempLogin)
 	route.POST("/user/name-availability", middleware.JWTAuthMiddleware(), controllers.CheckUserAvailability)
 	route.DELETE("/user/:id", controllers.RemoveUserFromAll)
+	route.GET("/user/environments", middleware.JWTAuthMiddleware(), controllers.GetEnvironments)
+	route.GET("/user/environment/:id", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentFields)
 	route.POST("/user/register", controllers.Register)
 	route.POST("/user/challenge", controllers.GetChallenge)
 	route.POST("/user/verify", controllers.VerifyChallenge)
@@ -28,10 +33,11 @@ func RegisterRoutes(route *gin.Engine) {
 	route.GET("/users/all", middleware.JWTAuthMiddleware(), controllers.GetAllUsers)
 	route.POST("/folder/", middleware.JWTAuthMiddleware(), controllers.CreateFolder)
 	route.GET("/folder/:id/credential", middleware.JWTAuthMiddleware(), controllers.GetCredentialsByFolder)
-	route.GET("/folders/", middleware.JWTAuthMiddleware(), controllers.FetchAccessibleFoldersForUser)
+	route.GET("/folders", middleware.JWTAuthMiddleware(), controllers.FetchAccessibleFoldersForUser)
 
 	route.POST("/share-credentials/users", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithUsers)
 	route.POST("/share-credentials/groups", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithGroups)
+	route.POST("/share-credentials/environment", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareCredentialsWithEnvironment)
 	route.POST("share-folder/users", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareFolderWithUsers)
 	route.POST("share-folder/groups", middleware.JWTAuthMiddleware(), middleware.SignatureMiddleware(), controllers.ShareFolderWithGroups)
 
@@ -85,5 +91,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 	route.PUT("/folder/:id", middleware.JWTAuthMiddleware(), controllers.EditFolder)
 	route.PUT("/group/:id", middleware.JWTAuthMiddleware(), controllers.EditGroup)
+
+	route.GET("/environment/:name", middleware.JWTAuthMiddleware(), controllers.GetEnvironmentByName)
+
+	route.POST("/environment/edit-field-name", middleware.JWTAuthMiddleware(), controllers.EditEnvironmentFieldName)
+	route.GET("/environments/:credentialId/fields", middleware.JWTAuthMiddleware(), controllers.GetCredentialEnvFieldsForEditDataSync)
+	route.GET("/environments/:credentialId", middleware.JWTAuthMiddleware(), controllers.GetEnvsForCredential)
 
 }

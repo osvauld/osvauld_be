@@ -2,6 +2,7 @@ package repository
 
 import (
 	db "osvauld/db/sqlc"
+	dto "osvauld/dtos"
 	"osvauld/infra/database"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +21,8 @@ func FetchCredentialDetailsForUserByFolderId(ctx *gin.Context, args db.FetchCred
 	return database.Store.FetchCredentialDetailsForUserByFolderId(ctx, args)
 }
 
-func EditCredential(ctx *gin.Context, args db.EditCredentialTransactionParams) error {
-	return database.Store.EditCredentialTransaction(ctx, args)
+func EditCredential(ctx *gin.Context, args dto.EditCredentialRequest, caller uuid.UUID) error {
+	return database.Store.EditCredentialTransaction(ctx, args, caller)
 }
 
 func EditCredentialDetails(ctx *gin.Context, args db.EditCredentialDetailsParams) error {

@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	db "osvauld/db/sqlc"
+	dto "osvauld/dtos"
 	"osvauld/infra/database"
 
 	"github.com/gin-gonic/gin"
@@ -76,4 +77,30 @@ func GetAllUsers(ctx *gin.Context) ([]db.GetAllUsersRow, error) {
 
 func GetUserDeviceKey(ctx *gin.Context, userID uuid.UUID) (string, error) {
 	return database.Store.GetUserDeviceKey(ctx, userID)
+}
+
+func CreateCLIUser(ctx *gin.Context, userDetails dto.CreateCLIUser, caller uuid.UUID) (uuid.UUID, error) {
+	return database.Store.CreateCliUser(ctx, db.CreateCliUserParams{
+		Name:          userDetails.Name,
+		DeviceKey:     sql.NullString{String: userDetails.DeviceKey, Valid: true},
+		EncryptionKey: sql.NullString{String: userDetails.EncryptionKey, Valid: true},
+		Username:      userDetails.Name,
+		CreatedBy:     uuid.NullUUID{UUID: caller, Valid: true},
+		TempPassword:  userDetails.Name,
+		Type:          "cli",
+		Status:        "active",
+		SignedUp:      true,
+	})
+}
+
+func GetEnvironments(ctx *gin.Context, userID uuid.UUID) ([]db.GetEnvironmentsForUserRow, error) {
+	return database.Store.GetEnvironmentsForUser(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+}
+
+func GetCliUsers(ctx *gin.Context, userID uuid.UUID) ([]db.GetCliUsersRow, error) {
+	return database.Store.GetCliUsers(ctx, uuid.NullUUID{UUID: userID, Valid: true})
+}
+
+func GetSuperUser(ctx *gin.Context) (db.User, error) {
+	return database.Store.GetSuperUser(ctx)
 }

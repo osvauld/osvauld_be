@@ -21,7 +21,7 @@ WHERE username = $2;
 
 
 -- name: GetAllSignedUpUsers :many
-SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true;
+SELECT id,name,username, COALESCE(encryption_key, '') AS "publicKey" FROM users where signed_up = true and type !='cli';
 
 
 -- name: GetUserByPublicKey :one
@@ -82,3 +82,42 @@ SELECT id,name,username, status, type FROM users ;
 
 -- name: GetUserDeviceKey :one
 SELECT COALESCE(device_key,'') as "deviceKey" FROM users WHERE id = $1;
+
+
+-- name: CreateCliUser :one
+INSERT INTO users (
+
+    username, 
+    name, 
+    encryption_key, 
+    device_key, 
+    temp_password, 
+    registration_challenge, 
+    signed_up, 
+    type, 
+    status, 
+    created_by
+) VALUES (
+    $1, 
+    $2, 
+    $3, 
+    $4, 
+    $5, 
+    $6, 
+    $7, 
+    $8, 
+    $9, 
+    $10 
+)
+RETURNING id;
+
+
+-- name: GetCliUsers :many
+SELECT id, username FROM users WHERE type = 'cli' and created_by = $1;
+
+
+-- name: GetSuperUser :one
+select * from users where type = 'superadmin' limit 1;
+
+-- name: CheckCliUser :one
+SELECT EXISTS(SELECT 1 FROM users WHERE id = $1 AND type = 'cli');

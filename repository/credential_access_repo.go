@@ -16,6 +16,10 @@ func CheckCredentialAccessEntryExists(ctx *gin.Context, args db.CheckCredentialA
 	return database.Store.CheckCredentialAccessEntryExists(ctx, args)
 }
 
+func CheckAnyCredentialAccessEntryExists(ctx *gin.Context, args db.CheckAnyCredentialAccessEntryExistsParams) (bool, error) {
+	return database.Store.CheckAnyCredentialAccessEntryExists(ctx, args)
+}
+
 func GetCredentialAccessTypeForUser(ctx *gin.Context, args db.GetCredentialAccessTypeForUserParams) ([]db.GetCredentialAccessTypeForUserRow, error) {
 	return database.Store.GetCredentialAccessTypeForUser(ctx, args)
 }

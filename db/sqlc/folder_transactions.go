@@ -12,6 +12,7 @@ type CreateFolderTransactionParams struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedBy   uuid.UUID      `json:"createdBy"`
+	SuperUser   *uuid.UUID     `json:"superUser"`
 }
 
 func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateFolderTransactionParams) (dto.FolderDetails, error) {
@@ -24,6 +25,10 @@ func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateF
 			Name:        args.Name,
 			Description: args.Description,
 			CreatedBy:   uuid.NullUUID{UUID: args.CreatedBy, Valid: true},
+			Type:        "shared",
+		}
+		if args.SuperUser == nil {
+			addFolderParams.Type = "private"
 		}
 		folderData, err := q.AddFolder(ctx, addFolderParams)
 		if err != nil {
@@ -36,6 +41,13 @@ func (store *SQLStore) CreateFolderTransaction(ctx context.Context, args CreateF
 			UserID:     args.CreatedBy,
 			AccessType: "manager",
 		})
+		if args.SuperUser != nil && args.CreatedBy != *args.SuperUser {
+			err = q.AddFolderAccess(ctx, AddFolderAccessParams{
+				FolderID:   folderData.ID,
+				UserID:     *args.SuperUser,
+				AccessType: "manager",
+			})
+		}
 		if err != nil {
 			return err
 		}

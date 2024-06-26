@@ -7,8 +7,9 @@ import (
 )
 
 type CreateFolderRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	SharedFolder bool   `json:"sharedFolder"`
 }
 
 type FolderDetails struct {

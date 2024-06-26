@@ -28,7 +28,7 @@ func CreateUser(ctx *gin.Context) {
 		SendResponse(ctx, http.StatusInternalServerError, nil, "invalid user type", err)
 		return
 	}
-	if userType != "admin" {
+	if userType != "admin" && userType != "superadmin" {
 		SendResponse(ctx, http.StatusUnauthorized, nil, "user not authorized", errors.New("user not authorized"))
 		return
 	}
@@ -91,6 +91,7 @@ func Register(ctx *gin.Context) {
 
 func GetChallenge(ctx *gin.Context) {
 	var req dto.CreateChallenge
+	logger.Infof("%v", req)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
 		return
@@ -166,7 +167,7 @@ func CreateFirstAdmin(ctx *gin.Context) {
 		return
 	}
 
-	req.Type = "admin"
+	req.Type = "superadmin"
 	// Validate the requestBody using the validator
 	if err := validate.Struct(req); err != nil {
 		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
@@ -235,4 +236,38 @@ func GetAllUsers(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, http.StatusOK, users, "fetched users", nil)
+}
+
+func CreateCLIUser(ctx *gin.Context) {
+	var req dto.CreateCLIUser
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", err)
+		return
+	}
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	user, err := service.CreateCLIUser(ctx, req, caller)
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusCreated, user, "created user", nil)
+}
+
+func GetCliUsers(ctx *gin.Context) {
+	caller, err := utils.FetchUserIDFromCtx(ctx)
+	if err != nil {
+		SendResponse(ctx, http.StatusBadRequest, nil, "", errors.New("invalid user id"))
+		return
+	}
+	cliUsers, err := service.GetCliUsers(ctx, caller)
+
+	if err != nil {
+		SendResponse(ctx, http.StatusInternalServerError, nil, "", err)
+		return
+	}
+	SendResponse(ctx, http.StatusCreated, cliUsers, "fetched cli users user", nil)
 }

@@ -68,3 +68,12 @@ type UserNotAdminOfGroupError struct {
 func (e *UserNotAdminOfGroupError) Error() string {
 	return fmt.Sprintf("user %s is not a admin of group %s", e.UserID, e.GroupID)
 }
+
+type UserDoesNotHaveEnvironmentAccess struct {
+	UserID        uuid.UUID
+	EnvironmentID uuid.UUID
+}
+
+func (e *UserDoesNotHaveEnvironmentAccess) Error() string {
+	return fmt.Sprintf("user %s does not have access to env %s", e.UserID, e.EnvironmentID)
+}
