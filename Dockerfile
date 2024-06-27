@@ -15,13 +15,13 @@ RUN mv migrate /usr/local/bin/migrate
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
-COPY app.env .
+
 RUN mkdir db
 COPY --from=builder /app/db/migration ./db/migration
 
 COPY --from=builder /app/run_migration.sh ./run_migration.sh
 RUN chmod +x ./run_migration.sh
 
-EXPOSE 8080
+EXPOSE 8000
 ENTRYPOINT ["sh", "./run_migration.sh"]
 CMD ["./main"]
