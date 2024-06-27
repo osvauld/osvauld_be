@@ -7,9 +7,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    image: osvauld_be:compose
+    image: osvauld/backend:latest
     ports:
-      - 80:8080
+      - 80:8000
     environment:
       - MASTER_DB_NAME=osvauld
       - MASTER_DB_USER=postgres
@@ -17,7 +17,7 @@ services:
       - MASTER_DB_HOST=db
       - MASTER_SSL_MODE=disable
       - AUTH_SECRET=asdfjklasdjfklasdjfklasdjfkasljfkasdqweras
-
+      - MASTER_DB_PORT=5432
   db:
     container_name: osvauld-db
     image: postgres:16-alpine
